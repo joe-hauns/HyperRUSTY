@@ -48,8 +48,8 @@ pub struct SMVEnv<'ctx> {
     ctx: &'ctx Context,
     // The Variable type already has the name. Do we require the name there?
     variables: HashMap<&'ctx str, Variable>,
-    predicates: HashMap<&'ctx str, Box<dyn Fn(&'ctx Context, &EnvState<'ctx>) -> Bool<'ctx>>>,
-    transitions: HashMap<&'ctx str, Vec<(Box<dyn Fn(&'ctx Context, &EnvState<'ctx>) -> ReturnType<'ctx>>, Box<dyn Fn(&'ctx Context, &EnvState<'ctx>) -> ReturnType<'ctx>>)>>,
+    pub predicates: HashMap<&'ctx str, Box<dyn Fn(&SMVEnv<'ctx>, &'ctx Context, &EnvState<'ctx>) -> Bool<'ctx>>>,
+    transitions: HashMap<&'ctx str, Vec<(Box<dyn Fn(&SMVEnv<'ctx>, &'ctx Context, &EnvState<'ctx>) -> ReturnType<'ctx>>, Box<dyn Fn(&SMVEnv<'ctx>, &'ctx Context, &EnvState<'ctx>) -> ReturnType<'ctx>>)>>,
 }
 
 impl<'ctx> SMVEnv<'ctx> {
@@ -70,11 +70,11 @@ impl<'ctx> SMVEnv<'ctx> {
         self.variables.insert(name, new_variable);
     }
 
-    pub fn register_predicate(&mut self, name: &'ctx str, f: impl Fn(&'ctx Context, &EnvState<'ctx>) -> Bool<'ctx> + 'static) {
+    pub fn register_predicate(&mut self, name: &'ctx str, f: impl Fn(&SMVEnv<'ctx>, &'ctx Context, &EnvState<'ctx>) -> Bool<'ctx> + 'static) {
         self.predicates.insert(name, Box::new(f));
     }
 
-    pub fn register_transition(&mut self, name: &'ctx str, condition: impl Fn(&'ctx Context, &EnvState<'ctx>) -> ReturnType<'ctx> + 'static, update: impl Fn(&'ctx Context, &EnvState<'ctx>) -> ReturnType<'ctx> + 'static) {
+    pub fn register_transition(&mut self, name: &'ctx str, condition: impl Fn(&SMVEnv<'ctx>, &'ctx Context, &EnvState<'ctx>) -> ReturnType<'ctx> + 'static, update: impl Fn(&SMVEnv<'ctx>, &'ctx Context, &EnvState<'ctx>) -> ReturnType<'ctx> + 'static) {
         // If variable name does not exist, panic!
         let _panic_only = self.variables.get(name).expect("undefined variable name {name}");
 
@@ -307,7 +307,7 @@ impl<'ctx> SMVEnv<'ctx> {
                     for (cond, update) in transitions_for_name.into_iter().rev() {
                         // Handle Non-deterministic updates
                         // A non-deterministic block is just a disjunction block
-                        let update_body = match update(self.ctx, curr_state) {
+                        let update_body = match update(self, self.ctx, curr_state) {
                             ReturnType::Bool(v) => {
                                 let next_var = bool_var!(next_state, name);
                                 // Check the length of the vector
@@ -381,7 +381,7 @@ impl<'ctx> SMVEnv<'ctx> {
                             }
                         };
                         // cond always returns a bool value or a Dynamic Ast which we turn into a Bool
-                        let result = match cond(self.ctx, curr_state) {
+                        let result = match cond(self, self.ctx, curr_state) {
                             ReturnType::Bool(v) => {
                                 Bool::from_bool(self.ctx, v[0])
                             }

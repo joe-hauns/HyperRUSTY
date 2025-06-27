@@ -23,6 +23,13 @@ macro_rules! bv_var {
 }
 
 #[macro_export]
+macro_rules! predicate {
+    ($name:expr, $env:expr, $ctx:expr, $state:expr) => {
+        $env.predicates[$name]($env, $ctx, $state)
+    };
+}
+
+#[macro_export]
 macro_rules! to_dyn {
     ($node:expr) => {
         Dynamic::from_ast(&$node)

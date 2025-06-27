@@ -33,43 +33,52 @@ fn main() {
 
     // Transitions
     env.register_transition("high",
-    |_ctx, _state| exact!(Node, int_var!(_state, "pc")._eq(&Int::from_i64(_ctx, 1))),
-    |_ctx, _state| choice!(Bool, true, false)
+    |_env, _ctx, _state| exact!(Node, int_var!(_state, "pc")._eq(&Int::from_i64(_ctx, 1))),
+    |_env, _ctx, _state| choice!(Bool, true, false)
     );
 
     env.register_transition("low",
-    |_ctx, _state| exact!(Node, int_var!(_state, "pc")._eq(&Int::from_i64(_ctx, 2))),
-    |_ctx, _state| exact!(Bool, false)
+    |_env, _ctx, _state| exact!(Node, int_var!(_state, "pc")._eq(&Int::from_i64(_ctx, 2))),
+    |_env, _ctx, _state| exact!(Bool, false)
     );
     env.register_transition("low",
-    |_ctx, _state| exact!(Node, int_var!(_state, "pc")._eq(&Int::from_i64(_ctx, 4))),
-    |_ctx, _state| exact!(Bool, true)
+    |_env, _ctx, _state| exact!(Node, int_var!(_state, "pc")._eq(&Int::from_i64(_ctx, 4))),
+    |_env, _ctx, _state| exact!(Bool, true)
     );
 
     env.register_transition("pc",
-    |_ctx, _state| exact!(Node, int_var!(_state, "pc")._eq(&Int::from_i64(_ctx, 1))),
-    |_ctx, _state| exact!(Int, 2)
+    |_env, _ctx, _state| exact!(Node, int_var!(_state, "pc")._eq(&Int::from_i64(_ctx, 1))),
+    |_env, _ctx, _state| exact!(Int, 2)
     );
     env.register_transition("pc",
-    |_ctx, _state| exact!(Node, int_var!(_state, "pc")._eq(&Int::from_i64(_ctx, 2))),
-    |_ctx, _state| exact!(Int, 3)
+    |_env, _ctx, _state| exact!(Node, int_var!(_state, "pc")._eq(&Int::from_i64(_ctx, 2))),
+    |_env, _ctx, _state| exact!(Int, 3)
     );
     env.register_transition("pc",
-    |_ctx, _state| exact!(Node, bool_var!(_state, "high") & int_var!(_state, "pc")._eq(&Int::from_i64(_ctx, 3))),
-    |_ctx, _state| exact!(Int, 4)
+    |_env, _ctx, _state| exact!(Node, bool_var!(_state, "high") & int_var!(_state, "pc")._eq(&Int::from_i64(_ctx, 3))),
+    |_env, _ctx, _state| exact!(Int, 4)
     );
     env.register_transition("pc",
-    |_ctx, _state| exact!(Node, !bool_var!(_state, "high") & int_var!(_state, "pc")._eq(&Int::from_i64(_ctx, 3))),
-    |_ctx, _state| exact!(Int, 5)
+    |_env, _ctx, _state| exact!(Node, !bool_var!(_state, "high") & int_var!(_state, "pc")._eq(&Int::from_i64(_ctx, 3))),
+    |_env, _ctx, _state| exact!(Int, 5)
     );
     env.register_transition("pc",
-    |_ctx, _state| exact!(Node, int_var!(_state, "pc")._eq(&Int::from_i64(_ctx, 5))),
-    |_ctx, _state| exact!(Int, 5)
+    |_env, _ctx, _state| exact!(Node, int_var!(_state, "pc")._eq(&Int::from_i64(_ctx, 5))),
+    |_env, _ctx, _state| exact!(Int, 5)
     );
 
     env.register_transition("halt",
-    |_ctx, _state| exact!(Node, int_var!(_state, "pc")._eq(&Int::from_i64(_ctx, 5))),
-    |_ctx, _state| exact!(Bool, true)
+    |_env, _ctx, _state| exact!(Node, int_var!(_state, "pc")._eq(&Int::from_i64(_ctx, 5))),
+    |_env, _ctx, _state| exact!(Bool, true)
+    );
+
+    env.register_transition("halt",
+    |_env, _ctx, _state| exact!(Node, predicate!("pc_3", _env, _ctx, _state)),
+    |_env, _ctx, _state| exact!(Bool, true)
+    );
+
+    env.register_predicate("pc_3",
+    |_env, _ctx, _state| int_var!(_state, "pc")._eq(&Int::from_i64(_ctx, 5))
     );
 
     let BOUND: usize = 5;
