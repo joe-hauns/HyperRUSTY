@@ -30,3 +30,29 @@ pub fn create_path_mapping(formula: &AstNode, k: usize) -> HashMap<&str, usize> 
         _ => mapping
     }
 }
+
+pub fn inner_ltl(formula: &AstNode) -> &AstNode {
+    match formula {
+        AstNode::HAQuantifier{identifier: _, form} |
+        AstNode::HEQuantifier{identifier: _, form} |
+        AstNode::AAQuantifier{identifier: _, form} |
+        AstNode::AEQuantifier{identifier: _, form} => {
+            inner_ltl(form)
+        }
+        _ => formula
+    }
+}
+
+pub fn is_hltl(formula: &AstNode) -> bool {
+    match formula {
+        AstNode::HAQuantifier{identifier: _, form} |
+        AstNode::HEQuantifier{identifier: _, form} => is_hltl(form),
+        AstNode::AAQuantifier{identifier: _, form} |
+        AstNode::AEQuantifier{identifier: _, form} => false,
+        _ => true
+    }
+}
+
+pub fn is_ahltl(formula: &AstNode) -> bool {
+    !is_hltl(formula)
+}

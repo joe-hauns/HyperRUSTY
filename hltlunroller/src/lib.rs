@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 use ir::*;
-use enchelper::{Semantics, create_path_mapping};
+use enchelper::{Semantics, create_path_mapping, inner_ltl};
 use z3::{Context,
     ast::{
         Ast, Dynamic, Bool,
@@ -36,16 +36,6 @@ pub fn unroll_hltl_formula<'ctx>(ctx: &'ctx Context, formula: &AstNode, paths: &
     // Remove all quantifiers.
     let ltl = inner_ltl(formula);
     unroll_ltl_formula(ctx, ltl, paths, &mapping, 0, sem).unwrap_bool()
-}
-
-fn inner_ltl(formula: &AstNode) -> &AstNode {
-    match formula {
-        AstNode::HAQuantifier{identifier: _, form} |
-        AstNode::HEQuantifier{identifier: _, form} => {
-            inner_ltl(form)
-        }
-        _ => formula
-    }
 }
 
 fn is_halted<'ctx>(ctx: &'ctx Context, paths: &Vec<&Vec<EnvState<'ctx>>>) -> Bool<'ctx> {

@@ -21,7 +21,7 @@ fn generate_inner_encoding<'ctx>(ctx: &'ctx Context, formula: &AstNode, path_enc
     }
 }
 
-fn generate_quantified_encoding<'ctx>(ctx: &'ctx Context, formula: &AstNode, paths: &Vec<&Vec<EnvState<'ctx>>>, path_encodings: &Vec<&Bool<'ctx>>, mapping: &HashMap<&str, usize>, inner: Bool<'ctx>) -> Bool<'ctx> {
+fn generate_hltl_quantified_encoding<'ctx>(ctx: &'ctx Context, formula: &AstNode, paths: &Vec<&Vec<EnvState<'ctx>>>, path_encodings: &Vec<&Bool<'ctx>>, mapping: &HashMap<&str, usize>, inner: Bool<'ctx>) -> Bool<'ctx> {
     match formula {
         AstNode::HAQuantifier {form, identifier} => {
             let idx = mapping.get(identifier as &str).unwrap();
@@ -37,7 +37,7 @@ fn generate_quantified_encoding<'ctx>(ctx: &'ctx Context, formula: &AstNode, pat
                 ctx,
                 ast_slice,
                 &[],
-                &generate_quantified_encoding(ctx, form, paths, path_encodings, mapping, inner)
+                &generate_hltl_quantified_encoding(ctx, form, paths, path_encodings, mapping, inner)
             )
         }
         AstNode::HEQuantifier {form, identifier} => {
@@ -54,7 +54,7 @@ fn generate_quantified_encoding<'ctx>(ctx: &'ctx Context, formula: &AstNode, pat
                 ctx,
                 ast_slice,
                 &[],
-                &generate_quantified_encoding(ctx, form, paths, path_encodings, mapping, inner)
+                &generate_hltl_quantified_encoding(ctx, form, paths, path_encodings, mapping, inner)
             )
         }
         _ => inner
@@ -69,6 +69,6 @@ pub fn generate_hltl_encoding<'ctx>(ctx: &'ctx Context, formula: &AstNode, paths
     // Get the mapping
     let mapping = create_path_mapping(formula, 0);
     // Build the complete encoding
-    generate_quantified_encoding(ctx, formula, paths, path_encodings, &mapping, inner.clone())
+    generate_hltl_quantified_encoding(ctx, formula, paths, path_encodings, &mapping, inner.clone())
 
 }
