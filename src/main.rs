@@ -2,8 +2,8 @@
 use std::fs;
 use ir::*;
 use parser::*;
-use encoder::*;
 use enchelper::*;
+use encoder::*;
 use z3::{
     ast::{
         Ast, Dynamic, Int, Bool,
@@ -11,6 +11,10 @@ use z3::{
     },
     Config, Context, Solver, SatResult,
 };
+
+// fn test1<'ctx>(env: &SMVEnv<'ctx>) -> Bool<'ctx> {
+//     Bool::new_const(env.ctx, "test")
+// }
 
 fn main() {
 
@@ -81,31 +85,30 @@ fn main() {
     |_env, _ctx, _state| int_var!(_state, "pc")._eq(&Int::from_i64(_ctx, 5))
     );
 
-    let BOUND: usize = 5;
+    let K: usize = 5;
+    let M: usize = 5;
 
-    let (states_a, sym_path_a) = env.generate_symbolic_path(BOUND, Some("A"));
-    let (states_b, sym_path_b) = env.generate_symbolic_path(BOUND, Some("B"));
+    let (states_a, sym_path_a) = env.generate_symbolic_path(K, Some("A"));
+    let (states_b, sym_path_b) = env.generate_symbolic_path(K, Some("B"));
 
-    let form = generate_hltl_encoding(&ctx, &ast_node, &vec![&states_a, &states_b], &vec![&sym_path_a, &sym_path_b], &Semantics::Pes);
+    let form = get_z3_encoding(&env, &ast_node, K, Some(M), Semantics::Hpes);
 
-    // println!("{:?}", sym_path_a);
+    // let form = generate_hltl_encoding(&ctx, &ast_node, vec![states_a, states_b], vec![sym_path_a, sym_path_b], Semantics::Pes);
 
-    // println!("{:?}", ast_node);
+    // println!("{:?}", form);
 
-    println!("{:?}", form);
+    // solver.assert(&form);
 
-    solver.assert(&form);
-
-    match solver.check() {
-        SatResult::Sat => {
-            println!("result: sat.");
-        },
-        SatResult::Unsat => {
-            println!("result: unsat.");
-        },
-        SatResult::Unknown => {
-            println!("result: unknown.");
-        }
-    };
+    // match solver.check() {
+    //     SatResult::Sat => {
+    //         println!("result: sat.");
+    //     },
+    //     SatResult::Unsat => {
+    //         println!("result: unsat.");
+    //     },
+    //     SatResult::Unknown => {
+    //         println!("result: unknown.");
+    //     }
+    // };
 
 }

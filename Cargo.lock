@@ -115,7 +115,6 @@ dependencies = [
 name = "enchelper"
 version = "0.1.0"
 dependencies = [
- "ir",
  "parser",
  "z3",
 ]
@@ -162,6 +161,8 @@ dependencies = [
 name = "ir"
 version = "0.1.0"
 dependencies = [
+ "enchelper",
+ "parser",
  "z3",
 ]
 

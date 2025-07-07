@@ -25,7 +25,7 @@ impl<'ctx> UnrollingReturn<'ctx> {
     }
 }
 
-pub fn unroll_hltl_formula<'ctx>(ctx: &'ctx Context, formula: &AstNode, paths: &Vec<&Vec<EnvState<'ctx>>>, sem: &Semantics) -> Bool<'ctx> {
+pub fn unroll_hltl_formula<'ctx>(ctx: &'ctx Context, formula: &AstNode, paths: &Vec<Vec<EnvState<'ctx>>>, sem: &Semantics) -> Bool<'ctx> {
     // Create a mapping from path quantifiers to the relevent state
     let mapping = create_path_mapping(formula, 0);
     // Sanity check
@@ -38,7 +38,7 @@ pub fn unroll_hltl_formula<'ctx>(ctx: &'ctx Context, formula: &AstNode, paths: &
     unroll_ltl_formula(ctx, ltl, paths, &mapping, 0, sem).unwrap_bool()
 }
 
-fn is_halted<'ctx>(ctx: &'ctx Context, paths: &Vec<&Vec<EnvState<'ctx>>>) -> Bool<'ctx> {
+fn is_halted<'ctx>(ctx: &'ctx Context, paths: &Vec<Vec<EnvState<'ctx>>>) -> Bool<'ctx> {
     // Checks if `halted` holds on the last state of unrolling
     // Get the unrolling bound (states are not empty)
     let bound = paths[0].len() - 1;
@@ -59,7 +59,7 @@ fn is_halted<'ctx>(ctx: &'ctx Context, paths: &Vec<&Vec<EnvState<'ctx>>>) -> Boo
     Bool::and(ctx, &refs)
 }
 
-fn unroll_ltl_formula<'ctx>(ctx: &'ctx Context, formula: &AstNode, paths: &Vec<&Vec<EnvState<'ctx>>>, mapping: &HashMap<&str, usize>, k: usize, sem: &Semantics) -> UnrollingReturn<'ctx> {
+fn unroll_ltl_formula<'ctx>(ctx: &'ctx Context, formula: &AstNode, paths: &Vec<Vec<EnvState<'ctx>>>, mapping: &HashMap<&str, usize>, k: usize, sem: &Semantics) -> UnrollingReturn<'ctx> {
     let bound = paths[0].len() - 1;
     match formula {
         AstNode::UnOp {operator, operand} => {

@@ -45,11 +45,11 @@ pub type EnvState<'ctx> = HashMap<&'ctx str, Dynamic<'ctx>>;
 
 // #[derive(Debug, Clone)]
 pub struct SMVEnv<'ctx> {
-    ctx: &'ctx Context,
+    pub ctx: &'ctx Context,
     // The Variable type already has the name. Do we require the name there?
-    variables: HashMap<&'ctx str, Variable>,
+    pub variables: HashMap<&'ctx str, Variable>,
     pub predicates: HashMap<&'ctx str, Box<dyn Fn(&SMVEnv<'ctx>, &'ctx Context, &EnvState<'ctx>) -> Bool<'ctx>>>,
-    transitions: HashMap<&'ctx str, Vec<(Box<dyn Fn(&SMVEnv<'ctx>, &'ctx Context, &EnvState<'ctx>) -> ReturnType<'ctx>>, Box<dyn Fn(&SMVEnv<'ctx>, &'ctx Context, &EnvState<'ctx>) -> ReturnType<'ctx>>)>>,
+    pub transitions: HashMap<&'ctx str, Vec<(Box<dyn Fn(&SMVEnv<'ctx>, &'ctx Context, &EnvState<'ctx>) -> ReturnType<'ctx>>, Box<dyn Fn(&SMVEnv<'ctx>, &'ctx Context, &EnvState<'ctx>) -> ReturnType<'ctx>>)>>,
 }
 
 impl<'ctx> SMVEnv<'ctx> {
