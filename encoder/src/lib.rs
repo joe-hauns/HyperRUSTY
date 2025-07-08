@@ -116,21 +116,6 @@ pub fn get_z3_encoding<'env, 'ctx>(env: &'env SMVEnv<'ctx>, formula: &'ctx AstNo
             m,
             sem,
         );
-
-        println!("{:?}", formula);
-        println!("#################################");
-        let inner = inner_ltl(formula);
-        println!("{:?}", inner);
-        println!("#################################");
-        println!("{:?}", ahltl_obj.shared_semantics(inner, 0));
-        println!("#################################");
-        let b1 = Bool::new_const(env.ctx, "b1");
-        let a1 = Bool::from_bool(env.ctx, false);
-        let b2 = Bool::new_const(env.ctx, "b2");
-        let a2 = Bool::from_bool(env.ctx, true);
-        let t  = Bool::from_bool(env.ctx, a1 == a2);
-        println!("{:?}", t);
-
         Bool::new_const(env.ctx, "test")
     }
 }

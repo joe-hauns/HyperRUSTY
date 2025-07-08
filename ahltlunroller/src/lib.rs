@@ -274,6 +274,88 @@ impl<'env, 'ctx> AHLTLObject<'env, 'ctx> {
         lhs | rhs
     }
 
+    fn enc(& self) -> Bool<'ctx> {
+        // First, get the inner-ltl formula
+        let inner = inner_ltl(self.formula);
+
+        // Structure-based construction of the inner encoding
+        if is_E(self.formula) {
+            let mut lhs_constraints = Vec::with_capacity(self.m + 1);
+            for j in 0..=self.m {
+                lhs_constraints.push(self.moves(j, None));
+            }
+            let refs: Vec<&Bool> = lhs_constraints.iter().collect();
+            let lhs = Bool::and(self.env.ctx, &refs);
+            return lhs & self.shared_semantics(inner, 0);
+        
+        }else if is_A(self.formula) {
+            let mut lhs_constraints = Vec::with_capacity(self.m + 1);
+            for j in 0..=self.m {
+                lhs_constraints.push(self.moves(j, None));
+            }
+            let refs: Vec<&Bool> = lhs_constraints.iter().collect();
+            let lhs = Bool::and(self.env.ctx, &refs);
+            return Bool::implies(&lhs, &self.shared_semantics(inner, 0));
+        
+        }else if is_AE(self.formula) {
+            let trajs_A = get_forall_trajs(self.formula);
+            let trajs_E = get_exists_trajs(self.formula);
+            
+            let mut lhs_const = Vec::with_capacity(self.m + 1);
+            for j in 0..=self.m {
+                lhs_const.push(self.moves(j, Some(&trajs_A)));
+            }
+            let lhs_refs: Vec<&Bool> = lhs_const.iter().collect();
+            let lhs = Bool::and(self.env.ctx, &lhs_refs);
+
+            let mut rhs_const = Vec::with_capacity(self.m + 2);
+            for j in 0..=self.m {
+                rhs_const.push(
+                    Bool::implies(
+                        &self.halted(j, Some(&trajs_A)),
+                        &self.moves(j, Some(&trajs_E))
+                    )
+                );
+            }
+            rhs_const.push(self.shared_semantics(inner, 0));
+            let rhs_refs: Vec<&Bool> = rhs_const.iter().collect();
+            let rhs = Bool::and(self.env.ctx, &rhs_refs);
+            Bool::implies(&lhs, &rhs)
+            
+        }else if is_EA(self.formula) {
+            let trajs_A = get_forall_trajs(self.formula);
+            let trajs_E = get_exists_trajs(self.formula);
+            
+            let mut lhs_const = Vec::with_capacity(self.m + 1);
+            for j in 0..=self.m {
+                lhs_const.push(self.moves(j, Some(&trajs_E)));
+            }
+            let lhs_refs: Vec<&Bool> = lhs_const.iter().collect();
+            let lhs = Bool::and(self.env.ctx, &lhs_refs);
+
+            let mut rhs_const = Vec::with_capacity(self.m + 1);
+            for j in 0..=self.m {
+                rhs_const.push(
+                    Bool::implies(
+                        &self.halted(j, Some(&trajs_E)),
+                        &self.moves(j, Some(&trajs_A))
+                    )
+                );
+            }
+            let rhs_refs: Vec<&Bool> = rhs_const.iter().collect();
+            let rhs_imp = Bool::and(self.env.ctx, &rhs_refs);
+            let rhs = Bool::implies(&rhs_imp, &self.shared_semantics(inner, 0));
+            lhs & rhs
+
+        }else {
+            panic!("Invalid trajectory quantifier types. Check you formula.");
+        }
+    }
+
+    fn build_inner(& self) -> Bool<'ctx> {
+        self.pos() & self.enc()
+    }
+
     pub fn shared_semantics(& self, formula: &AstNode, j: usize) -> Bool<'ctx> {
         match formula {
             AstNode::Constant {value} => {
