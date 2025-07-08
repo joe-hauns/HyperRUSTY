@@ -21,7 +21,6 @@ use parser::*;
 pub fn get_z3_encoding<'env, 'ctx>(env: &'env SMVEnv<'ctx>, formula: &'ctx AstNode, k: usize, m: Option<usize>, sem: Semantics) -> Bool<'env> {
     // First, extract path names from the formula
     let path_names = get_path_identifiers(formula);
-
     // detect the type of formula
     if is_hltl(formula) {
         // Next, get the corresponding states and path encoding for each name
@@ -101,6 +100,10 @@ pub fn get_z3_encoding<'env, 'ctx>(env: &'env SMVEnv<'ctx>, formula: &'ctx AstNo
         }
 
         let ahltl_obj = AHLTLObject::new(
+            env,
+            formula,
+            path_names,
+            traj_names,
             mapping,
             positions,
             trajectories,
@@ -109,6 +112,9 @@ pub fn get_z3_encoding<'env, 'ctx>(env: &'env SMVEnv<'ctx>, formula: &'ctx AstNo
             m,
             sem,
         );
+
+        // println!("{:?}", ahltl_obj.not_halt_pi_tau("A", "t", 5, 2));
+        println!("{:?}", is_EA(formula));
 
         Bool::new_const(env.ctx, "test")
     }
@@ -184,6 +190,14 @@ fn generate_hltl_encoding<'ctx>(ctx: &'ctx Context, formula: &AstNode, paths: Ve
 
 /****************************
 *
-*   HLTL Encoding Functions
+*   AHLTL Encoding Functions
 *
 ****************************/
+
+fn generate_ahltl_encoding<'ctx>(env: &'ctx SMVEnv<'ctx>, formula: &AstNode, ahltl_enc: AHLTLObject, paths: Vec<Vec<EnvState<'ctx>>>) -> Bool<'ctx> {
+    test1(env)
+}
+
+fn test1<'ctx>(env: &'ctx SMVEnv<'ctx>) -> Bool<'ctx> {
+    Bool::new_const(env.ctx, "test")
+}

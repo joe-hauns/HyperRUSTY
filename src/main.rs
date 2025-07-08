@@ -77,11 +77,11 @@ fn main() {
     );
 
     env.register_transition("halt",
-    |_env, _ctx, _state| exact!(Node, predicate!("pc_3", _env, _ctx, _state)),
+    |_env, _ctx, _state| exact!(Node, predicate!("halt", _env, _ctx, _state)),
     |_env, _ctx, _state| exact!(Bool, true)
     );
 
-    env.register_predicate("pc_3",
+    env.register_predicate("halt",
     |_env, _ctx, _state| int_var!(_state, "pc")._eq(&Int::from_i64(_ctx, 5))
     );
 

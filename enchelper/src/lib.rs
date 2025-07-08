@@ -96,3 +96,119 @@ pub fn get_traj_identifiers(formula: &AstNode) -> Vec<&str> {
         _ => Vec::<&str>::new()
     }
 }
+
+// Returns existential trajectories in order
+pub fn get_exists_trajs(formula: &AstNode) -> Vec<&str> {
+    match formula {
+        AstNode::AEQuantifier{identifier, form} => {
+            // Recursively find inner paths.
+            let mut exists_list = get_exists_trajs(form);
+            // The result is reversed, so we reverse it again
+            exists_list.reverse();
+            // Update the list with the current identifier
+            exists_list.push(identifier);
+            // Reverse the result
+            exists_list.reverse();
+            // Return the result
+            exists_list
+        }
+        AstNode::HAQuantifier{identifier:_, form} |
+        AstNode::HEQuantifier{identifier:_, form} |
+        AstNode::AAQuantifier{identifier:_, form} => get_exists_trajs(form),
+        _ => Vec::<&str>::new()
+    }
+}
+
+// Returns universal trajectories in order
+pub fn get_forall_trajs(formula: &AstNode) -> Vec<&str> {
+    match formula {
+        AstNode::AAQuantifier{identifier, form} => {
+            // Recursively find inner paths.
+            let mut forall_list = get_forall_trajs(form);
+            // The result is reversed, so we reverse it again
+            forall_list.reverse();
+            // Update the list with the current identifier
+            forall_list.push(identifier);
+            // Reverse the result
+            forall_list.reverse();
+            // Return the result
+            forall_list
+        }
+        AstNode::HAQuantifier{identifier:_, form} |
+        AstNode::HEQuantifier{identifier:_, form} |
+        AstNode::AEQuantifier{identifier:_, form} => get_forall_trajs(form),
+        _ => Vec::<&str>::new()
+    }
+}
+
+// Checks whether the formula has only existential trajectory quantifiers
+pub fn is_E(formula: &AstNode) -> bool {
+    match formula {
+        AstNode::AAQuantifier{identifier:_, form:_} => false,
+        AstNode::HAQuantifier{identifier:_, form} |
+        AstNode::HEQuantifier{identifier:_, form} |
+        AstNode::AEQuantifier{identifier:_, form} => is_E(form),
+        _ => true
+    }
+}
+
+// Checks whether the formula has only universal trajectory quantifiers
+pub fn is_A(formula: &AstNode) -> bool {
+    match formula {
+        AstNode::AEQuantifier{identifier:_, form:_} => false,
+        AstNode::HAQuantifier{identifier:_, form} |
+        AstNode::HEQuantifier{identifier:_, form} |
+        AstNode::AAQuantifier{identifier:_, form} => is_A(form),
+        _ => true
+    }
+}
+
+// Checks whether the formula's trajectory quantifiers are AE
+// There needs to be more than 1 quantifiers
+pub fn is_AE(formula: &AstNode) -> bool {
+    // If the formula consists of only one quantifier, reject
+    if is_A(formula) | is_E(formula) {
+        return false;
+    }
+    check_AE_rec(formula)
+}
+
+fn check_AE_rec(formula: &AstNode) -> bool {
+    match formula {
+        AstNode::AEQuantifier{identifier:_, form} => {
+            match &**form {
+                AstNode::AAQuantifier{identifier:_, form:_} => false,
+                _ => check_AE_rec(form),
+            }
+        },
+        AstNode::HAQuantifier{identifier:_, form} |
+        AstNode::HEQuantifier{identifier:_, form} |
+        AstNode::AAQuantifier{identifier:_, form} => check_AE_rec(form),
+        _ => true
+    }
+}
+
+// Checks whether the formula's trajectory quantifiers are EA
+// There needs to be more than 1 quantifiers
+pub fn is_EA(formula: &AstNode) -> bool {
+    // If the formula consists of only one quantifier, reject
+    if is_A(formula) | is_E(formula) {
+        return false;
+    }
+    check_EA_rec(formula)
+}
+
+fn check_EA_rec(formula: &AstNode) -> bool {
+    match formula {
+        AstNode::AAQuantifier{identifier:_, form} => {
+            match &**form {
+                AstNode::AEQuantifier{identifier:_, form:_} => false,
+                _ => check_EA_rec(form),
+            }
+        },
+        AstNode::HAQuantifier{identifier:_, form} |
+        AstNode::HEQuantifier{identifier:_, form} |
+        AstNode::AEQuantifier{identifier:_, form} => check_EA_rec(form),
+        _ => true
+    }
+}
