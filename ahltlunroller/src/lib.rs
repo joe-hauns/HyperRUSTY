@@ -274,11 +274,192 @@ impl<'env, 'ctx> AHLTLObject<'env, 'ctx> {
         lhs | rhs
     }
 
-    // fn shared_semantics(& self, form: &AstNode, j: usize) -> Bool<'ctx> {
-    //     match formula {
+    pub fn shared_semantics(& self, formula: &AstNode, j: usize) -> Bool<'ctx> {
+        match formula {
+            AstNode::Constant {value} => {
+                if value == "TRUE" {
+                    Bool::from_bool(self.env.ctx, true)
+                }else {
+                    Bool::from_bool(self.env.ctx, false)
+                }
+            }
+            AstNode::AIndexedProp {proposition, path_identifier, traj_identifier} => {
+                let mut constraints = Vec::with_capacity(self.k + 1);
+                let path_idx = self.path_mappings[path_identifier.as_str()];
+                for i in 0..=self.k {
+                    let ith_state = self.states[path_idx][i][proposition.as_str()].as_bool().unwrap();
+                    let ij_key = format!("{}_{}", i, j);
+                    constraints.push(
+                        &self.positions[traj_identifier.as_str()][path_identifier.as_str()][&ij_key] &
+                        ith_state
+                    );
+                }
+                let refs: Vec<&Bool> = constraints.iter().collect();
+                Bool::or(self.env.ctx, &refs)
+            }
+            AstNode::UnOp {operator, operand} => {
+                match operator {
+                    UnaryOperator::Negation => {
+                        // Check whether the operand is an identifier
+                        match &**operand {
+                            AstNode::AIndexedProp {proposition, path_identifier, traj_identifier} => {
+                                let mut constraints = Vec::with_capacity(self.k + 1);
+                                let path_idx = self.path_mappings[path_identifier.as_str()];
+                                for i in 0..=self.k {
+                                    let ith_state = self.states[path_idx][i][proposition.as_str()].as_bool().unwrap();
+                                    let ij_key = format!("{}_{}", i, j);
+                                    constraints.push(
+                                        &self.positions[traj_identifier.as_str()][path_identifier.as_str()][&ij_key] &
+                                        ith_state.not()
+                                    );
+                                }
+                                let refs: Vec<&Bool> = constraints.iter().collect();
+                                Bool::or(self.env.ctx, &refs)
+                            }
+                            _ => self.shared_semantics(operand, j).not()
+                        }
+                    }
+                    UnaryOperator::Globally => {
+                        // Create a new formula: FALSE R operand
+                        let false_boxed = Box::new(
+                            AstNode::Constant{value: String::from("FALSE")}
+                        );
+                        let release_equiv = Box::new(AstNode::BinOp{
+                            operator: BinOperator::Release,
+                            lhs: false_boxed,
+                            rhs: operand.clone(),
+                        });
+                        self.shared_semantics(&release_equiv, j)
+                    }
+                    UnaryOperator::Eventually => {
+                        // Create a new formula: TRUE U operand
+                        let true_boxed = Box::new(
+                            AstNode::Constant{value: String::from("TRUE")}
+                        );
+                        let release_equiv = Box::new(AstNode::BinOp{
+                            operator: BinOperator::Until,
+                            lhs: true_boxed,
+                            rhs: operand.clone(),
+                        });
+                        self.shared_semantics(&release_equiv, j)
+                    }
+                    _ => unreachable!(),
+                }
+            }
+            AstNode::BinOp {operator, lhs, rhs} => {
+                match operator {
+                    // TODO: Variable
+                    BinOperator::Equality => {
+                        let lhs_bool = self.shared_semantics(lhs, j);
+                        let rhs_bool = self.shared_semantics(rhs, j);
+                        let pos = lhs_bool.clone() & rhs_bool.clone();
+                        let neg = lhs_bool.not() & rhs_bool.not();
+                        pos | neg
+                    }
+                    BinOperator::Conjunction => {
+                        let lhs_bool = self.shared_semantics(lhs, j);
+                        let rhs_bool = self.shared_semantics(rhs, j);
+                        lhs_bool & rhs_bool
+                    }
+                    BinOperator::Disjunction => {
+                        let lhs_bool = self.shared_semantics(lhs, j);
+                        let rhs_bool = self.shared_semantics(rhs, j);
+                        lhs_bool | rhs_bool
+                    }
+                    BinOperator::Implication => {
+                        let lhs_bool = self.shared_semantics(lhs, j);
+                        let rhs_bool = self.shared_semantics(rhs, j);
+                        Bool::implies(&lhs_bool, &rhs_bool)
+                    }
+                    BinOperator::Until |
+                    BinOperator::Release => {
+                        match self.semantics {
+                            Semantics::Hpes => self.semantics_hpes(formula, j),
+                            Semantics::Hopt => self.semantics_hopt(formula, j),
+                            _ => unreachable!(),
+                        }
+                    }
+                }
+            }
+            _ => todo!(),
+        }
+    }
 
-    //     }
-    // }
+    fn semantics_hpes(& self, formula: &AstNode, j: usize) -> Bool<'ctx> {
+        // We already know the structure of the current formula: U or R
+        match formula {
+            AstNode::BinOp {operator, lhs, rhs} => {
+                match operator {
+                    BinOperator::Until => {
+                        // Check the value of j
+                        if j < self.m {
+                            let lhs_bool = self.shared_semantics(lhs, j);
+                            let rhs_bool = self.shared_semantics(rhs, j);
+                            let rec_unrolling = rhs_bool | (lhs_bool & self.shared_semantics(formula, j + 1));
+                            self.off_disj(j).not() & rec_unrolling
+                        }else if j == self.m {
+                            self.shared_semantics(lhs, j)
+                        }else {
+                            panic!("Invalid `j` value in hpes (Until)");
+                        }
+                    }
+                    BinOperator::Release => {
+                        // Check the value of j
+                        if j < self.m {
+                            let lhs_bool = self.shared_semantics(lhs, j);
+                            let rhs_bool = self.shared_semantics(rhs, j);
+                            let rec_unrolling = rhs_bool & (lhs_bool | self.shared_semantics(formula, j + 1));
+                            self.off_disj(j).not() & rec_unrolling
+                        }else if j == self.m {
+                            let lhs = self.shared_semantics(lhs, j) & self.shared_semantics(rhs, j);
+                            let rhs = self.halted(j, None) & self.shared_semantics(rhs, j);
+                            lhs | rhs
+                        }else {
+                            panic!("Invalid `j` value in hpes (Release)");
+                        }
+                    }
+                    _ => unreachable!(),
+                }
+            }
+            _ => unreachable!(),
+        }
+    }
+    fn semantics_hopt(& self, formula: &AstNode, j: usize) -> Bool<'ctx> {
+        // We already know the structure of the current formula: U or R
+        match formula {
+            AstNode::BinOp {operator, lhs, rhs} => {
+                match operator {
+                    BinOperator::Until => {
+                        // Check the value of j
+                        if j < self.m {
+                            let lhs_bool = self.shared_semantics(lhs, j);
+                            let rhs_bool = self.shared_semantics(rhs, j);
+                            let rec_unrolling = rhs_bool | (lhs_bool & self.shared_semantics(formula, j + 1));
+                            self.off_disj(j) | rec_unrolling
+                        }else if j == self.m {
+                            self.shared_semantics(rhs, j) | (self.halted(j, None) & self.shared_semantics(lhs, j))
+                        }else {
+                            panic!("Invalid `j` value in hopt (Until)");
+                        }
+                    }
+                    BinOperator::Release => {
+                        if j < self.m {
+                            let lhs_bool = self.shared_semantics(lhs, j);
+                            let rhs_bool = self.shared_semantics(rhs, j);
+                            let rec_unrolling = rhs_bool & (lhs_bool | self.shared_semantics(formula, j + 1));
+                            self.off_disj(j) | rec_unrolling
+                        }else if j == self.m {
+                            self.shared_semantics(rhs, j)
+                        }else {
+                            panic!("Invalid `j` value in hopt (Release)");
+                        }
+                    }
+                    _ => unreachable!(),
+                }
+            }
+            _ => unreachable!(),
+        }
+    }
 
 
 

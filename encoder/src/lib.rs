@@ -40,6 +40,10 @@ pub fn get_z3_encoding<'env, 'ctx>(env: &'env SMVEnv<'ctx>, formula: &'ctx AstNo
             Some(m) => m,
             None => panic!("Unrolloing bound of trajectories can not be None!"),
         };
+        // The semantics must be halting
+        if !matches!(sem, Semantics::Hpes | Semantics::Hopt) {
+            panic!("Only halting semantics is allowed for A-HLTL BMC.");
+        }
         // First, create path mappings
         let mut mapping = create_path_mapping(formula, 0);
         // Second, get trajectory names
@@ -113,8 +117,19 @@ pub fn get_z3_encoding<'env, 'ctx>(env: &'env SMVEnv<'ctx>, formula: &'ctx AstNo
             sem,
         );
 
-        // println!("{:?}", ahltl_obj.not_halt_pi_tau("A", "t", 5, 2));
-        println!("{:?}", is_EA(formula));
+        println!("{:?}", formula);
+        println!("#################################");
+        let inner = inner_ltl(formula);
+        println!("{:?}", inner);
+        println!("#################################");
+        println!("{:?}", ahltl_obj.shared_semantics(inner, 0));
+        println!("#################################");
+        let b1 = Bool::new_const(env.ctx, "b1");
+        let a1 = Bool::from_bool(env.ctx, false);
+        let b2 = Bool::new_const(env.ctx, "b2");
+        let a2 = Bool::from_bool(env.ctx, true);
+        let t  = Bool::from_bool(env.ctx, a1 == a2);
+        println!("{:?}", t);
 
         Bool::new_const(env.ctx, "test")
     }
