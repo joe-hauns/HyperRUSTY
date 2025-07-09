@@ -532,6 +532,7 @@ impl<'env, 'ctx> AHLTLObject<'env, 'ctx> {
             _ => unreachable!(),
         }
     }
+    
     fn semantics_hopt(& self, formula: &AstNode, j: usize) -> Bool<'ctx> {
         // We already know the structure of the current formula: U or R
         match formula {
@@ -568,7 +569,4 @@ impl<'env, 'ctx> AHLTLObject<'env, 'ctx> {
             _ => unreachable!(),
         }
     }
-
-
-
 }

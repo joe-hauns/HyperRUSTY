@@ -12,10 +12,6 @@ use z3::{
     Config, Context, Solver, SatResult,
 };
 
-// fn test1<'ctx>(env: &SMVEnv<'ctx>) -> Bool<'ctx> {
-//     Bool::new_const(env.ctx, "test")
-// }
-
 fn main() {
 
     // Bring in the source
@@ -93,22 +89,18 @@ fn main() {
 
     let form = get_z3_encoding(&env, &ast_node, K, Some(M), Semantics::Hpes);
 
-    // let form = generate_hltl_encoding(&ctx, &ast_node, vec![states_a, states_b], vec![sym_path_a, sym_path_b], Semantics::Pes);
+    solver.assert(&form);
 
-    // println!("{:?}", form);
-
-    // solver.assert(&form);
-
-    // match solver.check() {
-    //     SatResult::Sat => {
-    //         println!("result: sat.");
-    //     },
-    //     SatResult::Unsat => {
-    //         println!("result: unsat.");
-    //     },
-    //     SatResult::Unknown => {
-    //         println!("result: unknown.");
-    //     }
-    // };
+    match solver.check() {
+        SatResult::Sat => {
+            println!("result: sat.");
+        },
+        SatResult::Unsat => {
+            println!("result: unsat.");
+        },
+        SatResult::Unknown => {
+            println!("result: unknown.");
+        }
+    };
 
 }

@@ -145,6 +145,21 @@ pub fn get_z3_encoding<'env, 'ctx>(env: &'env SMVEnv<'ctx>, formula: &'ctx AstNo
     }
 }
 
+// Combines the LTL encoding of the formula with valid path conditions
+fn generate_inner_encoding<'ctx>(ctx: &'ctx Context, formula: &AstNode, path_encodings: &Vec<Bool<'ctx>>, inner_ltl: Bool<'ctx>, k: usize) -> Bool<'ctx> {
+    match formula {
+        AstNode::HAQuantifier {form, ..} => path_encodings[k].implies(&generate_inner_encoding(ctx, form, path_encodings, inner_ltl, k + 1)),
+        AstNode::HEQuantifier {form, ..} => Bool::and(ctx, &[&path_encodings[k], &generate_inner_encoding(ctx, form, path_encodings, inner_ltl, k + 1)]),
+        _ => inner_ltl
+    }
+}
+
+/****************************
+*
+*   AHLTL Encoding Functions
+*
+****************************/
+
 pub fn complete_ahltl_encoding<'ctx>(ctx: &'ctx Context, formula: &AstNode, inner: Bool<'ctx>, traj: HashMap<&'ctx str, Vec<&Bool<'ctx>>>, states: Vec<Vec<EnvState<'ctx>>>, mapping: &HashMap<&str, usize>) -> Bool<'ctx> {
     match formula {
         AstNode::HAQuantifier {identifier, form} => {
@@ -213,15 +228,6 @@ pub fn complete_ahltl_encoding<'ctx>(ctx: &'ctx Context, formula: &AstNode, inne
     }
 }
 
-// Combines the LTL encoding of the formula with valid path conditions
-fn generate_inner_encoding<'ctx>(ctx: &'ctx Context, formula: &AstNode, path_encodings: &Vec<Bool<'ctx>>, inner_ltl: Bool<'ctx>, k: usize) -> Bool<'ctx> {
-    match formula {
-        AstNode::HAQuantifier {form, ..} => path_encodings[k].implies(&generate_inner_encoding(ctx, form, path_encodings, inner_ltl, k + 1)),
-        AstNode::HEQuantifier {form, ..} => Bool::and(ctx, &[&path_encodings[k], &generate_inner_encoding(ctx, form, path_encodings, inner_ltl, k + 1)]),
-        _ => inner_ltl
-    }
-}
-
 
 /****************************
 *
@@ -280,26 +286,3 @@ fn generate_hltl_encoding<'ctx>(ctx: &'ctx Context, formula: &AstNode, paths: Ve
     generate_quantified_encoding(ctx, formula, &paths, &path_encodings, &mapping, inner.clone())
 
 }
-
-/****************************
-*
-*   AHLTL Encoding Functions
-*
-****************************/
-
-// fn generate_ahltl_encoding<'env,'ctx>(ctx: &'ctx Context, formula: &AstNode, ahltl_enc: AHLTLObject<'env, 'ctx>, states: Vec<Vec<EnvState<'ctx>>>, constraints: Vec<Bool<'ctx>>) -> Bool<'ctx> {
-
-//     // Get the A-HLTL pos /\ enc(phi) encoding
-//     let inner_ltl = ahltl_enc.build_inner();
-//     // Include valid path conditions
-//     let inner_with_paths = generate_inner_encoding(ctx, formula, &constraints, inner_ltl, 0);
-
-//     // Create a partial encoding for E pos. E off. inner_with_paths
-//     let flat_pos: Vec<_> = ahltl_enc.flatten_pos();
-//     let flat_refs: Vec<&dyn Ast<'ctx>> = flat_pos.iter().map(|v| *v as &dyn Ast<'env>).collect();
-//     let flat_off: Vec<_> = ahltl_enc.flatten_off();
-
-//     println!("{:?}", flat_off);
-
-//     Bool::from_bool(ctx, true)
-// }
