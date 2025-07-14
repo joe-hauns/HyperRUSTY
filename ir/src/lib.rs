@@ -38,7 +38,7 @@ pub enum ReturnType<'ctx> {
 
 #[derive(Debug, Clone)]
 pub struct Variable {
-    sort: VarType,
+    pub sort: VarType,
 }
 
 pub type EnvState<'ctx> = HashMap<&'ctx str, Dynamic<'ctx>>;
