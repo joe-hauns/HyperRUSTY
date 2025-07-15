@@ -86,85 +86,99 @@ fn main() {
             .args(["verilog", "nusmv"])
             .required(true)
             .multiple(false)
-        )
-        .group(ArgGroup::new("verilog-branch")
-            .args(["top", "yosys_output"])
-            .requires("verilog")
         );
+        // .group(ArgGroup::new("verilog-branch")
+        //     .args(["top", "yosys_output"])
+        //     .requires("verilog")
+        // );
+
+    let matches = cli.get_matches();
+
+    let unrolling_bound = matches
+        .get_one::<usize>("unrolling_bound").unwrap();
+
+    let formula_path = matches
+        .get_one::<PathBuf>("formula").unwrap();
+
+    let semantics = match matches
+        .get_one::<String>("semantics").unwrap().as_str() {
+            "pes" => Semantics::Pes,
+            "opt" => Semantics::Opt,
+            "hpes" => Semantics::Hopt,
+            "hopt" => Semantics::Hpes,
+            _ => panic!("Invalid choice of semantics")
+        };
+
+    if let Some(nusmv_models) = matches.get_many::<PathBuf>("nusmv") {
+        // NuSMV Path
+        let model_paths: Vec<_> = nusmv_models.cloned().collect();
+        let model_paths: Vec<&str> = model_paths
+            .iter()
+            .map(|p| {
+                p.to_str()
+                .expect("Path is not valid UTF-8")
+            })
+            .collect();
+        
+            let trajectory_bound = matches
+                .get_one::<usize>("trajectory_bound");
+    }else {
+        // Verilog Path
+        let build_path = matches
+            .get_one::<PathBuf>("verilog").unwrap();
+
+        let output_file = matches
+            .get_one::<PathBuf>("yosys_output").unwrap();
+
+        let top_module = matches
+            .get_one::<String>("top").unwrap();
+    }
 
 
 
 
 
-    // // Bring in the source
-    // let source = fs::read_to_string("formula.hq").expect("Failed to read source");
+    // To be replaced with the formula path
+    let formula = fs::read_to_string("formula.hq").expect("Failed to read the formula");
+    let ast_node = parse(&formula).expect("Failed parsing the formula");
 
-    // let ast_node = parse(&source).expect("Input parsing failed");
+    let mut cfg = Config::new();
+    cfg.set_model_generation(true);
+    let ctx = Context::new(&cfg);
+    let solver = Solver::new(&ctx);
 
-    // let mut cfg = Config::new();
-    // cfg.set_model_generation(true);
-    // let ctx = Context::new(&cfg);
-    // let solver = Solver::new(&ctx);
-
-    // let mut env = SMVEnv::new(&ctx);
-
-    // env.register_variable("high", VarType::Bool {init: Some(vec![false])});
-    // env.register_variable("low", VarType::Bool {init: Some(vec![false])});
-    // env.register_variable("halt", VarType::Bool {init: Some(vec![false])});
-    // env.register_variable("pc", VarType::Int {init: Some(vec![1]), lower: Some(1), upper: Some(5)});
-
-    // // Transitions
-    // env.register_transition("high",
-    // |_env, _ctx, _state| exact!(Node, int_var!(_state, "pc")._eq(&Int::from_i64(_ctx, 1))),
-    // |_env, _ctx, _state| choice!(Bool, true, false)
+    // here we get an SMVEnv from the arguments
+    // let env = parse_smv(
+    //     input_path,
+    //     output_path,
+    //     bit_encode,
+    //     input_format,
+    //     output_format,
     // );
 
-    // env.register_transition("low",
-    // |_env, _ctx, _state| exact!(Node, int_var!(_state, "pc")._eq(&Int::from_i64(_ctx, 2))),
-    // |_env, _ctx, _state| exact!(Bool, false)
-    // );
-    // env.register_transition("low",
-    // |_env, _ctx, _state| exact!(Node, int_var!(_state, "pc")._eq(&Int::from_i64(_ctx, 4))),
-    // |_env, _ctx, _state| exact!(Bool, true)
-    // );
+    // Replace this with the value of K
+    let K: usize = 5;
 
-    // env.register_transition("pc",
-    // |_env, _ctx, _state| exact!(Node, int_var!(_state, "pc")._eq(&Int::from_i64(_ctx, 1))),
-    // |_env, _ctx, _state| exact!(Int, 2)
-    // );
-    // env.register_transition("pc",
-    // |_env, _ctx, _state| exact!(Node, int_var!(_state, "pc")._eq(&Int::from_i64(_ctx, 2))),
-    // |_env, _ctx, _state| exact!(Int, 3)
-    // );
-    // env.register_transition("pc",
-    // |_env, _ctx, _state| exact!(Node, bool_var!(_state, "high") & int_var!(_state, "pc")._eq(&Int::from_i64(_ctx, 3))),
-    // |_env, _ctx, _state| exact!(Int, 4)
-    // );
-    // env.register_transition("pc",
-    // |_env, _ctx, _state| exact!(Node, !bool_var!(_state, "high") & int_var!(_state, "pc")._eq(&Int::from_i64(_ctx, 3))),
-    // |_env, _ctx, _state| exact!(Int, 5)
-    // );
-    // env.register_transition("pc",
-    // |_env, _ctx, _state| exact!(Node, int_var!(_state, "pc")._eq(&Int::from_i64(_ctx, 5))),
-    // |_env, _ctx, _state| exact!(Int, 5)
-    // );
+    // Get the type of semantics based on the string
 
-    // env.register_transition("halt",
-    // |_env, _ctx, _state| exact!(Node, int_var!(_state, "pc")._eq(&Int::from_i64(_ctx, 5))),
-    // |_env, _ctx, _state| exact!(Bool, true)
-    // );
 
-    // env.register_transition("halt",
-    // |_env, _ctx, _state| exact!(Node, predicate!("halt", _env, _ctx, _state)),
-    // |_env, _ctx, _state| exact!(Bool, true)
-    // );
+    // // Get identifier names to create unrolled paths
+    // let path_identifiers: Vec<&str> = get_path_identifiers(&ast_node);
+    // let unrolled_models = Vec::new();
 
-    // env.register_predicate("halt",
-    // |_env, _ctx, _state| int_var!(_state, "pc")._eq(&Int::from_i64(_ctx, 5))
-    // );
-
-    // let K: usize = 5;
-    // let M: usize = 5;
+    // for i in 0..path_identifiers.len() {
+    //     // parse the smv for this model
+    //     let env = parse_smv(
+    //         input_path[i],
+    //         Some("output.txt".to_string()),
+    //          false,
+    //         "model",
+    //         "ir",
+    //     );
+    //     unrolled_models.push(
+    //         env.generate_symbolic_path(K, Some(path_identifiers[i]))
+    //     );
+    // }
 
     // let (states_a, sym_path_a) = env.generate_symbolic_path(K, Some("A"));
     // let (states_b, sym_path_b) = env.generate_symbolic_path(K, Some("B"));
