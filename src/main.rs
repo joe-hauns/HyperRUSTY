@@ -82,27 +82,15 @@ fn main() {
             .required(false)
             .value_parser(value_parser!(PathBuf)),
         )
-        .arg(
-            arg!(
-                -b --build <BUILD_FILE> "Yosys build file"
-            )
-            .required(false)
-            .value_parser(value_parser!(PathBuf)),
-        )
         .group(ArgGroup::new("input")
             .args(["verilog", "nusmv"])
             .required(true)
             .multiple(false)
+        )
+        .group(ArgGroup::new("verilog-branch")
+            .args(["top", "yosys_output"])
+            .requires("verilog")
         );
-
-        let matches = cli.get_matches();
-
-        let paths: Vec<PathBuf> = matches
-            .get_many::<PathBuf>("nusmv").unwrap().cloned().collect();
-
-        for path in paths {
-            println!("{:?}", path);
-        }
 
 
 
