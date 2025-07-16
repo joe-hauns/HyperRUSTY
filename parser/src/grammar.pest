@@ -29,7 +29,7 @@ altl_atom = { ident ~ "[" ~ ident ~ "]" ~ "[" ~ ident ~ "]" | constant }
 
 aunop = { "G" | "F" | "~" }
 unop = { "G" | "F" | "X" | "~" }
-ident = @{ ASCII_ALPHA ~ (ASCII_ALPHANUMERIC | "_")* }
+ident = @{ ASCII_ALPHA ~ (ASCII_ALPHANUMERIC | "_" | ".")* }
 constant = {"TRUE" | "FALSE"}
 
 // Entry point for the parser

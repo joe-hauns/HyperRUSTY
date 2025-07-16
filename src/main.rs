@@ -135,20 +135,9 @@ fn main() {
         let mut cfg = Config::new();
         cfg.set_model_generation(true);
         let ctx = Context::new(&cfg);
-        let solver = Solver::new(&ctx);
-
-        // here we get an SMVEnv from the arguments
-        let env = parse_smv(
-            &ctx,
-            model_paths[0],
-            Some("output.txt".to_string()),
-            false,
-            "model",
-            "ir",
-        );
 
         if *matches.get_one::<bool>("qbf_solver").unwrap() {
-            gen_qcir(&model_paths, &String::from(formula_path.to_str().unwrap()), &env, *unrolling_bound as i32, false, semantics_as_str);
+            // gen_qcir(&model_paths, &String::from(formula_path.to_str().unwrap()), &env, *unrolling_bound as i32, false, semantics_as_str);
             let output = process::Command::new("/Users/milad/Desktop/rust_tutorial/HyperRUSTY/quabs")
                 .arg("outputs/HQ.qcir")
                 .stdout(process::Stdio::piped())
@@ -168,8 +157,29 @@ fn main() {
                 println!("{}", stderr);
             }
         }else {
-            let form = get_z3_encoding(&env, &ast_node, *unrolling_bound, None, semantics);
+            let path_identifiers: Vec<&str> = get_path_identifiers(&ast_node);
+            let mut envs = Vec::new();
 
+            if model_paths.len() != path_identifiers.len() {
+                panic!("ERROR: number of provided models and number of path quantifiers do not match!");
+            }
+
+            for i in 0..path_identifiers.len() {
+                // parse the smv for this model
+                let env = parse_smv(
+                    &ctx,
+                    model_paths[i],
+                    Some("output.txt".to_string()),
+                    false,
+                    "model",
+                    "ir",
+                );
+                envs.push(env);
+            }
+            let form = get_z3_encoding(&envs, &ast_node, *unrolling_bound, None, semantics);
+
+            // Create a new solver
+            let solver = Solver::new(&ctx);
             solver.assert(&form);
 
             match solver.check() {
@@ -198,24 +208,5 @@ fn main() {
         let top_module = matches
             .get_one::<String>("top").unwrap();
     }
-
-
-    // // Get identifier names to create unrolled paths
-    // let path_identifiers: Vec<&str> = get_path_identifiers(&ast_node);
-    // let unrolled_models = Vec::new();
-
-    // for i in 0..path_identifiers.len() {
-    //     // parse the smv for this model
-    //     let env = parse_smv(
-    //         input_path[i],
-    //         Some("output.txt".to_string()),
-    //          false,
-    //         "model",
-    //         "ir",
-    //     );
-    //     unrolled_models.push(
-    //         env.generate_symbolic_path(K, Some(path_identifiers[i]))
-    //     );
-    // }
 
 }
