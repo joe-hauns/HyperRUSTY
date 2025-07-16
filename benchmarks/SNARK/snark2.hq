@@ -1,5 +1,5 @@
 Exists A . Forall B .
-G(~GlobalQueue-FAIL[A] & ~GlobalQueue-COLLISION[A]) &
+G(~ fAIL[A] & ~ COLLISION[A]) &
 F~(
     (
            (proc1.popRightSTART[A] = proc1.popRightSTART[B]) & (proc1.popRightEND[A] = proc1.popRightEND[B])
@@ -12,9 +12,9 @@ F~(
         & (proc3.pushRightSTART[A] = proc3.pushRightSTART[B]) & (proc3.pushRightEND[A] = proc3.pushRightEND[B])
         & (proc3.popLeftSTART[A] = proc3.popLeftSTART[B]) &  (proc3.popLeftEND[A] = proc3.popLeftEND[B])
     )
-    & (GlobalQueue-popRightFAIL[A] = GlobalQueue-popRightFAIL[B])
-    & (GlobalQueue-popLeft_X[A] = GlobalQueue-popLeft_X[B])
-    & (GlobalQueue-popLeft_Y[A] = GlobalQueue-popLeft_Y[B])
-    & (GlobalQueue-popRight_Y[A] = GlobalQueue-popLeft_Y[B])
-    & (GlobalQueue-popRight_Z[A] = GlobalQueue-popRight_Z[B])
+    & (popRightFAIL[A] = popRightFAIL[B])
+    & (popLeft_X[A] = popLeft_X[B])
+    & (popLeft_Y[A] = popLeft_Y[B])
+    & (popRight_Y[A] = popLeft_Y[B])
+    & (popRight_Z[A] = popRight_Z[B])
 )

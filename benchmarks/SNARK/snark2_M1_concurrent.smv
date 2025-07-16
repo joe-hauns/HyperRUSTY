@@ -133,23 +133,23 @@ VAR
 				case
 					BOTH_MODIFYING : RightHat;
 
-					((proc1.line=5 & !FAIL) | (proc2.line=5 & !FAIL)) : 0; -- set to DUMMY
+					((proc1.line=5 & !fAIL) | (proc2.line=5 & !fAIL)) : 0; -- set to DUMMY
 
 					((proc1.line=22) | (proc2.line=22)) : 0; -- set to DUMMY
 					
-					((proc1.line=8) & !FAIL & (proc1.local_popR_RHL=0)) : 0; -- set to RH->L 0
-					((proc1.line=8) & !FAIL & (proc1.local_popR_RHL=1)) : 1; -- set to RH->L 0
-					((proc1.line=8) & !FAIL & (proc1.local_popR_RHL=2)) : 2; -- set to RH->L 0
+					((proc1.line=8) & !fAIL& (proc1.local_popR_RHL=0)) : 0; -- set to RH->L 0
+					((proc1.line=8) & !fAIL& (proc1.local_popR_RHL=1)) : 1; -- set to RH->L 0
+					((proc1.line=8) & !fAIL& (proc1.local_popR_RHL=2)) : 2; -- set to RH->L 0
 
 					
-					((proc2.line=8) & !FAIL & (proc2.local_popR_RHL=0)) : 0; -- set to RH->L 0
-					((proc2.line=8) & !FAIL & (proc2.local_popR_RHL=1)) : 1; -- set to RH->L 0
-					((proc2.line=8) & !FAIL & (proc2.local_popR_RHL=2)) : 2; -- set to RH->L 0
+					((proc2.line=8) & !fAIL& (proc2.local_popR_RHL=0)) : 0; -- set to RH->L 0
+					((proc2.line=8) & !fAIL& (proc2.local_popR_RHL=1)) : 1; -- set to RH->L 0
+					((proc2.line=8) & !fAIL& (proc2.local_popR_RHL=2)) : 2; -- set to RH->L 0
 
 
-					((proc3.line=8) & !FAIL & (proc3.local_popR_RHL=0)) : 0; -- set to RH->L 0
-					((proc3.line=8) & !FAIL & (proc3.local_popR_RHL=1)) : 1; -- set to RH->L 0
-					((proc3.line=8) & !FAIL & (proc3.local_popR_RHL=2)) : 2; -- set to RH->L 0
+					((proc3.line=8) & !fAIL& (proc3.local_popR_RHL=0)) : 0; -- set to RH->L 0
+					((proc3.line=8) & !fAIL& (proc3.local_popR_RHL=1)) : 1; -- set to RH->L 0
+					((proc3.line=8) & !fAIL& (proc3.local_popR_RHL=2)) : 2; -- set to RH->L 0
 					
 					((proc1.line=14) | (proc2.line=14)) : 3; -- set to newnode
 					
@@ -162,7 +162,7 @@ VAR
 				case
 					BOTH_MODIFYING : LeftHat;
 					
-					((proc1.line=5 & !FAIL) | (proc2.line=5 & !FAIL)) : 0; -- set to DUMMY
+					((proc1.line=5 & !fAIL) | (proc2.line=5 & !fAIL)) : 0; -- set to DUMMY
 
 					
 					((proc1.line=22 & RightHat=proc1.local_pushR_RH) | (proc2.line=22 & RightHat=proc2.local_pushR_RH)) : 0; -- set to DUMMY
@@ -192,12 +192,12 @@ VAR
 					case
 						BOTH_MODIFYING: AllNodes[1][0]; --?
 
-						((proc1.line=8) & !FAIL & (proc1.local_popR_RH=1)): 1;
+						((proc1.line=8) & !fAIL& (proc1.local_popR_RH=1)): 1;
 				
 						((proc1.line=26) & (proc1.local_popL_LH=1) & (LeftHat=1)): 0;
 
 				
-						((proc2.line=8) & !FAIL & (proc2.local_popR_RH=1)): 1;
+						((proc2.line=8) & !fAIL& (proc2.local_popR_RH=1)): 1;
 				
 						((proc2.line=26) & (proc2.local_popL_LH=1) & (LeftHat=1)): 0;
 						TRUE: AllNodes[1][0];
@@ -209,13 +209,13 @@ VAR
 						BOTH_MODIFYING : AllNodes[1][1]; --?
 
 						((proc1.line=17) & (proc1.local_pushR_RH=1)): 3; -- newnode
-						((proc1.line=25) & !FAIL & (proc1.local_popL_LH=1)): 1;
+						((proc1.line=25) & !fAIL& (proc1.local_popL_LH=1)): 1;
 				
 						((proc1.line=9) & (proc1.local_popR_RH=1)& (RightHat=1)): 0;
 				
 
 						((proc2.line=17) & (proc2.local_pushR_RH=1)): 3; -- newnode
-						((proc2.line=25) & !FAIL & (proc2.local_popL_LH=1)): 1;
+						((proc2.line=25) & !fAIL& (proc2.local_popL_LH=1)): 1;
 				
 						((proc2.line=9) & (proc2.local_popR_RH=1) & (RightHat=1)): 0;
 				
@@ -227,13 +227,13 @@ VAR
 					case
 						BOTH_MODIFYING : AllNodes[2][0];
 
-						((proc1.line=8) & !FAIL & (proc1.local_popR_RH=2)) : 2;
+						((proc1.line=8) & !fAIL& (proc1.local_popR_RH=2)) : 2;
 				
 						((proc1.line=26) & (proc1.local_popL_LH=2) & (LeftHat=2)): 0;
 				
 
 
-						((proc2.line=8) & !FAIL & (proc2.local_popR_RH=2)) : 2;
+						((proc2.line=8) & !fAIL& (proc2.local_popR_RH=2)) : 2;
 				
 						((proc2.line=26) & (proc2.local_popL_LH=2) & (LeftHat=2)): 0;
 				
@@ -250,7 +250,7 @@ VAR
 
 						((proc1.line=9) & (proc1.local_popR_RH=2) & (RightHat=2)): 0;
 				
-						((proc1.line=25) & !FAIL & (proc1.local_popL_LH=2)): 2;
+						((proc1.line=25) & !fAIL& (proc1.local_popL_LH=2)): 2;
 
 
 				
@@ -259,7 +259,7 @@ VAR
 				
 						((proc2.line=9) & (proc1.local_popR_RH=2) & (RightHat=2)): 0;
 				
-						((proc2.line=25) & !FAIL & (proc2.local_popL_LH=2)): 2;
+						((proc2.line=25) & !fAIL& (proc2.local_popL_LH=2)): 2;
 						TRUE: AllNodes[2][1];
 					esac;
 
@@ -282,7 +282,7 @@ VAR
 					DEFINE
 						BOTH_MODIFYING := (proc1.modifying & proc2.modifying) | (proc1.modifying & proc3.modifying) | (proc2.modifying & proc3.modifying);
 						COLLISION      := (proc1.modifying & proc2.modifying) | (proc1.modifying & proc3.modifying) | (proc2.modifying & proc3.modifying);
-						FAIL :=	 		((proc1.line=5) & (	!(RightHat=proc1.local_popR_RH)
+						fAIL:=	 		((proc1.line=5) & (	!(RightHat=proc1.local_popR_RH)
 										 				 							 	| !(LeftHat=proc1.local_popR_LH)))
 												|((proc1.line=8) & (  !(RightHat=proc1.local_popR_RH)
 																 				 		| !(proc1.local_popR_RH=1 -> (AllNodes[1][0]=proc1.local_popR_RHL))

@@ -1,4 +1,4 @@
-read_model -i benchmarks/bakery/bakery.smv
+read_model -i benchmarks/SNARK/snark2_M1_concurrent.smv
 flatten_hierarchy
 build_flat_model
 write_flat_model -o flattened.txt
