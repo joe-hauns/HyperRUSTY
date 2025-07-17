@@ -361,8 +361,6 @@ pub fn generate_format_functions(transitions: &[Transition]) -> String {
 }
 
 
-
-
 // ====================================================================================
 
 
@@ -724,22 +722,34 @@ fn strip_comment(s: &str) -> &str {
     s.split("--").next().unwrap_or("").trim()
 }
 
+impl From<ParsedVarType> for VarType {
+    fn from(p: ParsedVarType) -> Self {
+        match p {
+            ParsedVarType::Bool { init } => VarType::Bool { init },
+            ParsedVarType::Int { init, lower, upper } => VarType::Int {
+                init,
+                lower,
+                upper,
+            },
+        }
+    }
+}
+
+
+
+// Generate SMVEnv from the ParsedModel
 pub fn generate_smv_env_from_parsed<'ctx>(
     ctx: &'ctx Context,
     parsed: ParsedModel,
 ) -> SMVEnv<'ctx> {
 
     let mut env = SMVEnv::new(ctx);
-    let mut interned_names: Vec<String> = vec![];
 
-    // 1. Register variables
+    // Step 1. Register variables
     for var in &parsed.variables {
         let init_val = parsed.inits.get(&var.name);
-
-
         let vtype = match &var.sort {
             ParsedVarType::Bool { .. } => {
-                // println!("DEBUG vars: {}", var.name);
                 let init = match init_val {
                     Some(v) => {
                         let upper = v.to_ascii_uppercase();
@@ -777,34 +787,28 @@ pub fn generate_smv_env_from_parsed<'ctx>(
         let name_ref: &'ctx str = Box::leak(var.name.clone().into_boxed_str());
         env.register_variable(name_ref, vtype);
     }
-    // DEBUG
-    // println!("Registered variables:");
-    for (name, var) in env.get_variables() {
-        // println!("  {} -> {:?}", name, var.sort);
-    }
 
 
-    // 1.2 Register predicates (might be used in transitions)
-    // println!("Registered predicates:");
-    for (name, expr_str) in parsed.predicates.clone() {
+
+    // Step 2: Register predicates
+    for (name, expr) in parsed.predicates.clone() {
         let name_ref: &'ctx str = Box::leak(name.clone().into_boxed_str());
-        interned_names.push(name.clone());
-
-        // println!("  {} := {}", name, expr_str); // debug
-
-        let expr = expr_str.clone();
-        let var_name = name.clone();
-
+        let expr_owned = expr.clone();
+        let var_name = Box::leak(name.clone().into_boxed_str());
+        let var_type = Box::leak(Box::new(ParsedVarType::Bool { init: None }));
+        // Build closure with access to SMVEnv and expression
         env.register_predicate(
             name_ref,
-            move |env, ctx: &'ctx Context, state: &EnvState<'ctx>| {
-                let cond_fn = parse_condition(env, &expr, &var_name, &ParsedVarType::Bool { init: None });
-                let result = cond_fn(ctx, state);
-                match result {
-                    ReturnType::DynAst(d) => d
+            {
+                let expr_str = expr_owned.to_owned();
+                let type_copy = var_type.clone();
+                let name_copy = var_name.to_string();
+
+                move |env_arg, ctx, state| {
+                    let dyn_val = parse_condition(env_arg, &expr_str, &name_copy, &type_copy)(env_arg, ctx, state);
+                    dyn_val
                         .as_bool()
-                        .unwrap_or_else(|| panic!("Predicate '{}' did not return Bool", var_name)),
-                    _ => panic!("Expected DynAst for predicate '{}'", var_name),
+                        .unwrap_or_else(|| panic!("Predicate '{}' must return Bool", name_copy))
                 }
             },
         );
@@ -812,49 +816,96 @@ pub fn generate_smv_env_from_parsed<'ctx>(
 
 
 
-    // 2. Register transitions
-    // println!("Registered transitions:");
-    for (name, guard, update) in parsed.transitions.clone() {
+    // Step 3: Register transitions
+    for (name, guard, update) in &parsed.transitions {
         let name_ref: &'ctx str = Box::leak(name.clone().into_boxed_str());
-        interned_names.push(name.clone());
+        let guard_str = guard.clone();
+        let update_str = update.clone();
 
-        // println!("  {} : {} -> {}", name, guard, update); // debug
+        let var = parsed.variables.iter().find(|v| v.name == *name).unwrap_or_else(|| {
+            panic!("Transition for undeclared variable '{}'", name);
+        });
+        let var_type = var.sort.clone();
+        let name_guard = name.clone();
+        let name_update = name.clone();
+
+        let guard_fn = parse_condition(&env, &guard_str, &name_guard, &var_type);
+        let update_fn = parse_condition(&env, &update_str, &name_update, &var_type);
+
         env.register_transition(
             name_ref,
-            {
-                let guard = guard.clone(); // capture in closure
-                let var_name = name.clone();
-                let parsed_var = parsed.variables.iter().find(|v| v.name == *name).unwrap();
-                let var_type = parsed_var.sort.clone();
-                move |env, ctx: &'ctx Context, state: &EnvState<'ctx>| {
-                    parse_condition(env, &guard, &var_name, &var_type)(ctx, state)
-                }
-            },
-            {
-                let update = update.clone();
-                let var_name = name.clone();
-                let parsed_var = parsed.variables.iter().find(|v| v.name == *name).unwrap();
-                let var_type = parsed_var.sort.clone();
-
-                move |env, ctx: &'ctx Context, state: &EnvState<'ctx>| {
-                    parse_action(env, &update, &var_name, &var_type)(ctx, state)
-                }
-            },
+            move |_env, ctx, state| ReturnType::DynAst(guard_fn(_env, ctx, state)),
+            move |_env, ctx, state| ReturnType::DynAst(update_fn(_env, ctx, state)),
         );
+    }
+
+    
+    // DEBUG: check registered SMVEnv
+    println!("\nRegistered variables:");
+    for (name, var) in env.get_variables() {
+        match &var.sort {
+            VarType::Bool { init } => {
+                println!("  {}: Bool {:?}", name, init);
+            }
+            VarType::Int { init, lower, upper } => {
+                println!("  {}: Int {:?}, bounds = [{:?}, {:?}]", name, init, lower, upper);
+            }
+            VarType::BVector { width, init, lower, upper } => {
+                println!(
+                    "  {}: BVector(width={}, init={:?}, bounds=[{:?}, {:?}])",
+                    name, width, init, lower, upper
+                );
+            }
+        }
+    }
+    let dummy_state: EnvState<'ctx> = HashMap::new();
+    println!("\nRegistered predicates:");
+    for (name, func) in &env.predicates {
+        let result = func(&env, ctx, &dummy_state);
+        println!("{:<8} := {:?}", name, result);
+    }
+    println!("\nRegistered transitions:");
+    for (var, transitions) in env.get_transitions() {
+        println!("Transitions for variable '{}':", var);
+        for (i, (guard_fn, update_fn)) in transitions.iter().enumerate() {
+            let guard = guard_fn(&env, ctx, &dummy_state);
+            let update = update_fn(&env, ctx, &dummy_state);
+            println!("  # {}:", i);
+            match guard {
+                ReturnType::DynAst(ast) => println!("    Guard : {}", ast.to_string()),
+                _ => println!("    Guard : <non-AST value>"),
+            }
+            match update {
+                ReturnType::DynAst(ast) => println!("    Update: {}", ast.to_string()),
+                _ => println!("    Update: <non-AST value>"),
+            }
+        }
     }
 
     env
 }
 
+fn preprocess_nodet_expr(s: &str) -> String {
+    let set_expr_re = regex::Regex::new(r"\{([^}]+)\}").unwrap();
+    set_expr_re.replace_all(s, |caps: &regex::Captures| {
+        let disjuncts = caps[1].split(',').map(str::trim).collect::<Vec<_>>();
+        format!("({})", disjuncts.join(" | "))
+    }).to_string()
+}
+
+// // Return a closure, given the condition (guard) string 
 pub fn parse_condition<'ctx>(
     smv_env: &SMVEnv<'ctx>,
     cond_str: &str,
-    _var_name: &str,
+    var_name: &str,
     var_type: &ParsedVarType,
-) -> impl Fn(&'ctx Context, &EnvState<'ctx>) -> ReturnType<'ctx> + 'static {
-    // println!("DEBUG cond: {}: ", cond_str);
+) -> impl Fn(&SMVEnv<'ctx>, &'ctx Context, &EnvState<'ctx>) -> Dynamic<'ctx> + 'static {
+
     let raw = cond_str.trim().to_owned();
-    let vtype = var_type.clone(); // clone so we can move it into closure
+    let vtype = var_type.clone(); // Move into closure
+    let var_name = var_name.to_owned();
+
+
 
     fn strip_outer_parens(s: &str) -> &str {
         let s = s.trim();
@@ -866,7 +917,7 @@ pub fn parse_condition<'ctx>(
                     ')' => {
                         depth -= 1;
                         if depth == 0 && i != s.len() - 1 {
-                            return s; // Not just outermost parens
+                            return s;
                         }
                     }
                     _ => {}
@@ -877,212 +928,124 @@ pub fn parse_condition<'ctx>(
         s
     }
 
-    fn recurse<'ctx>(
-    s: &str,
-    ctx: &'ctx Context,
-    state: &EnvState<'ctx>,
-    ) -> Dynamic<'ctx> {
-        let s = strip_outer_parens(s.trim());
+    move |smv_env: &SMVEnv<'ctx>, ctx: &'ctx Context, state: &EnvState<'ctx>| {
+        fn recurse<'ctx>(
+            smv_env: &SMVEnv<'ctx>,
+            s: &str,
+            ctx: &'ctx Context,
+            state: &EnvState<'ctx>,
+        ) -> Dynamic<'ctx> {
+            let s = preprocess_nodet_expr(s);
+            let s = strip_outer_parens(s.trim());
 
+            // DEBUG
+            // println!("Curr expr {}: ", s);
 
-        // Unary negation
-        if let Some(inner) = s.strip_prefix('!') {
-            let inner_expr = recurse(inner.trim(), ctx, state);
-            let b = inner_expr.as_bool().unwrap_or_else(|| {
-                panic!("Expected boolean after '!': {}", inner);
-            });
-            return b.not().into();
-        }
-
-
-        if s == "TRUE" {
-            return Bool::from_bool(ctx, true).into();
-        } else if s == "FALSE" {
-            return Bool::from_bool(ctx, false).into();
-        } else if let Ok(n) = s.parse::<i64>() {
-            return Int::from_i64(ctx, n).into();
-        }
-
-        // Operators by precedence: lowest first
-        let precedence = vec!['=', '&', '|', '+', '-'];
-
-        for &op in &precedence {
-            let mut depth = 0;
-            let mut split_idx = None;
-
-            // Right-to-left scan for left-associative split
-            for (i, c) in s.char_indices().rev() {
-                match c {
-                    ')' => depth += 1,
-                    '(' => depth -= 1,
-                    _ if depth == 0 && c == op => {
-                        split_idx = Some(i);
-                        break;
-                    }
-                    _ => {}
-                }
+            if let Some(inner) = s.strip_prefix('!') {
+                let inner_expr = recurse(smv_env, inner.trim(), ctx, state);
+                let b = inner_expr.as_bool().unwrap_or_else(|| {
+                    panic!("Expected boolean after '!': {}", inner);
+                });
+                return b.not().into();
             }
 
-            if let Some(i) = split_idx {
-                let lhs = s[..i].trim();
-                let rhs = s[i + 1..].trim();
-
-                let lhs_expr = recurse(lhs, ctx, state);
-                let rhs_expr = recurse(rhs, ctx, state);
-
-                return match op {
-                    '+' => lhs_expr.as_int().unwrap().add(&rhs_expr.as_int().unwrap()).into(),
-                    '-' => lhs_expr.as_int().unwrap().sub(&rhs_expr.as_int().unwrap()).into(),
-                    '=' => lhs_expr._eq(&rhs_expr).into(),
-                    '&' => {
-                        let l = lhs_expr.as_bool().unwrap_or_else(|| {
-                            panic!("Expected bool lhs in '&': {}", lhs);
-                        });
-                        let r = rhs_expr.as_bool().unwrap_or_else(|| {
-                            panic!("Expected bool rhs in '&': {}", rhs);
-                        });
-                        Bool::and(ctx, &[&l, &r]).into()
-                    }
-                    '|' => {
-                        let l = lhs_expr.as_bool().unwrap_or_else(|| {
-                            panic!("Expected bool lhs in '|': {}", lhs);
-                        });
-                        let r = rhs_expr.as_bool().unwrap_or_else(|| {
-                            panic!("Expected bool rhs in '|': {}", rhs);
-                        });
-                        Bool::or(ctx, &[&l, &r]).into()
-                    }
-                    _ => unreachable!(),
-                };
+            if s == "TRUE" {
+                return Bool::from_bool(ctx, true).into();
+            } else if s == "FALSE" {
+                return Bool::from_bool(ctx, false).into();
+            } else if let Ok(n) = s.parse::<i64>() {
+                return Int::from_i64(ctx, n).into();
             }
-        }
 
-        // Variable access
-        if let Some(dyn_var) = state.get(s) {
-            dyn_var.clone()
-        } else {
-            panic!("Identifier '{}' not found in state!", s);
-        }
-    }
+            let precedence = vec!["!=", ">=", "<=", "=", ">", "<", "&", "|", "+", "-"];
 
-    move |ctx, state| {
-        let expr = recurse(&raw, ctx, state);
-        ReturnType::DynAst(expr)
-    }
-}
+            for op in &precedence {
+                let mut depth = 0;
+                let mut split_idx = None;
 
+                // Iterate from right to left, trying to match `op`
+                let mut i = s.len();
+                while i >= op.len() {
+                    i -= 1;
 
-pub fn parse_action<'ctx>(
-    env: &SMVEnv<'ctx>,
-    cond_str: &str,
-    _var_name: &str,
-    var_type: &ParsedVarType,
-) -> impl Fn(&'ctx Context, &EnvState<'ctx>) -> ReturnType<'ctx> + 'static {
-    // println!("DEBUG action: {}: ", cond_str);
-    let raw = cond_str.trim().to_owned();
-    let vtype = var_type.clone(); // clone so we can move it into closure
+                    if s[i..].starts_with(op) {
+                        // Check for top-level operator (not inside parentheses)
+                        let mut depth_check = 0;
+                        for c in s[..i].chars() {
+                            match c {
+                                '(' => depth_check += 1,
+                                ')' => depth_check -= 1,
+                                _ => {}
+                            }
+                        }
 
-    fn strip_outer_parens(s: &str) -> &str {
-        let s = s.trim();
-        if s.starts_with('(') && s.ends_with(')') {
-            let mut depth = 0;
-            for (i, c) in s.chars().enumerate() {
-                match c {
-                    '(' => depth += 1,
-                    ')' => {
-                        depth -= 1;
-                        if depth == 0 && i != s.len() - 1 {
-                            return s; // Not just outermost parens
+                        if depth_check == 0 {
+                            split_idx = Some(i);
+                            break;
                         }
                     }
-                    _ => {}
+                }
+
+                if let Some(i) = split_idx {
+                    let lhs = s[..i].trim();
+                    let rhs = s[i + op.len()..].trim();
+
+                    let lhs_expr = recurse(smv_env, lhs, ctx, state);
+                    let rhs_expr = recurse(smv_env, rhs, ctx, state);
+
+                    return match *op {
+                        "+" => lhs_expr.as_int().unwrap().add(&rhs_expr.as_int().unwrap()).into(),
+                        "-" => lhs_expr.as_int().unwrap().sub(&rhs_expr.as_int().unwrap()).into(),
+                        "!=" => lhs_expr._eq(&rhs_expr).not().into(),
+                        "=" => lhs_expr._eq(&rhs_expr).into(),
+                        ">" => lhs_expr.as_int().unwrap().gt(&rhs_expr.as_int().unwrap()).into(),
+                        "<" => lhs_expr.as_int().unwrap().lt(&rhs_expr.as_int().unwrap()).into(),
+                        ">=" => lhs_expr.as_int().unwrap().ge(&rhs_expr.as_int().unwrap()).into(),
+                        "<=" => lhs_expr.as_int().unwrap().le(&rhs_expr.as_int().unwrap()).into(),
+                        "&" => {
+                            let l = lhs_expr.as_bool().unwrap_or_else(|| {
+                                panic!("Expected bool lhs in '&': {}", lhs);
+                            });
+                            let r = rhs_expr.as_bool().unwrap_or_else(|| {
+                                panic!("Expected bool rhs in '&': {}", rhs);
+                            });
+                            Bool::and(ctx, &[&l, &r]).into()
+                        }
+                        "|" => {
+                            // Try boolean OR first
+                            if let (Some(l_bool), Some(r_bool)) = (lhs_expr.as_bool(), rhs_expr.as_bool()) {
+                                Bool::or(ctx, &[&l_bool, &r_bool]).into()
+                            } else if let (Some(l_int), Some(r_int)) = (lhs_expr.as_int(), rhs_expr.as_int()) {
+                                // Bool::or(ctx, &[&l_int, &r_int]).into() ???
+                                let l_bool = l_int._eq(&Int::from_i64(ctx, 1));
+                                let r_bool = r_int._eq(&Int::from_i64(ctx, 1));
+                                Bool::or(ctx, &[&l_bool, &r_bool]).into()
+                            } else {
+                                panic!(
+                                    "Unsupported or mismatched operand types for '|': lhs = {:?}, rhs = {:?}",
+                                    lhs_expr, rhs_expr
+                                );
+                            }
+                        }
+                        _ => unreachable!(),
+                    };
                 }
             }
-            return &s[1..s.len() - 1];
-        }
-        s
-    }
 
-    fn recurse<'ctx>(
-    s: &str,
-    ctx: &'ctx Context,
-    state: &EnvState<'ctx>,
-    ) -> Dynamic<'ctx> {
-        let s = strip_outer_parens(s.trim());
+            
+            let dummy_state = smv_env.make_dummy_state(ctx); // <-- this is important
 
-        if s == "TRUE" {
-            return Bool::from_bool(ctx, true).into();
-        } else if s == "FALSE" {
-            return Bool::from_bool(ctx, false).into();
-        } else if let Ok(n) = s.parse::<i64>() {
-            return Int::from_i64(ctx, n).into();
-        }
-
-        // Operators by precedence: lowest first
-        let precedence = vec!['=', '&', '|', '+', '-'];
-
-        for &op in &precedence {
-            let mut depth = 0;
-            let mut split_idx = None;
-
-            // Right-to-left scan for left-associative split
-            for (i, c) in s.char_indices().rev() {
-                match c {
-                    ')' => depth += 1,
-                    '(' => depth -= 1,
-                    _ if depth == 0 && c == op => {
-                        split_idx = Some(i);
-                        break;
-                    }
-                    _ => {}
-                }
-            }
-
-            if let Some(i) = split_idx {
-                let lhs = s[..i].trim();
-                let rhs = s[i + 1..].trim();
-
-                let lhs_expr = recurse(lhs, ctx, state);
-                let rhs_expr = recurse(rhs, ctx, state);
-
-                return match op {
-                    '+' => lhs_expr.as_int().unwrap().add(&rhs_expr.as_int().unwrap()).into(),
-                    '-' => lhs_expr.as_int().unwrap().sub(&rhs_expr.as_int().unwrap()).into(),
-                    '=' => lhs_expr._eq(&rhs_expr).into(),
-                    '&' => {
-                        let l = lhs_expr.as_bool().unwrap_or_else(|| {
-                            panic!("Expected bool lhs in '&': {}", lhs);
-                        });
-                        let r = rhs_expr.as_bool().unwrap_or_else(|| {
-                            panic!("Expected bool rhs in '&': {}", rhs);
-                        });
-                        Bool::and(ctx, &[&l, &r]).into()
-                    }
-                    '|' => {
-                        let l = lhs_expr.as_bool().unwrap_or_else(|| {
-                            panic!("Expected bool lhs in '|': {}", lhs);
-                        });
-                        let r = rhs_expr.as_bool().unwrap_or_else(|| {
-                            panic!("Expected bool rhs in '|': {}", rhs);
-                        });
-                        Bool::or(ctx, &[&l, &r]).into()
-                    }
-                    _ => unreachable!(),
-                };
+            // DEBUG
+            // println!("Available state keys: {:?}", dummy_state.keys().collect::<Vec<_>>());
+            if let Some(dyn_val) = dummy_state.get(s) {
+                dyn_val.clone()
+            } else if let Some(pred_fn) = smv_env.predicates.get(s) {
+                Dynamic::from(pred_fn(smv_env, ctx, state))
+            } else {
+                panic!("Variable or predicate '{}' not found!", s);
             }
         }
-
-        // Variable access
-        if let Some(dyn_var) = state.get(s) {
-            dyn_var.clone()
-        } else {
-            panic!("Variable '{}' not found!", s);
-        }
-    }
-
-    move |ctx, state| {
-        let expr = recurse(&raw, ctx, state);
-        ReturnType::DynAst(expr)
+        recurse(smv_env, &raw, ctx, state)
     }
 }
 
@@ -1097,26 +1060,26 @@ fn write_commands_file(filename: &str, commands: &[String]) -> io::Result<()> {
 }
 
 /// execute NuXMV to obtain the flatten model
-fn run_nuxmv(commands_file: &str) -> io::Result<String> {
-    println!("running nuXmv");
-    // Command::new("/full/path/to/nuxmv")
-    let output = Command::new("/Users/milad/Desktop/rust_tutorial/HyperRUSTY/nuXmv")
-        .arg("-source")
-        .arg(commands_file)
-        .stdout(Stdio::piped())
-        .spawn()?
-        .wait_with_output()?;
+// fn run_nuxmv(commands_file: &str) -> io::Result<String> {
+//     println!("running nuXmv");
+//     // Command::new("/full/path/to/nuxmv")
+//     let output = Command::new("/Users/milad/Desktop/rust_tutorial/HyperRUSTY/nuXmv")
+//         .arg("-source")
+//         .arg(commands_file)
+//         .stdout(Stdio::piped())
+//         .spawn()?
+//         .wait_with_output()?;
 
-    if output.status.success() {
-        //DEBUG
-        // let result = String::from_utf8_lossy(&output.stdout).to_string();
-        // Ok(result)
-        Ok("success".to_string())
-    } else {
-        let error = String::from_utf8_lossy(&output.stderr).to_string();
-        Err(io::Error::new(io::ErrorKind::Other, error))
-    }
-}
+//     if output.status.success() {
+//         //DEBUG
+//         // let result = String::from_utf8_lossy(&output.stdout).to_string();
+//         // Ok(result)
+//         Ok("success".to_string())
+//     } else {
+//         let error = String::from_utf8_lossy(&output.stderr).to_string();
+//         Err(io::Error::new(io::ErrorKind::Other, error))
+//     }
+// }
 
 /// Reads and parses the input file according to the given arguments, returning the output as a SMVEnv<'ctx>.
 pub fn parse_smv<'ctx>(
@@ -1181,10 +1144,13 @@ pub fn parse_smv<'ctx>(
         }
         "ir" => {
             let cfg = z3::Config::new();
-            // let ctx = Box::leak(Box::new(z3::Context::new(&cfg)));
-            // let parsed_model = parse_flattened_nuxmv(&content);
+            let ctx = Box::new(z3::Context::new(&cfg)); // owns the context
             let parsed_model = parse_original_smv(&content);
-            generate_smv_env_from_parsed(ctx, parsed_model)
+
+            // Leak the Box to give it a `'static` lifetime
+            let leaked_ctx: &'static z3::Context = Box::leak(ctx);
+
+            generate_smv_env_from_parsed(leaked_ctx, parsed_model)
         }
         other => panic!("Unknown output format: {}", other),
     }
