@@ -566,34 +566,6 @@ impl<'ctx> SMVEnv<'ctx> {
 
         constraints
     }
-
-
-
-    pub fn generate_symbolic_loop_path(&self, suffix: Option<&'ctx str>) -> (Vec<EnvState<'ctx>>, Bool) {
-        let states = self.generate_all_symbolic_states(suffix);
-
-        //let mut constraints = self.generate_initial_constraints(&states);
-
-        for state in &states {
-            let scope_constraints = self.generate_scope_constraints_for_state(&state);
-            constraints.extend(scope_constraints);
-        }
-
-        for k in 0..states.len() - 1 {
-            let curr_state = &states[k];
-            let next_state = &states[k + 1];
-            let step_constraint = self.generate_transition_relation(curr_state, next_state);
-            constraints.extend(step_constraint);
-        }
-
-        let refs: Vec<&Bool> = constraints.iter().collect();
-        let path_formula = Bool::and(self.ctx, &refs);
-        (states, path_formula)
-    }
-
-
-
-   
 }
 
 
