@@ -19,6 +19,7 @@ use std::ops::Add;
 
 use ir::int_var;
 use ir::bool_var;
+use ir::bv_var;
 use ir::to_dyn;
 use ir::choice_from_vec;
 use ir::choice;
@@ -882,17 +883,17 @@ pub fn generate_smv_env_from_parsed<'ctx>(
             };
             env.register_transition(
                 name_ref,
-                move |_env, _ctx, _state| ReturnType::DynAst(guard_fn(_env, _ctx, _state)),
+                move |_env, _ctx, state| ReturnType::DynAst(guard_fn(_env, _ctx, state)),
                 // move |_env, _ctx, _state| (update_fn(_env, _ctx, _state)),
                 // move |_env, _ctx, _state| nondet_choice.clone(),
-                move |_env, _ctx, _state| choice!(Int, 1, 2),
+                move |_env, _ctx, state|   nondet_choice.clone(),
             );
             
         }else {
             env.register_transition(
                 name_ref,
-                move |_env, _ctx, _state| ReturnType::DynAst(guard_fn(_env, _ctx, _state)),
-                move |_env, _ctx, _state| ReturnType::DynAst(update_fn(_env, _ctx, _state)),
+                move |_env, _ctx, state| ReturnType::DynAst(guard_fn(_env, _ctx, state)),
+                move |_env, _ctx, state| ReturnType::DynAst(update_fn(_env, _ctx, state)),
             );
         }   
         
@@ -911,49 +912,49 @@ pub fn generate_smv_env_from_parsed<'ctx>(
     }
 
     
-    // DEBUG: check registered SMVEnv
-    println!("\nRegistered variables:");
-    for (name, var) in env.get_variables() {
-        match &var.sort {
-            VarType::Bool { init } => {
-                println!("  {}: Bool {:?}", name, init);
-            }
-            VarType::Int { init, lower, upper } => {
-                println!("  {}: Int {:?}, bounds = [{:?}, {:?}]", name, init, lower, upper);
-            }
-            VarType::BVector { width, init, lower, upper } => {
-                println!(
-                    "  {}: BVector(width={}, init={:?}, bounds=[{:?}, {:?}])",
-                    name, width, init, lower, upper
-                );
-            }
-        }
-    }
-    let dummy_state: EnvState<'ctx> = HashMap::new();
-    println!("\nRegistered predicates:");
-    for (name, func) in &env.predicates {
-        let result = func(&env, ctx, &dummy_state);
-        println!("{:<8} := {:?}", name, result);
-    }
-    println!("\nRegistered transitions:");
-    for (var, transitions) in env.get_transitions() {
-        println!("Transitions for variable '{}':", var);
-        for (i, (guard_fn, update_fn)) in transitions.iter().enumerate() {
-            let guard = guard_fn(&env, ctx, &dummy_state);
-            let update = update_fn(&env, ctx, &dummy_state);
-            println!("  # {}:", i);
-            match guard {
-                ReturnType::DynAst(ast) => println!("    Guard : {}", ast.to_string()),
-                _ => println!("    Guard : <non-AST value>"),
-            }
-            println!{"UPDATE: {:?}", update};
-            // match update {
-            //     ReturnType::DynAst(ast) => println!("    Update: {}", ast.to_string()),
-            //     ReturnType::Int(ast) => println!("    Update: {}", ast.to_string()),
-            //     _ => println!("    Update: <non-AST value>"),
-            // }
-        }
-    }
+    // // DEBUG: check registered SMVEnv
+    // println!("\nRegistered variables:");
+    // for (name, var) in env.get_variables() {
+    //     match &var.sort {
+    //         VarType::Bool { init } => {
+    //             println!("  {}: Bool {:?}", name, init);
+    //         }
+    //         VarType::Int { init, lower, upper } => {
+    //             println!("  {}: Int {:?}, bounds = [{:?}, {:?}]", name, init, lower, upper);
+    //         }
+    //         VarType::BVector { width, init, lower, upper } => {
+    //             println!(
+    //                 "  {}: BVector(width={}, init={:?}, bounds=[{:?}, {:?}])",
+    //                 name, width, init, lower, upper
+    //             );
+    //         }
+    //     }
+    // }
+    // let dummy_state: EnvState<'ctx> = HashMap::new();
+    // println!("\nRegistered predicates:");
+    // for (name, func) in &env.predicates {
+    //     let result = func(&env, ctx, &dummy_state);
+    //     println!("{:<8} := {:?}", name, result);
+    // }
+    // println!("\nRegistered transitions:");
+    // for (var, transitions) in env.get_transitions() {
+    //     println!("Transitions for variable '{}':", var);
+    //     for (i, (guard_fn, update_fn)) in transitions.iter().enumerate() {
+    //         let guard = guard_fn(&env, ctx, &dummy_state);
+    //         let update = update_fn(&env, ctx, &dummy_state);
+    //         println!("  # {}:", i);
+    //         match guard {
+    //             ReturnType::DynAst(ast) => println!("    Guard : {}", ast.to_string()),
+    //             _ => println!("    Guard : <non-AST value>"),
+    //         }
+    //         println!{"UPDATE: {:?}", update};
+    //         // match update {
+    //         //     ReturnType::DynAst(ast) => println!("    Update: {}", ast.to_string()),
+    //         //     ReturnType::Int(ast) => println!("    Update: {}", ast.to_string()),
+    //         //     _ => println!("    Update: <non-AST value>"),
+    //         // }
+    //     }
+    // }
 
     env
 }
@@ -1154,9 +1155,12 @@ pub fn parse_condition<'ctx>(
                 }
             }
 
-            let dummy_state = smv_env.make_dummy_state(ctx);
-            if let Some(dyn_val) = dummy_state.get(s) {
-                dyn_val.clone()
+            if let Some(dyn_val) = smv_env.variables.get(s) {
+                match dyn_val.sort {
+                    VarType::Bool {..} => to_dyn!(bool_var!(state, s)),
+                    VarType::Int  {..} => to_dyn!(int_var!(state, s)),
+                    VarType::BVector  {..} => to_dyn!(bv_var!(state, s)),
+                }
             } else if let Some(pred_fn) = smv_env.predicates.get(s) {
                 Dynamic::from(pred_fn(smv_env, ctx, state))
             } else {
@@ -1281,14 +1285,14 @@ pub fn parse_smv<'ctx>(
             panic!("Expected output format 'ir' to return SMVEnv, but got 'functions'");
         }
         "ir" => {
-            let cfg = z3::Config::new();
-            let ctx = Box::new(z3::Context::new(&cfg)); // owns the context
+            // let cfg = z3::Config::new();
+            // let ctx = Box::new(z3::Context::new(&cfg)); // owns the context
             let parsed_model = parse_original_smv(&content);
 
             // Leak the Box to give it a `'static` lifetime
-            let leaked_ctx: &'static z3::Context = Box::leak(ctx);
+            // let leaked_ctx: &'static z3::Context = Box::leak(ctx);
 
-            generate_smv_env_from_parsed(leaked_ctx, parsed_model)
+            generate_smv_env_from_parsed(ctx, parsed_model)
         }
         other => panic!("Unknown output format: {}", other),
     }
