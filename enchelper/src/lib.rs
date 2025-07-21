@@ -245,13 +245,9 @@ pub fn detect_quantifier_order(formula: &AstNode) -> u8 {
     }
 }
 
-/// Checks if the formula starts with a globally (G) or eventually (F) operator
-/// This function looks at the outermost temporal operator after skipping quantifiers
+
 pub fn starts_with_g_or_f(formula: &AstNode) -> bool {
-    // First, get to the inner LTL formula by skipping quantifiers
     let inner_formula = inner_ltl(formula);
-    
-    // Check if the outermost operator is G or F
     match inner_formula {
         AstNode::UnOp { operator, .. } => {
             matches!(operator, UnaryOperator::Globally | UnaryOperator::Eventually)
@@ -260,27 +256,22 @@ pub fn starts_with_g_or_f(formula: &AstNode) -> bool {
     }
 }
 
-/// Checks if the formula contains no Until (U) or Release (R) operators anywhere
-/// This function recursively traverses the entire formula tree
+
 pub fn has_no_until_or_release(formula: &AstNode) -> bool {
     match formula {
-        // Check binary operators - reject if Until or Release
         AstNode::BinOp { operator, lhs, rhs } => {
             match operator {
                 BinOperator::Until | BinOperator::Release => false,
                 _ => {
-                    // Recursively check both operands
                     has_no_until_or_release(lhs) && has_no_until_or_release(rhs)
                 }
             }
         }
         
-        // Check unary operators - continue recursively
         AstNode::UnOp { operand, .. } => {
             has_no_until_or_release(operand)
         }
         
-        // Check quantifiers - continue recursively
         AstNode::HAQuantifier { form, .. } |
         AstNode::HEQuantifier { form, .. } |
         AstNode::AAQuantifier { form, .. } |
@@ -288,33 +279,9 @@ pub fn has_no_until_or_release(formula: &AstNode) -> bool {
             has_no_until_or_release(form)
         }
         
-        // Base cases: propositions, constants, etc. don't contain temporal operators
+
         AstNode::HIndexedProp { .. } |
         AstNode::AIndexedProp { .. } |
         AstNode::Constant { .. } => true,
-    }
-}
-
-/// Checks if the formula is in GF or FG form (starts with G or F and has no U/R operators)
-/// This is a common check for certain classes of temporal formulas
-pub fn is_gf_or_fg_form(formula: &AstNode) -> bool {
-    starts_with_g_or_f(formula) && has_no_until_or_release(formula)
-}
-
-/// Returns the type of temporal operator that starts the formula
-/// Returns Some("G") for Globally, Some("F") for Eventually, None otherwise
-pub fn get_starting_temporal_operator(formula: &AstNode) -> Option<&'static str> {
-    let inner_formula = inner_ltl(formula);
-    
-    match inner_formula {
-        AstNode::UnOp { operator, .. } => {
-            match operator {
-                UnaryOperator::Globally => Some("G"),
-                UnaryOperator::Eventually => Some("F"),
-                UnaryOperator::Next => Some("X"),
-                UnaryOperator::Negation => None, // Negation is not a temporal operator
-            }
-        }
-        _ => None,
     }
 }
