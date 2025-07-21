@@ -1,7 +1,7 @@
 MODULE main
  VAR
     x: boolean;
-    -- y: 0..5;
+    y: 0..5;
     -- a[0][1]: 0..3;
     -- b: 0..10;
     -- b: 0..3;
@@ -13,7 +13,7 @@ MODULE main
     -- init(a):= {FALSE,TRUE};
     -- init(b):= {TRUE};
     init(x):= {FALSE};
-    -- init(y):= {3};
+    init(y):= {3};
     -- init(a[0][1]):= 0;
     -- init(a):= {TRUE,FALSE};
     -- init(b):= {0};
@@ -24,7 +24,7 @@ MODULE main
     -- Transition Relations
     next(x) := x;
 
-    -- next(y) := 
+    next(y) := {1,2};
     --   case 
     --     (x) : (1);
     --     -- ((y=1) & (x)) : 3;
