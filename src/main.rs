@@ -199,6 +199,11 @@ fn main() {
             let solver = Solver::new(&ctx);
             solver.assert(&form);
 
+            // SMT-LIB encoding
+            let smtlib = solver.to_smt2();
+
+            fs::write("input.smt2", smtlib).expect("Failed to write file");
+
             match solver.check() {
                 SatResult::Sat => {
                     println!("result: sat.");
