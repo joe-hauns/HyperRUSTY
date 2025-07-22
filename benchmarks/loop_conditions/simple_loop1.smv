@@ -1,0 +1,25 @@
+MODULE main 
+VAR
+  s : 1..4;
+  f : boolean;
+
+ASSIGN
+  init(s) := 1;
+  init(f) := FALSE;
+
+  next(s) :=
+    case
+      s = 1  : 2;     
+      s = 2  : {3, 4};     
+      s = 3  : 1;         
+      s = 4  : 1;        
+    esac;
+
+
+  next(f) := case
+    s = 3 : TRUE;
+    TRUE        : FALSE;
+    esac;
+
+
+
