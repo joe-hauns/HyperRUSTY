@@ -1,21 +1,21 @@
 exists A. forall B.
 
     (F
-        ({GOAL}_A)
+        {"gOAL"_A}
     )
 &
     (G
         (
-            ({act=1}_A <-> {act=1}_B)
+            ({"act"_A=1} <-> {"act"_B=1})
             &
-            ({act=2}_A <-> {act=2}_B)
+            ({"act"_A=2} <-> {"act"_B=2})
             &
-            ({act=3}_A <-> {act=3}_B)
+            ({"act"_A=3} <-> {"act"_B=3})
             &
-            ({act=4}_A <-> {act=4}_B)
+            ({"act"_A=4} <-> {"act"_B=4})
         )
         -> 
         (F
-            ({GOAL}_A)
+            {"gOAL"_B}
         )
     )
