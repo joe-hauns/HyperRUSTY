@@ -1,7 +1,6 @@
 MODULE main
 VAR
   b_state : 1..14;
-
 ASSIGN
   init(b_state) := 1;
   next(b_state) :=

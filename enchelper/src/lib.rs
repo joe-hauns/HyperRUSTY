@@ -236,7 +236,7 @@ pub fn detect_quantifier_order(formula: &AstNode) -> u8 {
             _ => break,
         }
     }
-    println!("{:?}", seq);
+    //println!("{:?}", seq);
     // Check for the patterns we're interested in
     match seq.as_slice() {
         ['A', 'E'] => 1,  // AE pattern

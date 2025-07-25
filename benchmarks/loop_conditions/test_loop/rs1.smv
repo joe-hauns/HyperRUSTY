@@ -6,7 +6,6 @@ ASSIGN
   init(y) := 1;
   next(y) := case
     y = 1 : 2;
-    y = 2 : 1;
+    y = 2 : {1, 2};
     TRUE  : y;
   esac;
-

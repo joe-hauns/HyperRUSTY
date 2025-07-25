@@ -4,12 +4,6 @@
 
 # AutoHyper/app/AutoHyper --nusmv mini.smv auto_mini.hq
 
-
-#=== LOOP CONDITIONS EXAMPLES ===#
-
-cargo run --release -- -n benchmarks/loop_conditions/rp_1.smv benchmarks/loop_conditions/rp_2.smv -f benchmarks/loop_conditions/rp.hq -k 10000000000000 -s pes
-
-
 #=== BAKERY ===#
 
 # echo "bakery 3"
@@ -140,3 +134,19 @@ cargo run --release -- -n benchmarks/loop_conditions/rp_1.smv benchmarks/loop_co
 # time cargo run --release -- -n benchmarks/14_ndet/NI_v2.smv benchmarks/14_ndet/NI_v2.smv -f benchmarks/14_ndet/NI.hq -k 10 -s hpes
 
 # time cargo run --release -- -n benchmarks/14_ndet/NI_v3.smv benchmarks/14_ndet/NI_v3.smv -f benchmarks/14_ndet/NI.hq -k 10 -s hpes
+
+
+
+
+
+#=== LOOP CONDITIONS EXAMPLES ===#
+
+# cargo run --release -- -n benchmarks/loop_conditions/abp/abp_1.smv benchmarks/loop_conditions/abp/abp_2.smv -f benchmarks/loop_conditions/abp/abp.hq -k 10000000000000 -s opt
+
+# cargo run --release -- -n benchmarks/loop_conditions/robust_path_planning/rp_1.smv benchmarks/loop_conditions/robust_path_planning/rp_2.smv -f benchmarks/loop_conditions/robust_path_planning/rp.hq -k 10000000000000 -s opt
+
+# cargo run --release -- -n benchmarks/loop_conditions/robust_path_planning/rp_1_no_sol.smv benchmarks/loop_conditions/robust_path_planning/rp_2.smv -f benchmarks/loop_conditions/robust_path_planning/rp.hq -k 10000000000000 -s opt
+
+# cargo run --release -- -n benchmarks/loop_conditions/simple_loop/simple_loop1.smv benchmarks/loop_conditions/simple_loop/simple_loop2.smv -f benchmarks/loop_conditions/simple_loop/simple_loop.hq -k 10000000000000 -s opt
+
+# cargo run --release -- -n benchmarks/loop_conditions/test_loop/rs1.smv benchmarks/loop_conditions/test_loop/rs2.smv -f benchmarks/loop_conditions/test_loop/rs.hq -k 10000000000000 -s opt
