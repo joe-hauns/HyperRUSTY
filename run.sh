@@ -18,9 +18,16 @@
 # echo "bakery 7"
 # time cargo run --release -- -n benchmarks/1_bakery/bakery7.smv benchmarks/1_bakery/bakery7.smv -f benchmarks/1_bakery/symmetry7.hq -k 10 -s hpes
 
-cargo run --release -- -n benchmarks/1_bakery/bakery9.smv benchmarks/1_bakery/bakery9.smv -f benchmarks/1_bakery/symmetry9.hq -k 10 -s hpes
+#cargo run --release -- -n benchmarks/1_bakery/bakery9.smv benchmarks/1_bakery/bakery9.smv -f benchmarks/1_bakery/symmetry9.hq -k 10 -s hpes
 
 # cargo run --release -- -n benchmarks/1_bakery/bakery11.smv benchmarks/1_bakery/bakery11.smv -f benchmarks/1_bakery/symmetry11.hq -k 10 -s hpes
+
+
+#=== Linearizability ===#
+
+# Lazy-list
+ time cargo run --release -- -n benchmarks/lazy_list/lazy_list_conc.smv benchmarks/lazy_list/lazy_list_seq.smv -f benchmarks/lazy_list/lazy_list.hq -k 13 -s hpes
+
 
 
 
