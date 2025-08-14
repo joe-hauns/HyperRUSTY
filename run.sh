@@ -192,4 +192,5 @@
 # cargo run --release -- -n benchmarks/loop_conditions/test_loop/rs1.smv benchmarks/loop_conditions/test_loop/rs2.smv -f benchmarks/loop_conditions/test_loop/rs.hq -l
 
 #=== VERLIOG EXAMPLES ===#
-RUST_BACKTRACE=1 cargo run --release -- -v verilog_benchmarks/build_infoflow.ys verilog_benchmarks/build_infoflow.ys -t main -o model.smt2 -f verilog_benchmarks/formula.hq -k 3 -s hpes
+# RUST_BACKTRACE=1 cargo run --release -- -v verilog_benchmarks/build_infoflow.ys verilog_benchmarks/build_infoflow.ys -t main -o model.smt2 -f verilog_benchmarks/formula.hq -k 3 -s hpes
+time cargo run --release -- -v verilog_benchmarks/LED/build.ys verilog_benchmarks/LED/build.ys -t light -o model.smt2 -f verilog_benchmarks/formula.hq -k 101 -s hpes

@@ -310,8 +310,6 @@ fn main() {
         let start = Instant::now();
 
         let encoding = get_verilog_encoding(&envs, &models, &ast_node, unrolling_bound, semantics);
-
-        // println!("{:?}", encoding);
         
         let duration = start.elapsed();
         let secs = duration.as_secs_f64();

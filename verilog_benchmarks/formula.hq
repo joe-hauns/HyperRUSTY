@@ -1,2 +1,2 @@
 
-Forall A . Exists B . ~(high[A] = high[B]) & G(low[A] = low[B])
+Exists p . Exists q . G (light_out[p] = light_out[q])

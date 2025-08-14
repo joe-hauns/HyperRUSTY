@@ -255,19 +255,16 @@ fn generate_quantified_encoding<'ctx>(ctx: &'ctx Context, formula: &AstNode, pat
             let ast_refs: Vec<&dyn Ast<'ctx>> = vars.iter().map(|v| v as &dyn Ast<'ctx>).collect();
             // Step 2: Convert to a slice
             let ast_slice: &[&dyn Ast<'ctx>] = &ast_refs;
-            let node = forall_const(
+            forall_const(
                 ctx,
                 ast_slice,
                 &[],
-                &generate_quantified_encoding(ctx, form, paths, path_encodings, mapping, inner.clone())
-            );
-            node
+                &generate_quantified_encoding(ctx, form, paths, path_encodings, mapping, inner)
+            )
         }
         AstNode::HEQuantifier {form, identifier} => {
             let idx = mapping.get(identifier as &str).unwrap();
             let selected_path = &paths[*idx];
-            let something = generate_quantified_encoding(ctx, form, paths, path_encodings, mapping, inner);
-            println!("{:?}", something);
             let vars: Vec<Dynamic<'ctx>> = selected_path
                 .iter()
                 .flat_map(|env| env.values().cloned()) // clones Dynamic<'ctx>
@@ -275,15 +272,12 @@ fn generate_quantified_encoding<'ctx>(ctx: &'ctx Context, formula: &AstNode, pat
             let ast_refs: Vec<&dyn Ast<'ctx>> = vars.iter().map(|v| v as &dyn Ast<'ctx>).collect();
             // Step 2: Convert to a slice
             let ast_slice: &[&dyn Ast<'ctx>] = &ast_refs;
-            let node = exists_const(
+            exists_const(
                 ctx,
                 ast_slice,
                 &[],
-                &something,
-            );
-            // println!("{:?}", node);
-            // println!("#################################################");
-            node
+                &generate_quantified_encoding(ctx, form, paths, path_encodings, mapping, inner)
+            )
         }
         _ => inner
     }
@@ -298,8 +292,7 @@ fn generate_hltl_encoding<'env, 'ctx>(envs: &'env Vec<SMVEnv<'ctx>>, formula: &A
     // Get the mapping
     let mapping = create_path_mapping(formula, 0);
     // Build the complete encoding
-    inner_ltl
-    // generate_quantified_encoding(ctx, formula, &paths, &path_encodings, &mapping, inner.clone())
+    generate_quantified_encoding(ctx, formula, &paths, &path_encodings, &mapping, inner.clone())
 
 }
 
@@ -307,6 +300,7 @@ pub fn get_verilog_encoding<'env, 'ctx>(envs: &'env Vec<SMVEnv<'ctx>>, models: &
     let ctx = envs[0].ctx;
     let mut path_constraints : Vec<Bool<'ctx>> = Vec::new();
     let mut states : Vec<Vec<EnvState<'ctx>>> = Vec::new();
+    let mut bounded_vars : Vec<Vec<EnvState<'ctx>>> = Vec::new();
     // Obtain the path mapping from the formula
     let path_mapping = create_path_mapping(formula, 0);
     // Formula variables for each path
@@ -334,11 +328,20 @@ pub fn get_verilog_encoding<'env, 'ctx>(envs: &'env Vec<SMVEnv<'ctx>>, models: &
         // Record current path encoding
         path_constraints.push(d.clone());
         // create unrolled states from AST
-        let unrolled_states = verilog_helper::unrolled_states_from_Z3_ast(&d, &var_mapping[idx], k);
+        let (unrolled_states, quantified_vars) = verilog_helper::unrolled_states_from_Z3_ast(&d, &var_mapping[idx], k);
         // Record current states
         states.push(unrolled_states);
+        // record bounded variables
+        bounded_vars.push(quantified_vars);
     }
 
-    generate_hltl_encoding(envs, formula, states, path_constraints, sem)
+    // Unroll the formula first
+    let inner_ltl = unroll_hltl_formula(envs, formula, &states, &sem);
+    // Construct the inner encoding
+    let inner = generate_inner_encoding(ctx, formula, &path_constraints, inner_ltl.clone(), 0);
+    // Get the mapping
+    let mapping = create_path_mapping(formula, 0);
+    // Build the complete encoding
+    generate_quantified_encoding(ctx, formula, &bounded_vars, &path_constraints, &mapping, inner.clone())
     
 }
