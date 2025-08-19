@@ -603,7 +603,7 @@ pub fn parse_original_smv(input: &str) -> ParsedModel {
 
 
     // Parse ASSIGN init(...) := ...
-    let init_re = Regex::new(r"init\(([\w\[\]]+)\)\s*:=\s*\{?(.+?)\}?;").unwrap();
+    let init_re = Regex::new(r"init\(([\w.\[\]]+)\)\s*:=\s*\{?(.+?)\}?;").unwrap();
     for cap in init_re.captures_iter(input) {
         let var = cap[1].to_string();
         let val = strip_comment(&cap[2]).trim_end_matches(';').to_string();
@@ -612,7 +612,7 @@ pub fn parse_original_smv(input: &str) -> ParsedModel {
 
 
     // Parse ASSIGN next(...) := ...
-    let next_assign_re = Regex::new(r"next\(([\w\[\]]+)\)\s*:=\s*(.*)").unwrap();
+    let next_assign_re = Regex::new(r"next\(([\w.\[\]\.]+)\)\s*:=\s*(.*)").unwrap();
     let mut lines = input.lines().map(str::trim).peekable();
 
     while let Some(line) = lines.next() {
@@ -709,7 +709,7 @@ pub fn parse_original_smv(input: &str) -> ParsedModel {
             define_block.push('\n');
         }
 
-        let define_re = Regex::new(r"(?m)^\s*([\w.\[\]]+)\s*:=\s*(.+?);").unwrap();
+        let define_re = Regex::new(r"(?m)^\s*([\w.\[\]\.]+)\s*:=\s*(.+?);").unwrap();
         for cap in define_re.captures_iter(&define_block) {
             let var = strip_comment(&cap[1]).to_string();
             let expr = strip_comment(&cap[2]).to_string();
