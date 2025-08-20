@@ -1,2 +1,2 @@
-forall A. forall B.
-(F(halt[A]))<->(F(halt[B]))
+Forall A . Forall B .
+(F(halt[A])) = (F(halt[B]))
