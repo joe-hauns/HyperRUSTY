@@ -104,7 +104,7 @@
 
 
 #=== Shortest Path Planning ===#
-time cargo run --release -- -n benchmarks/5_planning/robotic_sp_100.smv benchmarks/5_planning/robotic_sp_100.smv -f benchmarks/5_planning/robotic_sp_formula.hq -k 20 -s hpes
+# time cargo run --release -- -n benchmarks/5_planning/robotic_sp_100.smv benchmarks/5_planning/robotic_sp_100.smv -f benchmarks/5_planning/robotic_sp_formula.hq -k 20 -s hpes
 
 # time AutoHyper/app/AutoHyper --nusmv benchmarks/5_planning/robotic_sp_100.smv benchmarks/AH_formulas/5.2.hq
 
@@ -177,6 +177,8 @@ time cargo run --release -- -n benchmarks/5_planning/robotic_sp_100.smv benchmar
 
 
 # time AutoHyper/app/AutoHyper --nusmv benchmarks/11_ksafety/doubleSquare.smv benchmarks/AH_formulas/11.hq
+
+
 
 #=== Mapping synthesis ===#
 # time cargo run --release -- -n benchmarks/12_mapsynth/msynth_MM.smv  benchmarks/12_mapsynth/msynth_MA.smv benchmarks/12_mapsynth/msynth_MB.smv benchmarks/12_mapsynth/msynth_MA.smv benchmarks/12_mapsynth/msynth_MB.smv -f benchmarks/12_mapsynth/msynth.hq -k 10 -s hpes
