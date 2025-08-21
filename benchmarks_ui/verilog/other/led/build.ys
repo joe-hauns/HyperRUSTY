@@ -1,0 +1,7 @@
+# build.ys
+read_verilog -pwires ./verilog_benchmarks/LED/system.v
+hierarchy -check -top light
+proc
+flatten
+opt_clean -purge
+write_smt2 -stdt -wires model.smt2
