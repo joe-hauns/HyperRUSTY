@@ -24,15 +24,15 @@ jobs:
           path: target
           token: ${{ secrets.PAT_TOKEN }}
 
-      - name: Setup Dart SDK
-        uses: dart-lang/setup-dart@v1
+      - name: Setup Flutter SDK
+        uses: subosito/flutter-action@v2
         with:
-          sdk: stable
+          flutter-version: 'stable'
 
-      - name: Install Dart dependencies
+      - name: Install Flutter dependencies
         run: |
           cd target
-          dart pub add yaml yaml_edit
+          flutter pub get
 
       - name: Copy folder and generate code
         run: |
