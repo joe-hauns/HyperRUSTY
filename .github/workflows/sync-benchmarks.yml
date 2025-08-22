@@ -29,6 +29,11 @@ jobs:
         with:
           sdk: stable
 
+      - name: Install Dart dependencies
+        run: |
+          cd target
+          dart pub add yaml yaml_edit
+
       - name: Copy folder and generate code
         run: |
           cd target
