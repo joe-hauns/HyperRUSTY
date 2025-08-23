@@ -23,6 +23,7 @@ jobs:
           repository: HyperQB/hyperqb-ui
           path: target
           token: ${{ secrets.PAT_TOKEN }}
+          fetch-depth: 0 # Fetch all branches
 
       - name: Setup Flutter SDK
         uses: subosito/flutter-action@v2
@@ -54,4 +55,13 @@ jobs:
       - name: Sync to release branch
         run: |
           cd target
-          git push origin main:release --force
+          git checkout release
+          git pull origin release
+
+          # Copy the same changes to release branch
+          rsync -av --delete ../benchmarks_ui/ assets/benchmarks_ui/
+          dart run lib/generate_case_studies.dart
+
+          git add .
+          git commit -m "Sync benchmarks_ui from HyperRUSTY and regenerate code" || echo "No changes to release"
+          git push origin release
