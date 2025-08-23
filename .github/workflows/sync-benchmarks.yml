@@ -54,4 +54,4 @@ jobs:
       - name: Sync to release branch
         run: |
           cd target
-          git push origin main:release
+          git push origin main:release --force
