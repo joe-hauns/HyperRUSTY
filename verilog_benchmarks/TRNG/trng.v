@@ -417,17 +417,17 @@ module trng(
             tmp_debug             = entropy2_debug;
           end
 
-        DEBUG_MIXER:
-          begin
-            mixer_debug_update = debug_update;
-            tmp_debug          = mixer_debug;
-          end
+        //DEBUG_MIXER:
+        //  begin
+        //    mixer_debug_update = debug_update;
+        //    tmp_debug          = mixer_debug;
+        //  end
 
-        DEBUG_CSPRNG:
-          begin
-            csprng_debug_update = debug_update;
-            tmp_debug           = csprng_debug;
-          end
+        //DEBUG_CSPRNG:
+        //  begin
+        //    csprng_debug_update = debug_update;
+        //    tmp_debug           = csprng_debug;
+        //  end
 
         default:
           begin
@@ -491,21 +491,21 @@ module trng(
             tmp_error       = entropy2_api_error;
           end
 
-        MIXER_PREFIX:
-          begin
-            mixer_api_cs  = cs;
-            mixer_api_we  = we;
-            tmp_read_data = mixer_api_read_data;
-            tmp_error     = mixer_api_error;
-          end
+        //MIXER_PREFIX:
+        //  begin
+        //    mixer_api_cs  = cs;
+        //    mixer_api_we  = we;
+        //    tmp_read_data = mixer_api_read_data;
+        //    tmp_error     = mixer_api_error;
+        //  end
 
-        CSPRNG_PREFIX:
-          begin
-            csprng_api_cs = cs;
-            csprng_api_we = we;
-            tmp_read_data = csprng_api_read_data;
-            tmp_error     = csprng_api_error;
-          end
+        //CSPRNG_PREFIX:
+        //  begin
+        //    csprng_api_cs = cs;
+        //    csprng_api_we = we;
+        //    tmp_read_data = csprng_api_read_data;
+        //    tmp_error     = csprng_api_error;
+        //  end
 
         default:
           begin

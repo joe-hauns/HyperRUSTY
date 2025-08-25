@@ -253,7 +253,7 @@
 # time cargo run --release -- -v verilog_benchmarks/LED/build.ys verilog_benchmarks/LED/build.ys -t light -o model.smt2 -f verilog_benchmarks/formula.hq -k 101 -s hpes
 
 #=== True Random Number Generator ===#
-# RUST_BACKTRACE=1 cargo run --release -- -v verilog_benchmarks/TRNG/build.ys verilog_benchmarks/TRNG/build.ys -t trng -o trng.smt2 -f verilog_benchmarks/TRNG/formula_1.hq -k 1 -s opt
+RUST_BACKTRACE=1 cargo run --release -- -v verilog_benchmarks/TRNG/build.ys verilog_benchmarks/TRNG/build.ys -t trng_wrap -o trng.smt2 -f verilog_benchmarks/TRNG/formula_1.hq -k 1 -s opt
 
 #=== FIFO ASYNC ===#
-RUST_BACKTRACE=1 cargo run --release -- -v verilog_benchmarks/fifo_async/build.ys verilog_benchmarks/fifo_async/build.ys -t oh_fifo_generic -o fifo_async.smt2 -f verilog_benchmarks/fifo_async/formula_1.hq -k 1 -s hpes
+# RUST_BACKTRACE=1 cargo run --release -- -v verilog_benchmarks/fifo_async/build.ys verilog_benchmarks/fifo_async/build.ys -t oh_fifo_generic -o fifo_async.smt2 -f verilog_benchmarks/fifo_async/formula_1.hq -k 1 -s hpes

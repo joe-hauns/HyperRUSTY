@@ -1,1 +1,1 @@
-Exists A . Forall B . F ~(csprng_inst.cipher_data_out[A] =  csprng_inst.cipher_data_out[B])
+Exists A . Forall B . F ~(read_data_comb[A] =  read_data_comb[B])
