@@ -124,7 +124,7 @@
 #=== Co-termination ===#
 # time cargo run --release -- -n benchmarks/7_coterm/coterm1.smv benchmarks/7_coterm/coterm1.smv -f benchmarks/7_coterm/coterm.hq -k 10 -s hpes
 
-time AutoHyper/app/AutoHyper --nusmv benchmarks/7_coterm/coterm1.smv benchmarks/AH_formulas/7.hq
+# time AutoHyper/app/AutoHyper --nusmv benchmarks/7_coterm/coterm1.smv benchmarks/AH_formulas/7.hq
 
 
 
@@ -222,6 +222,87 @@ time AutoHyper/app/AutoHyper --nusmv benchmarks/7_coterm/coterm1.smv benchmarks/
 
 
 
+#=== Bank ===#
+
+# time cargo run --release -- -n benchmarks/15_bank/bank3_complex_V1.smv benchmarks/15_bank/bank3_complex_V1.smv benchmarks/15_bank/bank3_complex_V1.smv -f benchmarks/15_bank/gmni.hq -k 10 -s hpes
+
+# time AutoHyper/app/AutoHyper --nusmv benchmarks/15_bank/bank3_complex_V1.smv benchmarks/AH_formulas/15.hq --log
+
+# time cargo run --release -- -n benchmarks/15_bank/bank3_complex_V2.smv benchmarks/15_bank/bank3_complex_V2.smv benchmarks/15_bank/bank3_complex_V2.smv -f benchmarks/15_bank/gmni.hq -k 10 -s hpes
+
+# time AutoHyper/app/AutoHyper --nusmv benchmarks/15_bank/bank3_complex_V2.smv benchmarks/AH_formulas/15.hq --log
+
+# time cargo run --release -- -n benchmarks/15_bank/bank3_complex_V3.smv benchmarks/15_bank/bank3_complex_V3.smv benchmarks/15_bank/bank3_complex_V3.smv -f benchmarks/15_bank/gmni.hq -k 10 -s hpes
+
+# time AutoHyper/app/AutoHyper --nusmv benchmarks/15_bank/bank3_complex_V3.smv benchmarks/AH_formulas/15.hq --log
+
+
+
+
+#=== Constructor ===#
+
+# time cargo run --release -- -n benchmarks/16_constructor/constructor_conc.smv benchmarks/16_constructor/constructor_seq.smv -f benchmarks/16_constructor/Linearizability.hq -k 20 -s hpes
+
+# time AutoHyper/app/AutoHyper --nusmv benchmarks/16_constructor/constructor_conc.smv benchmarks/16_constructor/constructor_seq.smv benchmarks/AH_formulas/16.hq --log
+
+
+
+#=== TicTac ===#
+
+### TODO: line 44 is to be fixed
+# time cargo run --release -- -n benchmarks/17_tictac/tictac.smv benchmarks/17_tictac/tictac.smv -f benchmarks/17_tictac/determinism.hq -k 20 -s hpes
+
+
+
+#=== bidding ===#
+
+# time cargo run --release -- -n benchmarks/18_bidding/bid_safe.smv benchmarks/18_bidding/bid_safe.smv -f benchmarks/18_bidding/bidding.hq -k 20 -s hpes
+
+# time AutoHyper/app/AutoHyper --nusmv benchmarks/18_bidding/bid_safe.smv  benchmarks/AH_formulas/18.hq --log
+
+
+# time cargo run --release -- -n benchmarks/18_bidding/bid_safe_2.smv benchmarks/18_bidding/bid_safe_2.smv -f benchmarks/18_bidding/bidding.hq -k 20 -s hpes
+
+# time AutoHyper/app/AutoHyper --nusmv benchmarks/18_bidding/bid_safe_2.smv  benchmarks/AH_formulas/18.hq --log
+
+
+# time cargo run --release -- -n benchmarks/18_bidding/bid_safe_4.smv benchmarks/18_bidding/bid_safe_4.smv -f benchmarks/18_bidding/bidding.hq -k 20 -s hpes
+
+# time AutoHyper/app/AutoHyper --nusmv benchmarks/18_bidding/bid_safe_4.smv  benchmarks/AH_formulas/18.hq --log
+
+
+# time cargo run --release -- -n benchmarks/18_bidding/bid_unsafe.smv benchmarks/18_bidding/bid_unsafe.smv -f benchmarks/18_bidding/bidding.hq -k 20 -s hpes
+
+# time AutoHyper/app/AutoHyper --nusmv benchmarks/18_bidding/bid_unsafe.smv  benchmarks/AH_formulas/18.hq --log
+
+
+
+#=== IQueue ===#
+
+# time cargo run --release -- -n benchmarks/19_iqueue/iqueue_conc.smv benchmarks/19_iqueue/iqueue_seq.smv -f benchmarks/19_iqueue/iqueue.hq -k 10 -s hpes
+
+# time AutoHyper/app/AutoHyper --nusmv benchmarks/19_iqueue/iqueue_conc.smv benchmarks/19_iqueue/iqueue_seq.smv  benchmarks/AH_formulas/19.hq --log
+
+
+
+#=== Keypad ===#
+
+
+# time cargo run --release -- -n benchmarks/20_keypad/keypad.smv benchmarks/20_keypad/keypad.smv -f benchmarks/20_keypad/keypad_2.hq -k 10 -s hpes
+
+# time AutoHyper/app/AutoHyper --nusmv benchmarks/20_keypad/keypad.smv benchmarks/AH_formulas/20.hq --log
+
+
+
+#=== Queue ===#
+
+# time cargo run --release -- -n benchmarks/21_queue/concurrent.smv benchmarks/21_queue/atomic.smv -f benchmarks/21_queue/lin.hq -k 20 -s hpes
+
+
+# time AutoHyper/app/AutoHyper --nusmv benchmarks/21_queue/concurrent.smv benchmarks/21_queue/atomic.smv benchmarks/AH_formulas/21.hq --log
+
+
+
 
 
 #=== LOOP CONDITIONS EXAMPLES ===#
@@ -239,3 +320,11 @@ time AutoHyper/app/AutoHyper --nusmv benchmarks/7_coterm/coterm1.smv benchmarks/
 #=== VERLIOG EXAMPLES ===#
 # RUST_BACKTRACE=1 cargo run --release -- -v verilog_benchmarks/build_infoflow.ys verilog_benchmarks/build_infoflow.ys -t main -o model.smt2 -f verilog_benchmarks/formula.hq -k 3 -s hpes
 # time cargo run --release -- -v verilog_benchmarks/LED/build.ys verilog_benchmarks/LED/build.ys -t light -o model.smt2 -f verilog_benchmarks/formula.hq -k 101 -s hpes
+
+
+
+
+#=== A-HLTL cases ===#
+
+#=== ACDB ===#
+time cargo run --release -- -n benchmarks/async1_acdb/original/proc1.smv benchmarks/async1_acdb/original/proc2.smv -f benchmarks/async1_acdb/original/acdb_formula.hq -k 10 -s hpes
