@@ -1,5 +1,5 @@
 {
-  "name": "Bakery 3",
+  "name": "Bakery",
   "inputLanguage": "nusmv",
   "files": {
     "nusmvFiles": ["bakery.smv", "bakery.smv"],
