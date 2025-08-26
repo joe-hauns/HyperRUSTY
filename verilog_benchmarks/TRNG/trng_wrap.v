@@ -32,7 +32,7 @@ module trng_wrap (
 
   // Core's original combinational read_data
   wire [31:0] read_data_comb;
-
+  reg  [31:0] read_data_state = 32'h0000_0000;
   // Instantiate the unmodified TRNG core from trng.v
   trng u_trng_core (
     .clk(clk),
@@ -55,13 +55,9 @@ module trng_wrap (
 
     .security_error(security_error)
   );
-
   // Register the output so Yosys treats it as sequential state.
-  always @(posedge clk or negedge reset_n) begin
-    if (!reset_n)
-      read_data <= 32'h0000_0000;
-    else
-      read_data <= read_data_comb;
+  always @(posedge clk) begin
+    read_data_state <= read_data_comb;
   end
-
+  assign read_data = read_data_comb;
 endmodule
