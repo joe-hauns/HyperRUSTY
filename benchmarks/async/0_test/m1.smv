@@ -14,5 +14,5 @@ MODULE main
 		esac;
 
 	DEFINE
-		obs_print := (line=2);
+		obs_print := (line=2) | (line=3);
 		halt := (line=3);
