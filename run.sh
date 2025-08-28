@@ -346,6 +346,11 @@
 #=== True Random Number Generator ===#
 # RUST_BACKTRACE=1 cargo run --release -- -v verilog_benchmarks/TRNG/build.ys verilog_benchmarks/TRNG/build.ys -t trng_wrap -o trng.smt2 -f verilog_benchmarks/TRNG/formula_1.hq -k 1 -s opt
 
+#=== ===#
+# RUST_BACKTRACE=1 cargo run --release -- -v verilog_benchmarks/SPI/spi_correct/src/spi_build.ys verilog_benchmarks/SPI/spi_correct/src/spi_build.ys -t SPISlave -o spi.smt2 -f verilog_benchmarks/SPI/spi_correct/src/formula.hq -k 12 -s hpes
+
+ ./target/release/hyperrusty -v verilog_benchmarks/SPI/spi_correct/src/spi_build.ys verilog_benchmarks/SPI/spi_correct/src/spi_build.ys -t SPISlave -o spi.smt2 -f verilog_benchmarks/SPI/spi_correct/src/formula.hq -k 12 -s hpes
+
 #=== FIFO ASYNC ===#
 # RUST_BACKTRACE=1 cargo run --release -- -v verilog_benchmarks/fifo_async/build.ys verilog_benchmarks/fifo_async/build.ys -t oh_fifo_generic -o fifo_async.smt2 -f verilog_benchmarks/fifo_async/formula_1.hq -k 1 -s hpes
 
@@ -363,7 +368,7 @@
 #=== A-HLTL cases ===#
 
 # #=== Test ===#
-time cargo run --release -- -n benchmarks/async/0_test/m1.smv benchmarks/async/0_test/m2.smv -f benchmarks/async/0_test/formula.hq -k 4 -m 5 -s hpes
+# time cargo run --release -- -n benchmarks/async/0_test/m1.smv benchmarks/async/0_test/m2.smv -f benchmarks/async/0_test/formula.hq -k 4 -m 5 -s hpes
 
 # #=== ACDB-original ===#
 # time cargo run --release -- -n benchmarks/async/1_acdb/original/acdb_flattened.smv benchmarks/async/1_acdb/original/acdb_flattened.smv -f benchmarks/async/1_acdb/original/acdb_formula1.hq -k 6 -m 12 -s hpes
