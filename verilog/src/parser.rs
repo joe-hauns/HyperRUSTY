@@ -13,14 +13,11 @@ pub struct StateVariable {
 pub fn unroll_in_place(smt2: &str, mod_name: &str, bound: usize, trace_id: &str) -> Result<(String, Vec<String>, HashMap<String, String>), ExtractError> {
     // Parse the variables to get their names
     let id_to_name = parse_variables(smt2, mod_name)?;
-    println!("Parsed variables: {:#?}", id_to_name);
     // Restore variable names in the SMT2 string
     let restored_smt2 = restore_variable_names(smt2, &id_to_name);
     let getter_map = map_variables(mod_name, &id_to_name);
-    println!("Restored original variables!");
     // Augment the SMT2 with unrolling logic
     let (unrolled_smt, state_names) = add_unrolling_constraints(&restored_smt2, mod_name, bound, trace_id);
-    println!("Added unrolling constraints!");
     // Write to file
     let output_path = format!("{}_unrolled.smt2", mod_name);
     std::fs::write(&output_path, &unrolled_smt)

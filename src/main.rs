@@ -329,7 +329,6 @@ fn main() {
             // Get SMT2-LIB from each build file
             let smt2_model = match unroll_from_smt_build(build_paths[i], top_module, yosys_out, unrolling_bound, path_identifiers[i]) {
                 Ok((unrolled, a1, a2)) => {
-                    println!("{:#?}", a2);
                     unrolled
                 },
                 Err(e) => panic!("{}", e),

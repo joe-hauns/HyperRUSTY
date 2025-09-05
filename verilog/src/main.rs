@@ -66,7 +66,7 @@ fn main() {
             if let Some(bound) = matches.get_one::<u32>("unroll") {
                 // Unroll from SMT2 file
                 match unroll_from_smt_build(build_path, top_module_name, smt2_path, *bound, matches.get_one::<String>("trace_id").unwrap()) {
-                    Ok((_unrolled, states, getters)) => println!("Unrolled design!\nStates: {:?}\nGetters: {:?}", states, getters),
+                    Ok((_unrolled, states, getters)) => (),/*println!("Unrolled design!\nStates: {:?}\nGetters: {:?}", states, getters),*/
                     Err(e) => eprintln!("Error during unrolling: {}", e),
                 }
             } else {
@@ -82,7 +82,7 @@ fn main() {
         if let Some(bound) = matches.get_one::<u32>("unroll") {
             // Unroll from Verilog file
             match unroll_from_verilog(verilog_path, top_module_name, *bound, matches.get_one::<String>("trace_id").unwrap()) {
-                Ok((_unrolled, states, getters)) => println!("Unrolled design!\nStates: {:?}\nGetters: {:?}", states, getters),
+                Ok((_unrolled, states, getters)) => (),/*println!("Unrolled design!\nStates: {:?}\nGetters: {:?}", states, getters)*/
                 Err(e) => eprintln!("Error during unrolling: {}", e),
             }
         } else {
