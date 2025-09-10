@@ -46,110 +46,14 @@ pub fn get_z3_encoding<'env, 'ctx>(envs: &'env Vec<SMVEnv<'ctx>>, formula: &'ctx
         // Extract M. If it is not provided, panic!
         let m = match m {
             Some(m) => m,
-            None => panic!("Unrolloing bound of trajectories can not be None!"),
+            None => panic!("Unrolling bound of trajectories can not be None!"),
         };
         // The semantics must be halting
         if !matches!(sem, Semantics::Hpes | Semantics::Hopt) {
             panic!("Only halting semantics are allowed for A-HLTL BMC.");
         }
-        // First, create path mappings
-        let mapping = create_path_mapping(formula, 0);
-        // Second, get trajectory names
-        let traj_names = get_traj_identifiers(formula);
-        // Next, create position, trajectory, and off encoding variables
-        let mut positions = HashMap::new();
-        for traj in &traj_names {
-            let mut path_map = HashMap::new();
-            for path in &path_names {
-                let mut ij_map = HashMap::new();
-                for i in 0..=k {
-                    for j in 0..=m {
-                        let key = format!("{}_{}", i, j);
-                        let val = Bool::new_const(
-                            envs[0].ctx,
-                            format!("pos_{}_{}_{}_{}", path, traj, i, j),
-                        );
-                        ij_map.insert(key, val);
-                    }
-                }
-                path_map.insert(path.clone(), ij_map);
-            }
-            positions.insert(traj.clone(), path_map);
-        }
-        
-        let mut trajectories = HashMap::new();
-        for traj in &traj_names {
-            let traj_key = traj.clone();
-            let mut path_map = HashMap::new();
-            for path in &path_names {
-                let path_key = path.clone();
-                let mut bool_vec = Vec::with_capacity(m + 1);
-                for j in 0..=m {
-                    let name = format!("{}_{}_{}", traj, path, j);
-                    let b = Bool::new_const(envs[0].ctx, name);
-                    bool_vec.push(b);
-                }
-                path_map.insert(path_key, bool_vec);
-            }
-            trajectories.insert(traj_key, path_map);
-        }
-
-        let mut off = HashMap::new();
-        for traj in &traj_names {
-            let traj_key = traj.clone();
-            let mut path_map = HashMap::new();
-            for path in &path_names {
-                let path_key = path.clone();
-                let mut bool_vec = Vec::with_capacity(m + 1);
-                for j in 0..=m {
-                    let name = format!("off_{}_{}_{}", path, traj, j);
-                    let b = Bool::new_const(envs[0].ctx, name);
-                    bool_vec.push(b);
-                }
-                path_map.insert(path_key, bool_vec);
-            }
-            off.insert(traj_key, path_map);
-        }
-
-        let ahltl_obj = AHLTLObject::new(
-            envs,
-            formula,
-            path_names.clone(),
-            traj_names,
-            mapping,
-            positions,
-            trajectories,
-            off,
-            k,
-            m,
-            sem,
-        );
-        // Generate the mapping again (why?)
-        let mapping = create_path_mapping(formula, 0);
-
-        // Get the A-HLTL pos /\ enc(phi) encoding
-        let inner_ltl = ahltl_obj.build_inner();
-        // Include valid path conditions
-        let inner_with_paths = generate_inner_encoding(envs[0].ctx, formula, &constraints, inner_ltl, 0);
-
-        // Create a partial encoding for E pos. E off. inner_with_paths
-        let flat_pos: Vec<_> = ahltl_obj.flatten_pos();
-        let pos_refs: Vec<&dyn Ast<'env>> = flat_pos.iter().map(|v| *v as &dyn Ast<'env>).collect();
-        let flat_off: Vec<_> = ahltl_obj.flatten_off();
-        let off_refs: Vec<&dyn Ast<'env>> = flat_off.iter().map(|v| *v as &dyn Ast<'env>).collect();
-        let partial_formula = exists_const(
-            envs[0].ctx,
-            &pos_refs,
-            &[],
-            &exists_const(
-                envs[0].ctx,
-                &off_refs,
-                &[],
-                &inner_with_paths,
-            ),
-        );
-        let flat_traj = ahltl_obj.flatten_traj();
-        complete_ahltl_encoding(envs[0].ctx, formula, partial_formula, flat_traj, states, &mapping)
+        // Call the AHLTL encoding generator
+        generate_ahltl_encoding(envs, formula, states, constraints, m, sem, witness)
     }
 }
 
@@ -168,7 +72,117 @@ fn generate_inner_encoding<'ctx>(ctx: &'ctx Context, formula: &AstNode, path_enc
 *
 ****************************/
 
-pub fn complete_ahltl_encoding<'ctx>(ctx: &'ctx Context, formula: &AstNode, inner: Bool<'ctx>, traj: HashMap<&'ctx str, Vec<&Bool<'ctx>>>, states: Vec<Vec<EnvState<'ctx>>>, mapping: &HashMap<&str, usize>) -> Bool<'ctx> {
+fn generate_ahltl_encoding<'env, 'ctx>(envs: &'env Vec<SMVEnv<'ctx>>, formula: &'ctx AstNode, states: Vec<Vec<EnvState<'ctx>>>, constraints: Vec<Bool<'env>>, m: usize, sem: Semantics, witness: bool) -> Bool<'env> {
+    let k: usize = states[0].len() - 1;
+    let path_names = get_path_identifiers(formula);
+
+    // First, create path mappings
+    let mapping = create_path_mapping(formula, 0);
+    // Second, get trajectory names
+    let traj_names = get_traj_identifiers(formula);
+    // Next, create position, trajectory, and off encoding variables
+    let mut positions = HashMap::new();
+    for traj in &traj_names {
+        let mut path_map = HashMap::new();
+        for path in &path_names {
+            let mut ij_map = HashMap::new();
+            for i in 0..=k {
+                for j in 0..=m {
+                    let key = format!("{}_{}", i, j);
+                    let val = Bool::new_const(
+                        envs[0].ctx,
+                        format!("pos_{}_{}_{}_{}", path, traj, i, j),
+                    );
+                    ij_map.insert(key, val);
+                }
+            }
+            path_map.insert(path.clone(), ij_map);
+        }
+        positions.insert(traj.clone(), path_map);
+    }
+    
+    let mut trajectories = HashMap::new();
+    for traj in &traj_names {
+        let traj_key = traj.clone();
+        let mut path_map = HashMap::new();
+        for path in &path_names {
+            let path_key = path.clone();
+            let mut bool_vec = Vec::with_capacity(m + 1);
+            for j in 0..=m {
+                let name = format!("{}_{}_{}", traj, path, j);
+                let b = Bool::new_const(envs[0].ctx, name);
+                bool_vec.push(b);
+            }
+            path_map.insert(path_key, bool_vec);
+        }
+        trajectories.insert(traj_key, path_map);
+    }
+
+    let mut off = HashMap::new();
+    for traj in &traj_names {
+        let traj_key = traj.clone();
+        let mut path_map = HashMap::new();
+        for path in &path_names {
+            let path_key = path.clone();
+            let mut bool_vec = Vec::with_capacity(m + 1);
+            for j in 0..=m {
+                let name = format!("off_{}_{}_{}", path, traj, j);
+                let b = Bool::new_const(envs[0].ctx, name);
+                bool_vec.push(b);
+            }
+            path_map.insert(path_key, bool_vec);
+        }
+        off.insert(traj_key, path_map);
+    }
+
+    let ahltl_obj = AHLTLObject::new(
+        envs,
+        &states,
+        formula,
+        path_names.clone(),
+        traj_names,
+        mapping,
+        positions,
+        trajectories,
+        off,
+        k,
+        m,
+        sem,
+    );
+    // Generate the mapping again (why?)
+    let mapping = create_path_mapping(formula, 0);
+
+    // Get the A-HLTL pos /\ enc(phi) encoding
+    let inner_ltl = ahltl_obj.build_inner();
+    // Include valid path conditions
+    let inner_with_paths = generate_inner_encoding(envs[0].ctx, formula, &constraints, inner_ltl, 0);
+
+    // Create a partial encoding for E pos. E off. inner_with_paths
+    let flat_pos: Vec<_> = ahltl_obj.flatten_pos();
+    let pos_refs: Vec<&dyn Ast<'env>> = flat_pos.iter().map(|v| *v as &dyn Ast<'env>).collect();
+    let flat_off: Vec<_> = ahltl_obj.flatten_off();
+    let off_refs: Vec<&dyn Ast<'env>> = flat_off.iter().map(|v| *v as &dyn Ast<'env>).collect();
+    let partial_formula = exists_const(
+        envs[0].ctx,
+        &pos_refs,
+        &[],
+        &exists_const(
+            envs[0].ctx,
+            &off_refs,
+            &[],
+            &inner_with_paths,
+        ),
+    );
+    let flat_traj = ahltl_obj.flatten_traj();
+    // If the witness flag is set, strip all leading existentials
+    if witness {
+        complete_ahltl_encoding(envs[0].ctx, strip_leading_existentials(formula), partial_formula, flat_traj, &states, &mapping)
+    }else {
+        complete_ahltl_encoding(envs[0].ctx, formula, partial_formula, flat_traj, &states, &mapping)
+    }
+}
+
+pub fn complete_ahltl_encoding<'ctx>(ctx: &'ctx Context, formula: &AstNode, inner: Bool<'ctx>, traj: HashMap<&'ctx str, Vec<&Bool<'ctx>>>, states: &Vec<Vec<EnvState<'ctx>>>, mapping: &HashMap<&str, usize>) -> Bool<'ctx> {
     match formula {
         AstNode::HAQuantifier {identifier, form} => {
             let idx = mapping[identifier as &str];
@@ -308,7 +322,7 @@ fn generate_hltl_encoding<'env, 'ctx>(envs: &'env Vec<SMVEnv<'ctx>>, formula: &A
 
 }
 
-pub fn get_verilog_encoding<'env, 'ctx>(envs: &'env Vec<SMVEnv<'ctx>>, models: &Vec<String>, formula: &'ctx AstNode, k: usize, sem: Semantics, witness: bool) -> Bool<'env> {
+pub fn get_verilog_encoding<'env, 'ctx>(envs: &'env Vec<SMVEnv<'ctx>>, models: &Vec<String>, formula: &'ctx AstNode, k: usize, m: Option<usize>, sem: Semantics, witness: bool) -> Bool<'env> {
     let ctx = envs[0].ctx;
     let mut path_constraints : Vec<Bool<'ctx>> = Vec::new();
     let mut states : Vec<Vec<EnvState<'ctx>>> = Vec::new();
@@ -347,24 +361,39 @@ pub fn get_verilog_encoding<'env, 'ctx>(envs: &'env Vec<SMVEnv<'ctx>>, models: &
         bounded_vars.push(quantified_vars);
     }
 
-    // Unroll the formula first
-    let inner_ltl = unroll_hltl_formula(envs, formula, &states, &sem);
-    // Construct the inner encoding
-    let inner = generate_inner_encoding(ctx, formula, &path_constraints, inner_ltl.clone(), 0);
-    // Get the mapping
-    let mapping = create_path_mapping(formula, 0);
-    // Build the complete encoding
-    // Do we look for a witness?
-    if witness {
-        match formula {
-            AstNode::HEQuantifier{identifier:_, form} => {
-                generate_quantified_encoding(ctx, form, &bounded_vars, &path_constraints, &mapping, inner.clone())
-            },
-            _ => panic!("Cannot generate witness for an existentially quantified formula."),
+    if is_hltl(formula) {
+        // Unroll the formula first
+        let inner_ltl = unroll_hltl_formula(envs, formula, &states, &sem);
+        // Construct the inner encoding
+        let inner = generate_inner_encoding(ctx, formula, &path_constraints, inner_ltl.clone(), 0);
+        // Get the mapping
+        let mapping = create_path_mapping(formula, 0);
+        // Build the complete encoding
+        // Do we look for a witness?
+        if witness {
+            match formula {
+                AstNode::HEQuantifier{identifier:_, form} => {
+                    generate_quantified_encoding(ctx, form, &bounded_vars, &path_constraints, &mapping, inner.clone())
+                },
+                _ => panic!("Cannot generate witness for an existentially quantified formula."),
+            }
+        }else {
+            generate_quantified_encoding(ctx, formula, &bounded_vars, &path_constraints, &mapping, inner.clone())
         }
 
     }else {
-        generate_quantified_encoding(ctx, formula, &bounded_vars, &path_constraints, &mapping, inner.clone())
+        // It's an A-HLTL formula
+        // Extract M. If it is not provided, panic!
+        let m = match m {
+            Some(m) => m,
+            None => panic!("Unrolling bound of trajectories can not be None!"),
+        };
+        // The semantics must be halting
+        if !matches!(sem, Semantics::Hpes | Semantics::Hopt) {
+            panic!("Only halting semantics are allowed for A-HLTL BMC.");
+        }
+        // Call the AHLTL encoding generator
+        generate_ahltl_encoding(envs, formula, states, path_constraints, m, sem, witness)
     }
     
 }

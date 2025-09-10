@@ -247,6 +247,14 @@ pub fn negate_formula(formula: &AstNode) -> AstNode {
     }
 }
 
+pub fn strip_leading_existentials(formula: &AstNode) -> &AstNode {
+    match formula {
+        AstNode::HEQuantifier {form, ..} => strip_leading_existentials(form),
+        AstNode::AEQuantifier {form, ..} => strip_leading_existentials(form),
+        other => formula
+    }
+}
+
 pub fn extract_variables<'ctx>(formula: &'ctx AstNode, mapping: &HashMap<&str, usize>) -> Vec<HashSet<&'ctx str>> {
     let mut variables: Vec<HashSet<&str>> = (0..mapping.len())
         .map(|_| HashSet::new())

@@ -13,7 +13,7 @@ use parser::{
 
 pub struct AHLTLObject<'env, 'ctx> {
     pub envs: &'env Vec<SMVEnv<'ctx>>,
-    pub states: Vec<Vec<EnvState<'ctx>>>,
+    pub states: &'env Vec<Vec<EnvState<'ctx>>>,
     pub formula: &'ctx AstNode,
     pub k: usize,
     pub m: usize,
@@ -29,6 +29,7 @@ pub struct AHLTLObject<'env, 'ctx> {
 impl<'env, 'ctx> AHLTLObject<'env, 'ctx> {
     pub fn new(
         envs: &'env Vec<SMVEnv<'ctx>>,
+        states: &'env Vec<Vec<EnvState<'ctx>>>,
         formula: &'ctx AstNode,
         paths: Vec<&'ctx str>, 
         trajs: Vec<&'ctx str>,
@@ -40,12 +41,6 @@ impl<'env, 'ctx> AHLTLObject<'env, 'ctx> {
         m: usize,
         semantics: Semantics,
     ) -> Self {
-        //Generate the corresponding states and path encoding for each name
-        let mut states: Vec<Vec<EnvState<'ctx>>> = Vec::new();
-        for (idx, &name) in paths.iter().enumerate() {
-            let (new_states, _) = envs[idx].generate_symbolic_path(k, Some(name));
-            states.push(new_states);
-        }
         AHLTLObject {
             envs,
             states,

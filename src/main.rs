@@ -141,6 +141,9 @@ fn main() {
     let formula_path = matches
         .get_one::<PathBuf>("formula").unwrap();
 
+    let trajectory_bound = matches
+        .get_one::<usize>("trajectory_bound");
+
     if let Some(nusmv_models) = matches.get_many::<PathBuf>("nusmv") {
         // NuSMV Path
         let model_paths: Vec<_> = nusmv_models.cloned().collect();
@@ -151,9 +154,6 @@ fn main() {
                 .expect("Path is not valid UTF-8")
             })
             .collect();
-        
-        let trajectory_bound = matches
-            .get_one::<usize>("trajectory_bound");
 
         let formula = fs::read_to_string(formula_path).expect("Failed to read the formula");
         let mut ast_node = parse(&formula).expect("Failed parsing the formula");
@@ -342,7 +342,7 @@ fn main() {
         // Start the timer for encoding
         let start = Instant::now();
 
-        let encoding = get_verilog_encoding(&envs, &models, &ast_node, unrolling_bound, semantics, witness);
+        let encoding = get_verilog_encoding(&envs, &models, &ast_node, unrolling_bound, trajectory_bound.copied(), semantics, witness);
         
         let duration = start.elapsed();
         let secs = duration.as_secs_f64();
