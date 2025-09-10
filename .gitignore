@@ -3,3 +3,5 @@ AutoHyper/
 Cargo.lock
 commands.txt
 .DS_Store
+*.hoa
+.vscode/
