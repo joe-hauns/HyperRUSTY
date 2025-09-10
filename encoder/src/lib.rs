@@ -309,13 +309,7 @@ fn generate_hltl_encoding<'env, 'ctx>(envs: &'env Vec<SMVEnv<'ctx>>, formula: &A
     // Build the complete encoding
     // Do we look for a witness?
     if witness {
-        match formula {
-            AstNode::HEQuantifier{identifier:_, form} => {
-                generate_quantified_encoding(ctx, form, &paths, &path_encodings, &mapping, inner.clone())
-            },
-            _ => panic!("Cannot generate witness for an existentially quantified formula."),
-        }
-
+        generate_quantified_encoding(ctx, strip_leading_existentials(formula), &paths, &path_encodings, &mapping, inner.clone())
     }else {
         generate_quantified_encoding(ctx, formula, &paths, &path_encodings, &mapping, inner.clone())
     }
@@ -371,12 +365,7 @@ pub fn get_verilog_encoding<'env, 'ctx>(envs: &'env Vec<SMVEnv<'ctx>>, models: &
         // Build the complete encoding
         // Do we look for a witness?
         if witness {
-            match formula {
-                AstNode::HEQuantifier{identifier:_, form} => {
-                    generate_quantified_encoding(ctx, form, &bounded_vars, &path_constraints, &mapping, inner.clone())
-                },
-                _ => panic!("Cannot generate witness for an existentially quantified formula."),
-            }
+            generate_quantified_encoding(ctx, strip_leading_existentials(formula), &bounded_vars, &path_constraints, &mapping, inner.clone())
         }else {
             generate_quantified_encoding(ctx, formula, &bounded_vars, &path_constraints, &mapping, inner.clone())
         }
