@@ -1,4 +1,4 @@
-#!/bin/bash
+##    #!/bin/bash
 
 #cargo run --release -- -n mini.smv mini.smv -f mini.hq -k 3 -s pes 
 
@@ -183,10 +183,22 @@
 
 # cargo run --release -- -n benchmarks/loop_conditions/abp/abp_1.smv benchmarks/loop_conditions/abp/abp_2.smv -f benchmarks/loop_conditions/abp/abp.hq -l
 
+# cargo run --release -- -n benchmarks/loop_conditions/abp/abp_1_buggy.smv benchmarks/loop_conditions/abp/abp_2_buggy.smv -f benchmarks/loop_conditions/abp/abp_buggy.hq -l
+
+# cargo run --release -- -n benchmarks/loop_conditions/mm/mm1.smv benchmarks/loop_conditions/mm/mm2.smv -f benchmarks/loop_conditions/mm/mm.hq -l
+
+ cargo run --release -- -n benchmarks/loop_conditions/mm/mm1_buggy.smv benchmarks/loop_conditions/mm/mm2_buggy.smv -f benchmarks/loop_conditions/mm/mm.hq -l
+
+#cargo run --release -- -n benchmarks/loop_conditions/cbf/cbf1.smv benchmarks/loop_conditions/cbf/cbf2.smv -f benchmarks/loop_conditions/cbf/cbf.hq -l
+
+#cargo run --release -- -n benchmarks/loop_conditions/cbf/cbf1_buggy.smv benchmarks/loop_conditions/cbf/cbf2_buggy.smv -f benchmarks/loop_conditions/cbf/cbf.hq -l
+
 # cargo run --release -- -n benchmarks/loop_conditions/robust_path_planning/rp_1.smv benchmarks/loop_conditions/robust_path_planning/rp_2.smv -f benchmarks/loop_conditions/robust_path_planning/rp.hq -l
 
 # cargo run --release -- -n benchmarks/loop_conditions/robust_path_planning/rp_1_no_sol.smv benchmarks/loop_conditions/robust_path_planning/rp_2.smv -f benchmarks/loop_conditions/robust_path_planning/rp.hq -l
 
+# cargo run --release -- -n benchmarks/loop_conditions/gcw/gcw1.smv benchmarks/loop_conditions/gcw/gcw2.smv -f benchmarks/loop_conditions/gcw/gcw.hq -l
+
 # cargo run --release -- -n benchmarks/loop_conditions/simple_loop/simple_loop1.smv benchmarks/loop_conditions/simple_loop/simple_loop2.smv -f benchmarks/loop_conditions/simple_loop/simple_loop.hq -l
 
-cargo run --release -- -n benchmarks/loop_conditions/test_loop/rs1.smv benchmarks/loop_conditions/test_loop/rs2.smv -f benchmarks/loop_conditions/test_loop/rs.hq -q -l
+# cargo run --release -- -n benchmarks/loop_conditions/test_loop/rs1.smv benchmarks/loop_conditions/test_loop/rs2.smv -f benchmarks/loop_conditions/test_loop/rs.hq -l
