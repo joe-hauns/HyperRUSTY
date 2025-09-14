@@ -18,7 +18,7 @@ pub fn unroll_from_smt_build(
 ) -> Result<(String, Vec<String>, HashMap<String, String>), ExtractError> {
     yosys::run_yosys_with_build(_build_file_path)?;
     let smt_text = std::fs::read_to_string(&smt_path)?;
-    parser::unroll_in_place(&smt_text, top_module_name, bound, trace_id)
+    parser::unroll_in_place(&smt_text, top_module_name, bound, trace_id, None)
 }
 
 pub fn unroll_from_verilog(
@@ -33,5 +33,5 @@ pub fn unroll_from_verilog(
     yosys::run_yosys(verilog_path, &smt2_path, top_module_name)?;
     // 3) read back and parse
     let smt_text = std::fs::read_to_string(&smt2_path)?;
-    parser::unroll_in_place(&smt_text, top_module_name, bound, trace_id)
+    parser::unroll_in_place(&smt_text, top_module_name, bound, trace_id, None)
 }
