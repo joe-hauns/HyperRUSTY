@@ -4,7 +4,7 @@
 
 # AutoHyper/app/AutoHyper --nusmv mini.smv auto_mini.hq
 
-cargo run --release -- -n benchmarks/0_infoflow/info.smv benchmarks/0_infoflow/info.smv -f benchmarks/0_infoflow/info.hq -k 10 -s hpes -q 
+# cargo run --release -- -n benchmarks/0_infoflow/info.smv benchmarks/0_infoflow/info.smv -f benchmarks/0_infoflow/info.hq -k 10 -s hpes -q 
 
 # time cargo run --release -- -n benchmarks/async/0_test/m1.smv benchmarks/async/0_test/m2.smv -f benchmarks/async/0_test/formula.hq -k 4 -m 8 -s hpes -q
 
@@ -359,25 +359,26 @@ cargo run --release -- -n benchmarks/0_infoflow/info.smv benchmarks/0_infoflow/i
 
 # cargo run --release -- -n benchmarks/loop_conditions/test_loop/rs1.smv benchmarks/loop_conditions/test_loop/rs2.smv -f benchmarks/loop_conditions/test_loop/rs.hq -l
 
+
+
 #=== VERLIOG EXAMPLES ===#
 
 # RUST_BACKTRACE=1 cargo run --release -- -v verilog_benchmarks/build_infoflow.ys verilog_benchmarks/build_infoflow.ys -t main -o model.smt2 -f verilog_benchmarks/formula.hq -k 3 -s hpes
 
 # time cargo run --release -- -v verilog_benchmarks/LED/build.ys verilog_benchmarks/LED/build.ys -t light -o model.smt2 -f verilog_benchmarks/formula.hq -k 101 -s hpes
 
-
-
-
-
 # time cargo run --release -- -v verilog_benchmarks/LED/build.ys verilog_benchmarks/LED/build.ys -t light -o model.smt2 -f verilog_benchmarks/formula.hq -k 101 -s hpes
 
 #=== True Random Number Generator ===#
 # RUST_BACKTRACE=1 cargo run --release -- -v verilog_benchmarks/TRNG/build.ys verilog_benchmarks/TRNG/build.ys -t trng_wrap -o trng.smt2 -f verilog_benchmarks/TRNG/formula_1.hq -k 1 -s opt
 
+#=== fmcp ===#
+cargo run --release -- -v verilog_benchmarks/iodine-benchmarks/fpu/fcmp/verilog/build.ys verilog_benchmarks/iodine-benchmarks/fpu/fcmp/verilog/build.ys -t fcmp -o fcmp.smt2 -f verilog_benchmarks/iodine-benchmarks/fpu/fcmp/verilog/formula.hq -k 10 -s hpes
+
 #=== ===#
 # RUST_BACKTRACE=1 cargo run --release -- -v verilog_benchmarks/SPI/spi_correct/src/spi_build.ys verilog_benchmarks/SPI/spi_correct/src/spi_build.ys -t SPISlave -o spi.smt2 -f verilog_benchmarks/SPI/spi_correct/src/formula.hq -k 12 -s hpes
 
-#  ./target/release/hyperrusty -v verilog_benchmarks/SPI/spi_correct/src/spi_build.ys verilog_benchmarks/SPI/spi_correct/src/spi_build.ys -t SPISlave -o spi.smt2 -f verilog_benchmarks/SPI/spi_correct/src/formula.hq -k 12 -s hpes
+#cargo run --release -- -v verilog_benchmarks/SPI/spi_correct/src/spi_build.ys verilog_benchmarks/SPI/spi_correct/src/spi_build.ys -t SPISlave -o spi.smt2 -f verilog_benchmarks/SPI/spi_correct/src/formula.hq -k 12 -s hpes
 
 #=== FIFO ASYNC ===#
 # RUST_BACKTRACE=1 cargo run --release -- -v verilog_benchmarks/fifo_async/build.ys verilog_benchmarks/fifo_async/build.ys -t oh_fifo_generic -o fifo_async.smt2 -f verilog_benchmarks/fifo_async/formula_1.hq -k 1 -s hpes
