@@ -373,7 +373,13 @@
 # RUST_BACKTRACE=1 cargo run --release -- -v verilog_benchmarks/TRNG/build.ys verilog_benchmarks/TRNG/build.ys -t trng_wrap -o trng.smt2 -f verilog_benchmarks/TRNG/formula_1.hq -k 1 -s opt
 
 #=== fmcp ===#
-cargo run --release -- -v verilog_benchmarks/iodine-benchmarks/fpu/fcmp/verilog/build.ys verilog_benchmarks/iodine-benchmarks/fpu/fcmp/verilog/build.ys -t fcmp -o fcmp.smt2 -f verilog_benchmarks/iodine-benchmarks/fpu/fcmp/verilog/formula.hq -k 10 -s hpes
+#cargo run --release -- -v verilog_benchmarks/iodine-benchmarks/fpu/fcmp/verilog/build.ys verilog_benchmarks/iodine-benchmarks/fpu/fcmp/verilog/build.ys -t fcmp -o fcmp.smt2 -f verilog_benchmarks/iodine-benchmarks/fpu/fcmp/verilog/formula.hq -k 10 -s hpes
+
+#=== fpu ===#
+#cargo run --release -- -v verilog_benchmarks/iodine-benchmarks/fpu/verilog/build.ys verilog_benchmarks/iodine-benchmarks/fpu/verilog/build.ys -t fpu -o fpu.smt2 -f verilog_benchmarks/iodine-benchmarks/fpu/verilog/formula.hq -k 1 -s hpes
+#small
+RUST_BACKTRACE=1 cargo run --release -- -v verilog_benchmarks/iodine-benchmarks/fpu/verilog/build_small.ys verilog_benchmarks/iodine-benchmarks/fpu/verilog/build_small.ys -t fdiv_harness -o fpu_small.smt2 -f verilog_benchmarks/iodine-benchmarks/fpu/verilog/formula.hq -k 10 -s pes
+
 
 #=== ===#
 # RUST_BACKTRACE=1 cargo run --release -- -v verilog_benchmarks/SPI/spi_correct/src/spi_build.ys verilog_benchmarks/SPI/spi_correct/src/spi_build.ys -t SPISlave -o spi.smt2 -f verilog_benchmarks/SPI/spi_correct/src/formula.hq -k 12 -s hpes

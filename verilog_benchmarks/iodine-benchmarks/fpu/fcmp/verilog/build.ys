@@ -3,6 +3,4 @@ read_verilog verilog_benchmarks/iodine-benchmarks/fpu/fcmp/verilog/fcmp.v
 hierarchy -top fcmp
 proc
 flatten
-techmap -map +/dff2ff.v
-synth
 write_smt2 -stdt -wires fcmp.smt2
