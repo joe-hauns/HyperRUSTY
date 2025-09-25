@@ -85,8 +85,8 @@ module fpu_small_tb (
   // ============================================
   // Initial state: outputs and flags cleared
   initial begin
-    //opa_q         = 32'h0000_0000;
-    //opb_q         = 32'h0000_0000;
+    opa_q         = 32'h0000_0000;
+    opb_q         = 32'h0000_0000;
     out_q         = 32'h0000_0000;
     inf_q         = 1'b0;
     snan_q        = 1'b0;

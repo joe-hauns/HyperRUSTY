@@ -510,7 +510,7 @@ cargo run --release -- -v verilog_benchmarks/iodine-benchmarks/fpu/verilog/build
 
 
 #=== CACHE -ndet ===#
-time cargo run --release -- -n benchmarks/async/5_cache/flattened/cache_ndet.smv benchmarks/async/5_cache/flattened/cache_ndet.smv -f benchmarks/async/5_cache/flattened/odnd.hq -k 58 -m 116 -s hpes 
+# time cargo run --release -- -n benchmarks/async/5_cache/flattened/cache_ndet.smv benchmarks/async/5_cache/flattened/cache_ndet.smv -f benchmarks/async/5_cache/flattened/odnd.hq -k 58 -m 116 -s hpes 
 
 
 #=== CACHE -ndet -loop ===#
