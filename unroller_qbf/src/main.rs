@@ -52,6 +52,7 @@ pub fn gen_qcir<'env, 'ctx>(
 
         // Build bit map: var name -> minimum bitwidth
         for (var_name, v) in variables {
+            // println!("var: {:?}, {:?}", var_name, v);
             if let VarType::Int { upper: Some(max_val), .. } = v.sort {
                 let bitwidth = (64 - (max_val).leading_zeros()) as usize;
                 max_bit_map.insert(var_name.to_string(), bitwidth);
@@ -223,6 +224,7 @@ pub fn gen_qcir<'env, 'ctx>(
             }
         }
         // DEBUG: transitions
+        // println!(">>> TRANSITIONS: ");
         // for (i, e) in expr_vec.iter().enumerate() {
         //     println!("  [{}] {}", i, expression_to_string(&*e));
         // }
@@ -234,12 +236,6 @@ pub fn gen_qcir<'env, 'ctx>(
         let expr_pair = (full_init_expr, full_trans_expr);
         models_expr.push(expr_pair);
     }
-    
-
-
-
-    // TODO: init should not contain any predicates. 
-
 
 
     if (is_ahltl(formula)) {
@@ -248,7 +244,8 @@ pub fn gen_qcir<'env, 'ctx>(
         let parsed = parse_ahltl(formula, &complete_bit_map, bound).expect("AHLTL parse failed");
         let quants = parsed.prefix;
         let form = parsed.ahltl_expr;
-        let pos = parsed.pos_prefix;
+        // let pos = parsed.pos_prefix;
+        let all_phi_pos = parsed.all_phi_pos;
 
 
         let mut predicates_map = PredMap::new();
@@ -274,8 +271,9 @@ pub fn gen_qcir<'env, 'ctx>(
         }
 
         let final_formula = subst_predicates_fixpoint(&form, &predicates_map);
+        // let final_formula = Expression::True; // <-- temp
 
-        let qcir = to_qcir_unrolled_ahltl(&models_expr, &predicates_map, &quants, &pos, &final_formula, bound)
+        let qcir = to_qcir_unrolled_ahltl(&models_expr, &quants, &final_formula, &predicates_map, &all_phi_pos, bound)
                             .expect("QCIR unrolling failed");;
 
         if let Some(dir) = out_path.parent() {
@@ -353,10 +351,12 @@ pub fn gen_qcir<'env, 'ctx>(
 
 
 
-/// If `expr` is `MOr([ ... (X <-> true) ..., ... (X <-> false) ..., ... ])`,
-/// rewrite those two IFFs into a single `(X | ~X)`. Other disjuncts remain.
-/// Returns the (possibly) simplified expression.
-/// (No recursive descent here; call this after your building step, or wrap it in a recursive simplifier.)
+/* 
+If `expr` is `MOr([ ... (X <-> true) ..., ... (X <-> false) ..., ... ])`,
+rewrite those two IFFs into a single `(X | ~X)`. Other disjuncts remain.
+Returns the (possibly) simplified expression.
+(No recursive descent here; call this after your building step, or wrap it in a recursive simplifier.)
+*/
 pub fn simplify_trivial_iff(expr: &Expression) -> Expression {
     use Expression::*;
 
@@ -428,7 +428,9 @@ pub fn simplify_trivial_iff(expr: &Expression) -> Expression {
 }
 
 
-// converting a z3 dynamic node to QBF expression package
+/* 
+Main method to convert a z3 dynamic node to Expression
+*/
 pub fn dyn_to_expr(
     var_name: &str,
     node: &Dynamic, 
@@ -439,299 +441,619 @@ pub fn dyn_to_expr(
     let decl_name = node.decl().name().to_string();
 
     // DEBUG
-    println!("\nOWNER NAME: {:?}", var_name);
-    println!("Sort: {:?}", node.get_sort());
-    println!("SMT-LIB: {}", node.to_string());
-    println!("Children count: {}", node.num_children());
-    let mut cleaned_name = clean_var_name(&decl_name, is_primed);
-    // println!("CLEANED NAME: {:?}", cleaned_name);
+    // println!("\nOWNER NAME: {:?}", var_name);
+    // println!("Sort: {:?}", node.get_sort());
+    // println!("SMT-LIB: {}", node.to_string());
+    // println!("Children count: {}", node.num_children());
+
+    match sort_kind {
+        SortKind::Bool => {
+            // Quick guard: must be Bool-typed at the top.
+            debug_assert_eq!(node.get_sort().kind(), SortKind::Bool, "expected Bool node");
+
+            let decl_name = node.decl().name().to_string();
+            let arity = node.num_children();
+
+            match arity {
+                // ---------- (1) LEAF ----------
+                0 => {
+                    // literal true/false?
+                    if let Some(b) = node.as_bool().and_then(|b| b.as_bool()) {
+                        return if b { Expression::True } else { Expression::False };
+                    }
+                    // otherwise: an atomic boolean symbol
+                    let name = clean_var_name(&decl_name, is_primed);
+                    return Expression::Literal(Lit::Atom(name));
+                }
+
+                // ---------- UNARY / BINARY / N-ARY ----------
+                _ => {
+                    // If ANY Int appears inside, we’re in case (2) — enumerate.
+                    if has_int_in_subtree(node) {
+                        // return enumerate_int_conditions_for_bool(node, max_bit_map);
+                        // println!("start parsing: {}", node.to_string());
+                        return dyn_mixed_bool_to_expr(node, is_primed, max_bit_map);
+                    }
+
+                    // Otherwise purely-boolean → case (3)
+                    // (This handles and/or/not/=/if/ite and any other Bool-only structure.)
+                    return dyn_bool_to_expression(node, is_primed);
+                }
+            }
+        } 
+        SortKind::Int => {
+            // hint: guard will always be a Boolean node. 
+            return dyn_int_to_transition(var_name, node, max_bit_map);
+        } 
+        _ => {
+            panic!("QBF unrolling error: sort_kind {:?} is unsupported", node.get_sort().kind());
+        }
+    }
+}
 
 
-    if sort_kind == SortKind::Bool {
 
-        if node.children().len() == 2 {
+/// Small integer expression AST
+#[derive(Clone, Debug)]
+enum IntExpr {
+    Var(String),
+    Const(i64),
+    Add(Box<IntExpr>, Box<IntExpr>),
+    Sub(Box<IntExpr>, Box<IntExpr>),
+    Mul(Box<IntExpr>, Box<IntExpr>),
+    Div(Box<IntExpr>, Box<IntExpr>),
+    Mod(Box<IntExpr>, Box<IntExpr>),
+}
+
+#[derive(Copy, Clone, Debug)]
+enum CmpOp { Eq, Lt, Le, Gt, Ge }
+
+#[derive(Clone, Debug)]
+enum BoolExpr {
+    True,
+    False,
+    Var(String),
+    And(Vec<BoolExpr>),
+    Or(Vec<BoolExpr>),
+    Not(Box<BoolExpr>),
+    Cmp(CmpOp, IntExpr, IntExpr), // integer comparison
+    // (Optional) Bool vars/structs are ignored for enumeration in this utility
+}
+
+fn has_int_in_subtree(node: &Dynamic) -> bool {
+    if node.get_sort().kind() == SortKind::Int { return true; }
+    node.children().iter().any(has_int_in_subtree)
+}
+
+/// Convert a Z3 Dynamic (Sort:Int) to IntExpr, cleaning var names (drop !k, primes, etc.).
+fn dyn_int_to_ast(node: &Dynamic) -> IntExpr {
+    // Constant?
+    if let Some(i) = node.as_int().and_then(|ia| ia.as_i64()) {
+        return IntExpr::Const(i);
+    }
+
+    // Variable (0 children): clean the decl name.
+    if node.children().is_empty() {
+        let raw = node.decl().name().to_string();
+        let name = clean_var_name(&raw, /*is_primed=*/false);
+        return IntExpr::Var(name);
+    }
+
+    // Operator with children
+    let op = node.decl().name().to_string();
+    let ch = node.children();
+
+    // Support unary minus by rewriting to (0 - x)
+    let bin = |a: &Dynamic, b: &Dynamic, tag: &str| -> IntExpr {
+        let la = Box::new(dyn_int_to_ast(a));
+        let rb = Box::new(dyn_int_to_ast(b));
+        match tag {
+            "+" => IntExpr::Add(la, rb),
+            "-" => IntExpr::Sub(la, rb),
+            "*" => IntExpr::Mul(la, rb),
+            "/" => IntExpr::Div(la, rb),
+            "mod" => IntExpr::Mod(la, rb),
+            _ => panic!("illegal operator '{tag}' in int expression '{}'", node.to_string()),
+        }
+    };
+
+    match (op.as_str(), ch.len()) {
+        ("-", 1) => bin(&zero_like(node), &ch[0], "-"), // unary minus -> (0 - x)
+        (op2, 2) => bin(&ch[0], &ch[1], op2),
+        _ => panic!("illegal operator/arity in int expression '{}'", node.to_string()),
+    }
+}
+
+// ---- Build BoolExpr from Z3 Dynamic (Bool), cleaning names for ints inside ----
+fn dyn_bool_to_ast(node: &Dynamic) -> BoolExpr {
+    match node.get_sort().kind() {
+        SortKind::Bool => {
+            // Literal true/false?
+            if let Some(b) = node.as_bool().and_then(|ba| ba.as_bool()) {
+                return if b { BoolExpr::True } else { BoolExpr::False };
+            }
+
+            // Leaf boolean symbol (no children) -> return as a literal/variable
+            if node.children().is_empty() {
+                let name = clean_var_name(&node.decl().name().to_string(), /*is_primed=*/false);
+                return BoolExpr::Var(name); // or BoolExpr::Atom(name) if that's your enum
+            }
+
+            // recursive cases
+            let op = node.decl().name().to_string();
             let ch = node.children();
-            let is_last_layer = ch[0].children().is_empty() && ch[1].children().is_empty();
-
-            if is_last_layer {
-                if let Some(b) = node.as_bool().and_then(|b| b.as_bool()) {
-                    return if b {
-                        // println!("Literal created: {}", cleaned_name);
-                        Expression::Literal(Lit::Atom(clean_var_name(&decl_name, is_primed)))
-                    } else {
-                        // println!("Literal created: {}", cleaned_name);
-                        Expression::Literal(Lit::NegAtom(clean_var_name(&decl_name, is_primed)))
+            match op.as_str() {
+                "and" => BoolExpr::And(ch.iter().map(dyn_bool_to_ast).collect()),
+                "or"  => BoolExpr::Or(ch.iter().map(dyn_bool_to_ast).collect()),
+                "not" => {
+                    assert_eq!(ch.len(), 1);
+                    BoolExpr::Not(Box::new(dyn_bool_to_ast(&ch[0])))
+                }
+                "=" | "<" | "<=" | ">" | ">=" => {
+                    assert_eq!(ch.len(), 2);
+                    // We only support int comparisons here
+                    let l = dyn_int_to_ast(&ch[0]);
+                    let r = dyn_int_to_ast(&ch[1]);
+                    let cop = match op.as_str() {
+                        "="  => CmpOp::Eq,
+                        "<"  => CmpOp::Lt,
+                        "<=" => CmpOp::Le,
+                        ">"  => CmpOp::Gt,
+                        ">=" => CmpOp::Ge,
+                        _ => unreachable!(),
                     };
+                    BoolExpr::Cmp(cop, l, r)
+                }
+                // Other boolean structure (like boolean equality/vars) -> not handled in enumeration
+                other => {
+                    panic!("illegal boolean operator '{other}' for int-enumeration in '{}'", node.to_string());
                 }
             }
         }
+        other => panic!("dyn_bool_to_ast expected Bool node, got {:?}", other),
+    }
+}
 
-        let children = node.children();
-        if children.is_empty() {
-            // base case et rid of unnecessary suffixes
-            // println!("Literal created: {}", cleaned_name);
-            return match cleaned_name.as_str() {
-                "true"  => Expression::True,
-                "false" => Expression::False,
-                _       => Expression::Literal(Lit::Atom(cleaned_name)),
-            };
+/// Build a Dynamic Int constant 0 with same context (for unary minus lowering).
+fn zero_like<'ctx>(node: &Dynamic<'ctx>) -> Dynamic<'ctx> {
+    let ctx = node.get_ctx();
+    Int::from_i64(ctx, 0).into()
+}
+
+/// Evaluate IntExpr under an environment (var -> value). Returns None on div-by-zero/mod-by-zero
+fn eval_int(expr: &IntExpr, env: &HashMap<String, i64>) -> Option<i64> {
+    use IntExpr::*;
+    match expr {
+        Var(v)      => env.get(v).cloned(),
+        Const(c)    => Some(*c),
+        Add(a,b)    => Some(eval_int(a, env)? + eval_int(b, env)?),
+        Sub(a,b)    => Some(eval_int(a, env)? - eval_int(b, env)?),
+        Mul(a,b)    => Some(eval_int(a, env)? * eval_int(b, env)?),
+        Div(a,b)    => {
+            let x = eval_int(a, env)?;
+            let y = eval_int(b, env)?;
+            if y == 0 { None } else { Some(x / y) }
+        }
+        Mod(a,b)    => {
+            let x = eval_int(a, env)?;
+            let y = eval_int(b, env)?;
+            if y == 0 { None } else { Some(x % y) }
+        }
+    }
+}
+
+
+fn eval_cmp(op: CmpOp, a: i64, b: i64) -> bool {
+    match op {
+        CmpOp::Eq => a == b,
+        CmpOp::Lt => a <  b,
+        CmpOp::Le => a <= b,
+        CmpOp::Gt => a >  b,
+        CmpOp::Ge => a >= b,
+    }
+}
+
+fn eval_bool(expr: &BoolExpr, env: &HashMap<String, i64>) -> Option<bool> {
+    use BoolExpr::*;
+    match expr {
+        True  => Some(true),
+        False => Some(false),
+        Not(x) => Some(!eval_bool(x, env)?),
+        And(xs) => {
+            let mut acc = true;
+            for x in xs {
+                acc = acc && eval_bool(x, env)?;
+                if !acc { break; }
+            }
+            Some(acc)
+        }
+        Or(xs) => {
+            let mut acc = false;
+            for x in xs {
+                acc = acc || eval_bool(x, env)?;
+                if acc { break; }
+            }
+            Some(acc)
+        }
+        Cmp(op, l, r) => {
+            let a = eval_int(l, env)?;
+            let b = eval_int(r, env)?;
+            Some(eval_cmp(*op, a, b))
+        },
+        &BoolExpr::Var(_) => todo!()
+    }
+}
+
+/// Collect variable names from IntExpr (unique).
+fn collect_vars_int(expr: &IntExpr, out: &mut HashSet<String>) {
+    use IntExpr::*;
+    match expr {
+        Var(v)   => { out.insert(v.clone()); }
+        Const(_) => {}
+        Add(a,b) | Sub(a,b) | Mul(a,b) | Div(a,b) | Mod(a,b) => {
+            collect_vars_int(a, out);
+            collect_vars_int(b, out);
+        }
+    }
+}
+
+fn collect_vars_bool(expr: &BoolExpr, out: &mut HashSet<String>) {
+    use BoolExpr::*;
+    match expr {
+        True|False => {}
+        Not(x) => collect_vars_bool(x, out),
+        And(xs) | Or(xs) => for x in xs { collect_vars_bool(x, out); }
+        Cmp(_, l, r) => {
+            collect_vars_int(l, out);
+            collect_vars_int(r, out);
+        },
+        Var(v) => {
+            let cleaned = clean_var_name(v, false);
+            out.insert(cleaned);
+        }
+    }
+}
+
+/// Recursively translate a pure Boolean `Dynamic` node into `Expression`.
+/// Assumes the whole subtree is Boolean (no Int/BV).
+pub fn dyn_bool_to_expression(node: &Dynamic, is_primed: bool) -> Expression {
+    // Base cases: literal true/false or variable-like leaf
+    if node.children().is_empty() {
+        if node.get_sort().kind() == SortKind::Bool {
+            if let Some(b) = node.as_bool().and_then(|b| b.as_bool()) {
+                return if b { Expression::True } else { Expression::False };
+            }
+        }
+        // Boolean symbol/atom
+        let name = clean_var_name(&node.decl().name().to_string(), is_primed);
+        return Expression::Literal(Lit::Atom(name));
+    }
+
+    // Recursive cases
+    let decl = node.decl().name().to_string();
+    let kids = node.children();
+    let args: Vec<Expression> = kids
+        .iter()
+        .map(|c| dyn_bool_to_expression(&Dynamic::from_ast(c), is_primed))
+        .collect();
+
+    match decl.as_str() {
+        "and" => Expression::MAnd(args.into_iter().map(Box::new).collect()),
+        "or"  => Expression::MOr(args.into_iter().map(Box::new).collect()),
+        "not" => {
+            assert!(args.len() == 1, "not expects 1 arg, got {}", args.len());
+            negate_expr(args.into_iter().next().unwrap())
         }
 
-
-        let is_last_layer = children.iter().all(|child| child.children().is_empty());
-
-        let args: Vec<Expression> = if is_last_layer {
-            children
-                .iter()
-                .map(|child| Expression::Literal(Lit::Atom(child.to_string())))
-                .collect()
-        } else {
-            children
-                .iter()
-                .map(|child| {
-                    let dyn_child = Dynamic::from_ast(child);
-                    dyn_to_expr(var_name, &dyn_child, is_primed, max_bit_map)
-                })
-                .collect()
-        };
-
-        return match decl_name.as_str() {
-            "and" => Expression::MAnd(args.into_iter().map(Box::new).collect()),
-            "or"  => Expression::MOr(args.into_iter().map(Box::new).collect()),
-            "not" => {
-                assert_eq!(args.len(), 1);
-                negate_expr(args.into_iter().next().unwrap())
-            }
-            "=" => {
-                let ch = node.children();
-                assert!(ch.len() == 2, "binary = expected");
-                let hint = var_name_hint_from_children(&ch[0], &ch[1]).unwrap_or_default();
-                return encode_cmp_dyn("=", &ch[0], &ch[1], is_primed, max_bit_map, &hint);
-            }
-            "<" => {
-                let ch = node.children();
-                assert!(ch.len() == 2, "binary < expected");
-                let hint = var_name_hint_from_children(&ch[0], &ch[1]).unwrap_or_default();
-                return encode_cmp_dyn("<", &ch[0], &ch[1], is_primed, max_bit_map, &hint);
-            }
-            ">" => {
-                let ch = node.children();
-                assert!(ch.len() == 2, "binary > expected");
-                let hint = var_name_hint_from_children(&ch[0], &ch[1]).unwrap_or_default();
-                return encode_cmp_dyn(">", &ch[0], &ch[1], is_primed, max_bit_map, &hint);
-            }
-            "<=" => {
-                let ch = node.children();
-                assert!(ch.len() == 2, "binary <= expected");
-                let hint = var_name_hint_from_children(&ch[0], &ch[1]).unwrap_or_default();
-                return encode_cmp_dyn("<=", &ch[0], &ch[1], is_primed, max_bit_map, &hint);
-            }
-            ">=" => {
-                let ch = node.children();
-                assert!(ch.len() == 2, "binary >= expected");
-                let hint = var_name_hint_from_children(&ch[0], &ch[1]).unwrap_or_default();
-                return encode_cmp_dyn(">=", &ch[0], &ch[1], is_primed, max_bit_map, &hint);
-            }
-            "if"  => Expression::Implies(Box::new(args[0].clone()), Box::new(args[1].clone())),
-            "ite" => {
-                // Convert to (cond → then) ∧ (¬cond → else)
-                Expression::And(
-                    Box::new(Expression::Implies(Box::new(args[0].clone()), Box::new(args[1].clone()))),
-                    Box::new(Expression::Implies(
-                        Box::new(Expression::Neg(Box::new(args[0].clone()))),
-                        Box::new(args[2].clone()),
-                    )),
-                )
-            }
-            _     => Expression::Literal(Lit::Atom(format!("UNKNOWN_BOOL({})", decl_name))),
-        };
-    } else if sort_kind == SortKind::Int {
-        let children = node.children();
-
-        if children.is_empty() {
-            let node_str = node.to_string();
-            // Check if the node string is an integer constant
-            if let Ok(parsed) = node_str.parse::<i64>() {
-                let bitwidth = *max_bit_map.get(var_name).unwrap_or(&1);
-                return build_bitblasted_equality(&var_name, parsed, bitwidth, is_primed);
-            }          
-            // let mut cleaned_name = clean_var_name(&decl_name, is_primed);
-            // return Expression::Literal(Lit::Atom(cleaned_name));
+        // Pure-boolean equality → IFF
+        "=" => {
+            assert!(args.len() == 2, "= expects 2 args, got {}", args.len());
+            Expression::Iff(Box::new(args[0].clone()), Box::new(args[1].clone()))
         }
 
-        // Handle binary arithmetic ops: +, -, =, etc.
-        // TODO: nested operation might fail
-        let is_last_layer = children.iter().all(|child| child.children().is_empty());
+        // Conditional forms
+        // if(cond, then)  ≡ (cond → then)
+        "if" => {
+            assert!(args.len() == 2, "if expects 2 args, got {}", args.len());
+            Expression::Implies(Box::new(args[0].clone()), Box::new(args[1].clone()))
+        }
+        // ite(cond, then, else) ≡ (cond → then) ∧ (¬cond → else)
+        "ite" => {
+            assert!(args.len() == 3, "ite expects 3 args, got {}", args.len());
+            let cond = args[0].clone();
+            let thn  = args[1].clone();
+            let els  = args[2].clone();
+            Expression::And(
+                Box::new(Expression::Implies(Box::new(cond.clone()), Box::new(thn))),
+                Box::new(Expression::Implies(Box::new(negate_expr(cond)), Box::new(els))),
+            )
+        }
 
-        let args: Vec<Expression> = if is_last_layer {
-            children
-                .iter()
-                .map(|child| Expression::Literal(Lit::Atom(child.to_string())))
-                .collect()
-        } else {
-            children
-                .iter()
-                .map(|child| {
-                    let dyn_child = Dynamic::from_ast(child);
-                    dyn_to_expr(var_name, &dyn_child, is_primed, max_bit_map)
-                })
-                .collect()
+        // Anything else would be non-boolean or unsupported in this helper
+        other => panic!("dyn_bool_to_expression: unsupported boolean op '{}'", other),
+    }
+}
+
+
+/// Convert a *boolean* Z3 node (possibly mixing int & bool subterms) into `Expression`.
+pub fn dyn_mixed_bool_to_expr(
+    node: &Dynamic,
+    is_primed: bool,
+    max_bit_map: &HashMap<String, usize>,
+) -> Expression {
+    // Must be a Bool at the root.
+    if node.get_sort().kind() != SortKind::Bool {
+        panic!("dyn_mixed_bool_to_expr expects Bool node, got {:?}", node.get_sort().kind());
+    }
+
+    // Literal true/false?
+    if let Some(b) = node.as_bool().and_then(|ba| ba.as_bool()) {
+        return if b { Expression::True } else { Expression::False };
+    }
+
+    let op = node.decl().name().to_string();
+    let ch = node.children();
+
+    // Leaf boolean var (no children): just its cleaned name.
+    if ch.is_empty() {
+        let name = clean_var_name(&op, is_primed);
+        return match name.as_str() {
+            "true"  => Expression::True,
+            "false" => Expression::False,
+            _       => Expression::Literal(Lit::Atom(name)),
         };
+    }
 
+    match op.as_str() {
+        "and" => {
+            let parts: Vec<Box<Expression>> =
+                ch.iter().map(|c| dyn_mixed_bool_to_expr(c, is_primed, max_bit_map)).map(Box::new).collect();
+            if parts.is_empty() { Expression::True }
+            else if parts.len() == 1 { *parts.into_iter().next().unwrap() }
+            else { Expression::MAnd(parts) }
+        }
+        "or" => {
+            let parts: Vec<Box<Expression>> =
+                ch.iter().map(|c| dyn_mixed_bool_to_expr(c, is_primed, max_bit_map)).map(Box::new).collect();
+            if parts.is_empty() { Expression::False }
+            else if parts.len() == 1 { *parts.into_iter().next().unwrap() }
+            else { Expression::MOr(parts) }
+        }
+        "not" => {
+            assert_eq!(ch.len(), 1);
+            let inner = dyn_mixed_bool_to_expr(&ch[0], is_primed, max_bit_map);
+            negate_expr(inner)
+        }
 
-        // TODO: here you need the bit-blasting, take care of all expressions in z3
-        return match decl_name.as_str() {
-            "+" | "-" | "*" | "/" | "mod" => {
-                // Use the original Z3 children for reliable introspection
-                let ch = node.children();
-                assert!(ch.len() == 2, "binary arithmetic expected");
+        // Mixed cases (boolean comparisons possibly over ints): delegate to your
+        // already-bitblasting comparator encoder.
+        "=" | "<" | "<=" | ">" | ">=" => {
+            assert!(ch.len() == 2);
+            let l = &ch[0];
+            let r = &ch[1];
 
-                // Try to read int constants
-                let l_const = int_literal_of(&Dynamic::from_ast(&ch[0]));
-                let r_const = int_literal_of(&Dynamic::from_ast(&ch[1]));
+            // arithmetic term = Int sort with children (not just a leaf var or const)
+            let is_arith = |d: &Dynamic| d.get_sort().kind() == SortKind::Int && !d.children().is_empty();
 
-                // Try to read variable bases (unprimed) from each side
-                let l_var = var_base_of_dyn(&Dynamic::from_ast(&ch[0])).map(|v| unprimed_base(&v));
-                let r_var = var_base_of_dyn(&Dynamic::from_ast(&ch[1])).map(|v| unprimed_base(&v));
+            if is_arith(l) || is_arith(r) {
+                // Enumerate all integer assignments from max_bit_map that make this
+                // comparator true, returning an MOr of bit-blasted equalities.
+                return enumerate_int_conditions_for_bool(node, max_bit_map);
+            }
 
-                println!("node: {:?}", node);
-                println!("var_name: {:?}", var_name);
-                // println!("l_var: {:?}", l_var);
+            // otherwise use the fast path you already have
+            let hint = var_name_hint_from_children(l, r).unwrap_or_default();
+            return encode_cmp_dyn(op.as_str(), l, r, is_primed, max_bit_map, &hint);
+        }
 
-                // Target (LHS) is the variable we’re updating: `var_name`
-                let tgt_bw = *max_bit_map
-                    .get(var_name)
-                    .unwrap_or_else(|| panic!("Missing bitwidth for target variable '{}'", var_name));
-                let (tmin, tmax) = (0_i64, (1_i64 << tgt_bw) - 1);
+        // Optional: a boolean ITE — encode as (c→t) ∧ (¬c→e).
+        "ite" => {
+            assert!(ch.len() == 3, "ite(cond, then, else) expected");
+            let c = dyn_mixed_bool_to_expr(&ch[0], is_primed, max_bit_map);
+            let t = dyn_mixed_bool_to_expr(&ch[1], is_primed, max_bit_map);
+            let e = dyn_mixed_bool_to_expr(&ch[2], is_primed, max_bit_map);
+            Expression::And(
+                Box::new(Expression::Implies(Box::new(c.clone()), Box::new(t))),
+                Box::new(Expression::Implies(Box::new(negate_expr(c)), Box::new(e))),
+            )
+        }
 
-                // Helper: domain for a variable by name
-                let var_domain = |v: &str| -> (i64, i64) {
-                    let bw = *max_bit_map
-                        .get(v)
-                        .unwrap_or_else(|| panic!("Missing bitwidth for operand variable '{}'", v));
-                    (0, (1_i64 << bw) - 1)
+        // Fallback: treat unknown boolean operator as a symbolic atom.
+        other => {
+            let name = clean_var_name(other, is_primed);
+            Expression::Literal(Lit::Atom(format!("UNKNOWN_BOOL({})", name)))
+        }
+    }
+}
+
+/// Enumerate all integer assignments that satisfy `bool_node` (Z3 Bool)
+/// and return a disjunction of conjunctions of bit-blasted equalities like:
+///     (x=5 ∧ y=0) ∨ (x=6 ∧ y=0) ∨ ...
+///
+/// - Only runs if there is any Int node in the subtree; otherwise returns `None` (no enumeration).
+/// - Domains are unsigned 0..(2^bw - 1), where `bw` is from `max_bit_map`.
+/// - Equalities in the result are **unprimed**.
+pub fn enumerate_int_conditions_for_bool(
+    bool_node: &Dynamic,
+    max_bit_map: &HashMap<String, usize>,
+) -> Expression {
+
+    // 1) Build a cleaned BoolExpr with Int subterms
+    let bex = dyn_bool_to_ast(bool_node);
+
+    // 2) Collect integer variables
+    let mut vset = HashSet::<String>::new();
+    collect_vars_bool(&bex, &mut vset);
+    let mut vars: Vec<String> = vset.into_iter().collect();
+    vars.sort();
+
+    // 3) Build domains from max_bit_map (unsigned)
+    let domains: Vec<Vec<i64>> = vars.iter().map(|v| {
+        let bw = *max_bit_map
+            .get(v)
+            .unwrap_or_else(|| panic!("missing bitwidth for int var '{}'", v));
+        let max = (1_i64 << bw) - 1;
+        (0..=max).collect()
+    }).collect();
+
+    // 4) Enumerate
+    let mut disjuncts: Vec<Box<Expression>> = Vec::new();
+    let mut idx = vec![0usize; vars.len()];
+    let mut env = HashMap::<String, i64>::with_capacity(vars.len());
+
+    'outer: loop {
+        env.clear();
+        for (i, v) in vars.iter().enumerate() {
+            env.insert(v.clone(), domains[i][idx[i]]);
+        }
+
+        if let Some(true) = eval_bool(&bex, &env) {
+            // Build ∧ (v == env[v]) and push as a disjunct
+            let mut lanes: Vec<Box<Expression>> = Vec::with_capacity(vars.len());
+            for (i, v) in vars.iter().enumerate() {
+                let bw = *max_bit_map.get(v).unwrap();
+                lanes.push(Box::new(build_bitblasted_equality(v, domains[i][idx[i]], bw, false)));
+            }
+            let conj = if lanes.len() == 1 { *lanes.pop().unwrap() } else { Expression::MAnd(lanes) };
+            disjuncts.push(Box::new(conj));
+        }
+
+        // advance cartesian product
+        if vars.is_empty() { break; }
+        let mut k = vars.len();
+        while k > 0 {
+            k -= 1;
+            idx[k] += 1;
+            if idx[k] < domains[k].len() {
+                break;
+            }
+            idx[k] = 0;
+            if k == 0 { break 'outer; }
+        }
+    }
+
+    // 5) Return MOr of all satisfying cases (or False if none)
+    if disjuncts.is_empty() {
+        Expression::False
+    } else if disjuncts.len() == 1 {
+        *disjuncts.pop().unwrap()
+    } else {
+        Expression::MOr(disjuncts)
+    }
+}
+
+/// Enumerate all assignments over the product of variable domains and build a big ∧ of
+/// ((∧ v (v == val_v)) -> (owner' == result))
+///
+/// - `owner` is the LHS variable to assign (primed in consequent)
+/// - `owner_bw` must exist in `max_bit_map[owner]`
+/// - Domains are 0 .. (1<<bw)-1 (unsigned)
+pub fn dyn_int_to_transition(
+    owner: &str,
+    node: &Dynamic,
+    max_bit_map: &HashMap<String, usize>,
+) -> Expression {
+    // 1) to IntExpr
+    let ie = dyn_int_to_ast(node);
+
+    // 2) collect vars and their bitwidths
+    let mut vset = HashSet::<String>::new();
+    collect_vars_int(&ie, &mut vset);
+    let mut vars: Vec<String> = vset.into_iter().collect();
+    vars.sort();
+
+    // owner bitwidth
+    let owner_bw = *max_bit_map
+        .get(owner)
+        .unwrap_or_else(|| panic!("missing bitwidth for owner '{}'", owner));
+    let owner_max = (1_i64 << owner_bw) - 1;
+
+    // precompute each var's domain 0..2^bw-1
+    let domains: Vec<Vec<i64>> = vars.iter().map(|v| {
+        let bw = *max_bit_map
+            .get(v)
+            .unwrap_or_else(|| panic!("missing bitwidth for int var '{}'", v));
+        let top = (1_i64 << bw) - 1;
+        (0..=top).collect()
+    }).collect();
+
+    // 3) iterate cartesian product
+    let mut clauses: Vec<Box<Expression>> = Vec::new();
+    let mut idx = vec![0usize; vars.len()];
+
+    'outer: loop {
+        // build env for this point
+        let mut env: HashMap<String, i64> = HashMap::with_capacity(vars.len());
+        for (i, v) in vars.iter().enumerate() {
+            env.insert(v.clone(), domains[i][idx[i]]);
+        }
+
+        // evaluate expression
+        if let Some(res) = eval_int(&ie, &env) {
+            if 0 <= res && res <= owner_max {
+                // antecedent: ∧ (v == env[v])   (unprimed)
+                let mut ants: Vec<Box<Expression>> = Vec::with_capacity(vars.len());
+                for (i, v) in vars.iter().enumerate() {
+                    let bw = *max_bit_map.get(v).unwrap();
+                    ants.push(Box::new(build_bitblasted_equality(v, domains[i][idx[i]], bw, false)));
+                }
+                let antecedent = if ants.len() == 1 {
+                    *ants.pop().unwrap()
+                } else {
+                    Expression::MAnd(ants)
                 };
 
-                // Build all implications (pre ⇒ post) and conjoin them
-                let mut clauses: Vec<Box<Expression>> = Vec::new();
+                // consequent: owner' == res  (primed)
+                let consequent = build_bitblasted_equality(owner, res, owner_bw, true);
 
-                // Enumerate according to the shapes (const/var).
-                match (l_const, l_var.as_deref(), r_const, r_var.as_deref()) {
-                    // VAR op VAR
-                    (None, Some(x), None, Some(y)) => {
-                        let (xmin, xmax) = var_domain(x);
-                        let (ymin, ymax) = var_domain(y);
-
-                        for a in xmin..=xmax {
-                            for b in ymin..=ymax {
-                                let res = match decl_name.as_str() {
-                                    "+" => a.checked_add(b),
-                                    "-" => a.checked_sub(b),
-                                    "*" => a.checked_mul(b),
-                                    "/" => if b == 0 { None } else { Some(a / b) },
-                                    "mod" => if b == 0 { None } else { Some(a % b) },
-                                    _ => unreachable!(),
-                                };
-
-                                if let Some(val) = res {
-                                    if val >= 0 && val <= tmax {   // <- disallow negatives here
-                                        let pre_x = build_bitblasted_equality(x, a, *max_bit_map.get(x).unwrap(), false);
-                                        let pre_y = build_bitblasted_equality(y, b, *max_bit_map.get(y).unwrap(), false);
-                                        let pre   = Expression::And(Box::new(pre_x), Box::new(pre_y));
-
-                                        let post = build_bitblasted_equality(var_name, val, tgt_bw, true);
-                                        clauses.push(Box::new(Expression::Implies(Box::new(pre), Box::new(post))));
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    // VAR op CONST
-                    (None, Some(x), Some(c), None) => {
-                        let (xmin, xmax) = var_domain(x);
-                        for a in xmin..=xmax {
-                            let res = match decl_name.as_str() {
-                                "+" => a.checked_add(c),
-                                "-" => a.checked_sub(c),
-                                "*" => a.checked_mul(c),
-                                "/" => if c == 0 { None } else { Some(a / c) },
-                                "mod" => if c == 0 { None } else { Some(a % c) },
-                                _ => unreachable!(),
-                            };
-
-                            if let Some(val) = res {
-                                if val >= 0 && val <= tmax {   // <- ensure non-negative
-                                    let pre = build_bitblasted_equality(x, a, *max_bit_map.get(x).unwrap(), false);
-                                    let post = build_bitblasted_equality(var_name, val, tgt_bw, true);
-                                    clauses.push(Box::new(Expression::Implies(Box::new(pre), Box::new(post))));
-                                }
-                            }
-                        }
-                    }
-
-                    // CONST op VAR
-                    (Some(c), None, None, Some(y)) => {
-                        let (ymin, ymax) = var_domain(y);
-                        for b in ymin..=ymax {
-                            let res = match decl_name.as_str() {
-                                "+" => c.checked_add(b),
-                                "-" => c.checked_sub(b),
-                                "*" => c.checked_mul(b),
-                                "/" => if b == 0 { None } else { Some(c / b) },
-                                "mod" => if b == 0 { None } else { Some(c % b) },
-                                _ => unreachable!(),
-                            };
-
-                            if let Some(val) = res {
-                                if val >= 0 && val <= tmax {   // <- disallow negatives
-                                    let pre = build_bitblasted_equality(y, b, *max_bit_map.get(y).unwrap(), false);
-                                    let post = build_bitblasted_equality(var_name, val, tgt_bw, true);
-                                    clauses.push(Box::new(Expression::Implies(Box::new(pre), Box::new(post))));
-                                }
-                            }
-                        }
-                    }
-
-                    // CONST op CONST
-                    (Some(a), None, Some(b), None) => {
-                        let val = match decl_name.as_str() {
-                            "+" => a.checked_add(b),
-                            "-" => a.checked_sub(b),
-                            "*" => a.checked_mul(b),
-                            "/" => if b == 0 { None } else { Some(a / b) },
-                            "mod" => if b == 0 { None } else { Some(a % b) },
-                            _ => unreachable!(),
-                        };
-                        if let Some(v) = val {
-                            if v >= 0 && v <= tmax {   // <- disallow negatives
-                                clauses.push(Box::new(build_bitblasted_equality(var_name, v, tgt_bw, true)));
-                            }
-                        }
-                    }
-
-                    // Fallback: at least one side is a composite int term you didn’t model yet.
-                    _ => {
-                        eprintln!(
-                            "[dyn_to_expr][arith] Exhaustive arith needs var/const leaves. 
-                            Got decl='{}', l_const={:?}, l_var={:?}, r_const={:?}, r_var={:?}",
-                            decl_name, l_const, l_var, r_const, r_var
-                        );
-                        // Safe structural fallback so you don’t create fake atoms
-                        let pre = Expression::True; // or return Expression::True to avoid constraining
-                        clauses.push(Box::new(pre));
-                    }
-                }
-                // return all bit-blasted clauses
-                return Expression::MAnd(clauses);
+                // implication
+                clauses.push(Box::new(Expression::Implies(
+                    Box::new(antecedent),
+                    Box::new(consequent),
+                )));
             }
-            // "-" => Expression::Sub(Box::new(args[0].clone()), Box::new(args[1].clone())),
-             _   => Expression::Literal(Lit::Atom(format!("UNKNOWN_INT({})", decl_name))),
-        };
-    } 
-    // If it's not a Bool, fall back
-    Expression::Literal(Lit::Atom(format!("{:?}", node)))
+        }
+        // advance product indices
+        let mut k = vars.len();
+        while k > 0 {
+            k -= 1;
+            idx[k] += 1;
+            if idx[k] < domains[k].len() { break; }
+            idx[k] = 0;
+            if k == 0 {
+                break 'outer;
+            }
+        }
+        if vars.is_empty() { break; }
+    }
+
+    // Big AND of all implications (or True if none)
+    if clauses.is_empty() {
+        Expression::True
+    } else if clauses.len() == 1 {
+        *clauses.pop().unwrap()
+    } else {
+        Expression::MAnd(clauses)
+    }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

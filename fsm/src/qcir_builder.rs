@@ -7,6 +7,7 @@ use crate::parser::split_on_value;
 use crate::symbol_map::SymbolMap;
 use stacker;
 use std::collections::{HashMap, HashSet};
+use expressions::TrajQuant;
 
 
 // ---------- QCIR builder ----------
@@ -342,7 +343,7 @@ pub fn to_async_qcir_string(
     }
 
     for (q, vars) in traj_prefix {
-        println!("position var: {:?}", vars);
+        // println!("position var: {:?}", vars);
         // Only print variables that actually appear in the lowered circuit.
         let ids = vars
             .iter()
@@ -617,12 +618,38 @@ pub fn to_qcir_unrolled(
 }
 
 
+
+pub fn conjunct_formula_with_all_phi_pos(
+    formula_expr: &Expression,
+    all_phi_pos: &[(TrajQuant, Expression)],
+) -> Expression {
+    // Start with the main formula
+    let mut parts: Vec<Box<Expression>> = vec![Box::new(formula_expr.clone())];
+
+    // Append all φ_pos blocks (ignore the TrajQuant tag here)
+    for (_, phi) in all_phi_pos {
+        parts.push(Box::new(phi.clone()));
+    }
+
+    // Build a single conjunctive expression
+    match parts.len() {
+        0 => Expression::True, // shouldn't happen
+        1 => *parts.pop().unwrap(),
+        2 => {
+            let r = parts.pop().unwrap();
+            let l = parts.pop().unwrap();
+            Expression::And(l, r)
+        }
+        _ => Expression::MAnd(parts),
+    }
+}
+
 pub fn to_qcir_unrolled_ahltl(
     transitions: &[(Expression,Expression)],
-    predicates_map: &HashMap<String, Expression>,
     path_prefixes: &[(Quant, String)], // e.g., &[(Forall,"A"), (Exists,"B")]
-    pos_prefixes: &[(Quant, String)], //
     formula_expr: &Expression,
+    predicates_map: &HashMap<String, Expression>,
+    all_phi_pos: &[(TrajQuant, Expression)],
     bound: usize,                    // i = 0..bound-1; primes use i+1
 ) -> Result<String, LowerError> {
     // Determine pairing strategy
@@ -668,10 +695,6 @@ pub fn to_qcir_unrolled_ahltl(
         let mut vset: HashSet<Variable> = HashSet::new();
         collect_vars_unique(&init_expr, &mut vset);
         collect_vars_unique(&clause, &mut vset);
-        // println!("(len={}):", vset.len());
-        // for (i, item) in vset.iter().enumerate() {
-        //         println!("  [{}] {:?}", i, item);
-        // }
 
         // add them into the header list
         let vlist: Vec<Variable> = vset.into_iter().collect();
@@ -684,9 +707,7 @@ pub fn to_qcir_unrolled_ahltl(
         body_clauses.push(clause_sub);
         init_clauses.push(init_expr.clone());
     }
-
-
-
+    
     // Dedup/sort aggregated vars per path, and build the final header blocks
     let mut header_blocks: Vec<(Quant, Vec<Variable>)> = Vec::new();
     for (p_idx, (q, _path)) in path_prefixes.iter().enumerate() {
@@ -699,23 +720,35 @@ pub fn to_qcir_unrolled_ahltl(
         header_blocks.push((*q, vars));
     }
 
-    // Later, after you’ve built `prefix_ext: Vec<(Quant, String)>`:
-    let mut traj_prefixes: Vec<(Quant, Vec<String>)> = Vec::new();
-    let mut names: Vec<String> = Vec::new();
+    let mut traj_prefixes: Vec<(Quant, Vec<Variable>)> = Vec::new();
+    for (tq, expr) in all_phi_pos {
+        // 1) Collect unique variables appearing in this expression
+        let mut vset: HashSet<Variable> = HashSet::new();
+        collect_vars_unique(expr, &mut vset);
 
-    for (q, name) in pos_prefixes {
-        if *q == Quant::Exists {
-            names.push(name.clone());
+        if vset.is_empty() {
+            continue; // nothing to declare for this piece
         }
+
+        // 2) Make a stable, sorted Vec<Variable>
+        let mut vars: Vec<Variable> = vset.into_iter().collect();
+        // If Variable implements Display or has a name getter, use that for sorting
+        vars.sort_by(|a, b| a.to_string().cmp(&b.to_string()));
+
+        // 3) Map trajectory quantifier → normal quantifier
+        let q = match tq {
+            TrajQuant::TrajA => Quant::Forall,
+            TrajQuant::TrajE => Quant::Exists,
+        };
+
+        traj_prefixes.push((q, vars));
     }
-    if !names.is_empty() {
-        traj_prefixes.push((Quant::Exists, names));
-    }
-    // Now exist_prefixes is your (Quant, Vec<String>) vector
-    println!("Existential prefixes: {:?}", traj_prefixes);
+
+
+    let final_formula = conjunct_formula_with_all_phi_pos(&formula_expr, &all_phi_pos);
 
     // Emit a single QCIR: headers at the top; body = AND of all unrolled clauses
-    to_async_qcir_string(&init_clauses, &body_clauses, &formula_expr, &header_blocks, &traj_prefixes)
+    to_async_qcir_string(&init_clauses, &body_clauses, &final_formula, &header_blocks, &traj_prefixes)
 }
 
 
@@ -822,7 +855,6 @@ pub fn build_init_expr(expr: &Expression, path: &str) -> Expression {
             R(a,b) => R(Box::new(stamp(a, path)), Box::new(stamp(b, path))),
         }
     }
-
     stamp(expr, path)
 }
 
@@ -883,7 +915,7 @@ pub fn build_async_QBF(
     // Total number of “blocks” available to pair with prefix:
     //   - one per model
     //   - one per extra ∃-block in pos_prefix (these have no expression => use True)
-    let total_blocks = models.len() + pos_prefix.len();
+    let total_blocks = models.len();
 
     // We can only fold as many prefix entries as we have blocks.
     let usable = prefix.len().min(total_blocks);

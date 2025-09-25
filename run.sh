@@ -404,7 +404,7 @@
 
 # #=== Test ===#
 
-time cargo run --release -- -n benchmarks/async/0_test/m1.smv benchmarks/async/0_test/m1.smv -f benchmarks/async/0_test/formula.hq -k 4 -m 8 -s hpes -q
+# time cargo run --release -- -n benchmarks/async/0_test/m1.smv benchmarks/async/0_test/m1.smv -f benchmarks/async/0_test/formula.hq -k 2 -m 4 -s hpes -q
 
 
 #=== ACDB original ===#
@@ -412,24 +412,52 @@ time cargo run --release -- -n benchmarks/async/0_test/m1.smv benchmarks/async/0
 
 
 #=== ACDB with_ndet ===#
-# time cargo run --release -- -n benchmarks/async/1_acdb/ndet/acdb_flattened.smv benchmarks/async/1_acdb/ndet/acdb_flattened.smv -f benchmarks/async/1_acdb/ndet/acdb_formula2.hq -k 8 -m 16 -s hpes
+# time cargo run --release -- -n benchmarks/async/1_acdb/ndet/acdb_flattened.smv benchmarks/async/1_acdb/ndet/acdb_flattened.smv -f benchmarks/async/1_acdb/ndet/acdb_formula2.hq -k 8 -m 16 -s hpes -q
 
 
-#=== Concurrent Leak ===#
-# time cargo run --release -- -n benchmarks/async/2_concleaks/original/concleak_flatten.smv benchmarks/async/2_concleaks/original/concleak_flatten.smv -f benchmarks/async/2_concleaks/original/od.hq -k 11 -m 22 -s hpes
+# # === Concurrent Leak ===#
+# time cargo run --release -- -n benchmarks/async/2_concleaks/flattened/concleaks_2procs.smv benchmarks/async/2_concleaks/flattened/concleaks_2procs.smv  -f benchmarks/async/2_concleaks/flattened/od.hq -k 11 -m 22 -s hpes -q
 
+# === Concurrent Leak - ndet ===#
+# time cargo run --release -- -n benchmarks/async/2_concleaks/flattened/concleaks_3procs.smv benchmarks/async/2_concleaks/flattened/concleaks_3procs.smv  -f benchmarks/async/2_concleaks/flattened/od.hq -k 18 -m 36 -s hpes -q
+
+# === Concurrent Leak - ndet bug ===#
+# time cargo run --release -- -n benchmarks/async/2_concleaks/flattened/concleaks_3procs_bug.smv benchmarks/async/2_concleaks/flattened/concleaks_3procs_bug.smv  -f benchmarks/async/2_concleaks/flattened/od.hq -k 18 -m 36 -s hpes -q
 
 
 #=== Speculative Execution - V1 ===#
 
-# time cargo run --release -- -n benchmarks/async/3_speculative/flattened/se_v1_nse.smv benchmarks/async/3_speculative/flattened/se_v1_nse.smv -f benchmarks/async/3_speculative/flattened/se_prop.hq -k 6 -m 12 -s hpes 
+# time cargo run --release -- -n benchmarks/async/3_speculative/flattened/v1_se.smv benchmarks/async/3_speculative/flattened/v1_nse.smv -f benchmarks/async/3_speculative/flattened/se_prop.hq -k 6 -m 12 -s hpes -q
 
 # time cargo run --release -- -n benchmarks/async/3_speculative/flattened/model_flattened.smv benchmarks/async/3_speculative/flattened/model_flattened -f benchmarks/async/3_speculative/flattened/se_prop.hq -k 6 -m 12 -s hpes 
 
 #=== Speculative Execution - V2 ===#
 
-# time cargo run --release -- -n benchmarks/async/3_speculative/flattened/se_v2_se.smv benchmarks/async/3_speculative/flattened/se_v2_nse.smv -f benchmarks/async/2_concleaks/original/se_prop.hq -k 6 -m 12 -s hpes
+# time cargo run --release -- -n benchmarks/async/3_speculative/flattened/v2_se.smv benchmarks/async/3_speculative/flattened/v2_nse.smv -f benchmarks/async/3_speculative/flattened/se_prop.hq -k 6 -m 12 -s hpes -q
 
+# #=== Speculative Execution - V3 ===#
+
+# time cargo run --release -- -n benchmarks/async/3_speculative/flattened/v3_se.smv benchmarks/async/3_speculative/flattened/v3_nse.smv -f benchmarks/async/3_speculative/flattened/se_prop.hq -k 6 -m 12 -s hpes 
+
+#=== Speculative Execution - V4 ===#
+
+# time cargo run --release -- -n benchmarks/async/3_speculative/flattened/v4_se.smv benchmarks/async/3_speculative/flattened/v4_nse.smv -f benchmarks/async/3_speculative/flattened/se_prop.hq -k 6 -m 12 -s hpes -q
+
+
+#=== Speculative Execution - V5 ===#
+
+# time cargo run --release -- -n benchmarks/async/3_speculative/flattened/v5_se.smv benchmarks/async/3_speculative/flattened/v5_nse.smv -f benchmarks/async/3_speculative/flattened/se_prop.hq -k 6 -m 12 -s hpes 
+
+
+
+#=== Speculative Execution - V6 ===#
+
+# time cargo run --release -- -n benchmarks/async/3_speculative/flattened/v6_se.smv benchmarks/async/3_speculative/flattened/v6_nse.smv -f benchmarks/async/3_speculative/flattened/se_prop.hq -k 6 -m 12 -s hpes -q
+
+
+#=== Speculative Execution - V7 ===#
+
+# time cargo run --release -- -n benchmarks/async/3_speculative/flattened/v7_se.smv benchmarks/async/3_speculative/flattened/v7_nse.smv -f benchmarks/async/3_speculative/flattened/se_prop.hq -k 6 -m 12 -s hpes 
 
 
 #=== Optimization - DBE ===#
@@ -448,14 +476,35 @@ time cargo run --release -- -n benchmarks/async/0_test/m1.smv benchmarks/async/0
 
 # time cargo run --release -- -n benchmarks/async/4_optimization/with_ndet/lp/LP_source_ndet.smv benchmarks/async/4_optimization/with_ndet/lp/LP_target_wrong_ndet.smv -f benchmarks/async/4_optimization/with_ndet/lp/LP.hq -k 17 -m 34 -s hpes -q
 
+# time cargo run --release -- -n benchmarks/async/4_optimization/with_loops/lp/LP_source_ndet.smv benchmarks/async/4_optimization/with_loops/lp/LP_target_ndet.smv -f benchmarks/async/4_optimization/with_loops/lp/LP.hq -k 35 -m 70 -s hpes -q
+
+# time cargo run --release -- -n benchmarks/async/4_optimization/with_loops/lp/LP_source_ndet.smv benchmarks/async/4_optimization/with_loops/lp/LP_target_wrong_ndet.smv -f benchmarks/async/4_optimization/with_loops/lp/LP.hq -k 17 -m 34 -s hpes -q
+
 
 #=== Optimization - EFLP ===#
-# time cargo run --release -- -n benchmarks/async/4_optimization/original/eflp/EFLP_source.smv benchmarks/async/4_optimization/original/eflp/EFLP_target.smv -f benchmarks/async/4_optimization/original/lp/LP.hq -k 32 -m 64 -s hpes -q
+# time cargo run --release -- -n benchmarks/async/4_optimization/original/eflp/EFLP_source.smv benchmarks/async/4_optimization/original/eflp/EFLP_target.smv -f benchmarks/async/4_optimization/original/eflp/EFLP.hq -k 32 -m 64 -s hpes -q
+
+
+#=== Optimization - EFLP -ndet ===#
+# time cargo run --release -- -n benchmarks/async/4_optimization/with_ndet/eflp/EFLP_source_ndet.smv benchmarks/async/4_optimization/with_ndet/eflp/EFLP_target_ndet.smv -f benchmarks/async/4_optimization/with_ndet/eflp/EFLP.hq -k 22 -m 44 -s hpes -q
+
+
+#=== Optimization - EFLP -ndet -loop ===#
+# time cargo run --release -- -n benchmarks/async/4_optimization/with_loops/eflp/EFLP_source_ndet.smv benchmarks/async/4_optimization/with_loops/eflp/EFLP_target_ndet.smv -f benchmarks/async/4_optimization/with_loops/eflp/EFLP.hq -k 45 -m 90 -s hpes -q
 
 
 
 #=== CACHE ===#
 # time cargo run --release -- -n benchmarks/async/5_cache/cache_flattened.smv benchmarks/async/5_cache/cache_flattened.smv -f benchmarks/async/5_cache/odnd.hq -k 13 -m 26 -s hpes -q
+
+
+
+#=== CACHE -ndet ===#
+# time cargo run --release -- -n benchmarks/async/5_cache/flattened/cache_ndet.smv benchmarks/async/5_cache/flattened/cache_ndet.smv -f benchmarks/async/5_cache/flattened/odnd.hq -k 58 -m 116 -s hpes -q
+
+
+#=== CACHE -ndet -loop ===#
+time cargo run --release -- -n benchmarks/async/5_cache/flattened/cache_loops.smv benchmarks/async/5_cache/flattened/cache_loops.smv -f benchmarks/async/5_cache/flattened/odnd.hq -k 35 -m 70 -s hpes -q
 
 
 

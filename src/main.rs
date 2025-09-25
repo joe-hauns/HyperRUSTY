@@ -189,6 +189,13 @@ fn main() {
                 envs.push(env);
             }
 
+            let duration = start.elapsed();
+            let secs = duration.as_secs_f64();
+            println!("Model Creation Time: {}", secs);
+
+            // Start the timer for encoding
+            let start = Instant::now();
+
 
             let semantics = "hpes"; // temp, not sure what's wrong
             gen_qcir(&envs, &model_paths, &formula, unrolling_bound, false, semantics, Path::new("outputs/HQ.qcir"));
@@ -212,6 +219,10 @@ fn main() {
             if !stderr.trim().is_empty() {
                 println!("{}", stderr);
             }
+
+            let duration = start.elapsed();
+            let secs = duration.as_secs_f64();
+            println!("QBF Build & Solving Time: {}", secs);
         } else {
             let path_identifiers: Vec<&str> = get_path_identifiers(&ast_node);
 
