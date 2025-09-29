@@ -2,4 +2,5 @@
 AutoHyper/
 Cargo.lock
 commands.txt
-.DS_Store
+.DS_Storez3_encoding_output.smt2
+simulation_pair_constraints.txt
