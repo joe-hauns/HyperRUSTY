@@ -366,7 +366,7 @@
 
 #=== LED EE===#
 #unsat
-cargo run --release -- -v benchmarks/verilog/LED/build_ee.ys benchmarks/verilog/LED/build_ee.ys -t light -o model.smt2 -f benchmarks/verilog/LED/formula_ee_t.hq -k 101 -s hpes
+#cargo run --release -- -v benchmarks/verilog/LED/build_ee.ys benchmarks/verilog/LED/build_ee.ys -t light -o model.smt2 -f benchmarks/verilog/LED/formula_ee_t.hq -k 101 -s hpes
 
 #sat
 #cargo run --release -- -v benchmarks/verilog/LED/build_ee.ys benchmarks/verilog/LED/build_ee.ys -t light -o model.smt2 -f benchmarks/verilog/LED/formula_ee_f.hq -k 101 -s pes
@@ -391,6 +391,9 @@ cargo run --release -- -v benchmarks/verilog/LED/build_ee.ys benchmarks/verilog/
 #cargo run --release -- -v verilog_benchmarks/iodine-benchmarks/fpu/verilog/build.ys verilog_benchmarks/iodine-benchmarks/fpu/verilog/build.ys -t fpu_small_tb -o fpu.smt2 -f verilog_benchmarks/iodine-benchmarks/fpu/verilog/formula.hq -k 1 -s pes
 # small
 #cargo run --release -- -v verilog_benchmarks/iodine-benchmarks/fpu/verilog/minimal_fpu.ys verilog_benchmarks/iodine-benchmarks/fpu/verilog/minimal_fpu.ys -t fdiv_tb -o fpu.smt2 -f verilog_benchmarks/iodine-benchmarks/fpu/verilog/formula.hq -k 1 -s pes
+
+#=== fpu2 ===#
+cargo run --release -- -v benchmarks/verilog/divider/divider.ys benchmarks/verilog/divider/divider.ys -t divider -o model.smt2 -f benchmarks/verilog/divider/formula.hq -k 10 -s pes
 
 #=== TRNG ===#
 #RUST_BACKTRACE=1 cargo run --release -- -v verilog_benchmarks/TRNG/build.ys verilog_benchmarks/TRNG/build.ys -t trng_wrap -o trng.smt2 -f verilog_benchmarks/TRNG/formula_1.hq -k 10 -s opt

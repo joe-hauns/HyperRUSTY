@@ -26,13 +26,52 @@ enum Expr {
     Eq(Box<Expr>, Box<Expr>),
     Ite(Box<Expr>, Box<Expr>, Box<Expr>),
     Extract { hi: u32, lo: u32, e: Box<Expr> },
+
     And(Vec<Expr>),
     Or(Vec<Expr>),
     Not(Box<Expr>),
-    Xor(Vec<Expr>),     
-    BVXor(Vec<Expr>),   
+
+    Xor(Vec<Expr>),         // Bool XOR (already present)
+    BVXor(Vec<Expr>),       // BV XOR (already present)
+
+    // === New: BV algebra / logic ===
+    BVAnd(Vec<Expr>),
+    BVOr(Vec<Expr>),
+    BVNot(Box<Expr>),
+    BVNeg(Box<Expr>),
+
+    BVAdd(Vec<Expr>),
+    BVSub(Box<Expr>, Box<Expr>),
+    BVMul(Vec<Expr>),
+
+    BVUDiv(Box<Expr>, Box<Expr>),
+    BVURem(Box<Expr>, Box<Expr>),
+    BVSDiv(Box<Expr>, Box<Expr>),
+    BVSRem(Box<Expr>, Box<Expr>),
+    BVSMod(Box<Expr>, Box<Expr>),
+
+    BVShl (Box<Expr>, Box<Expr>),
+    BVLshr(Box<Expr>, Box<Expr>),
+    BVAshr(Box<Expr>, Box<Expr>),
+
+    Concat(Vec<Expr>),
+    ZeroExtend { k: u32, e: Box<Expr> },
+    SignExtend { k: u32, e: Box<Expr> },
+
+    // BV comparisons (Bool results)
+    BVUlt(Box<Expr>, Box<Expr>),
+    BVUle(Box<Expr>, Box<Expr>),
+    BVUgt(Box<Expr>, Box<Expr>),
+    BVUge(Box<Expr>, Box<Expr>),
+    BVSlt(Box<Expr>, Box<Expr>),
+    BVSle(Box<Expr>, Box<Expr>),
+    BVSgt(Box<Expr>, Box<Expr>),
+    BVSge(Box<Expr>, Box<Expr>),
+
+    Distinct(Vec<Expr>),
     App(String, Vec<Expr>),
 }
+
 
 #[derive(Clone, Debug)]
 struct FnDef {
@@ -153,6 +192,18 @@ fn parse_expr(e: &SExp) -> Result<Expr, String> {
                         }
                     }
                 }
+                if head.len() == 3 {
+                    if let (SExp::Atom(u), SExp::Atom(op), SExp::Atom(k)) = (&head[0], &head[1], &head[2]) {
+                        if u == "_" && op == "zero_extend" && v.len() == 2 {
+                            let k: u32 = k.parse().map_err(|_| "bad zero_extend k".to_string())?;
+                            return Ok(Expr::ZeroExtend { k, e: Box::new(parse_expr(&v[1])?) });
+                        }
+                        if u == "_" && op == "sign_extend" && v.len() == 2 {
+                            let k: u32 = k.parse().map_err(|_| "bad sign_extend k".to_string())?;
+                            return Ok(Expr::SignExtend { k, e: Box::new(parse_expr(&v[1])?) });
+                        }
+                    }
+                }
             }
 
             // head is an atom (operator / symbol)
@@ -196,6 +247,106 @@ fn parse_expr(e: &SExp) -> Result<Expr, String> {
                     for a in &v[1..] { xs.push(parse_expr(a)?); }
                     Ok(Expr::BVXor(xs))
                 }
+                "bvand" => {
+                    let mut xs = Vec::new(); for a in &v[1..] { xs.push(parse_expr(a)?); }
+                    if xs.len() < 2 { return Err("bvand expects >=2 args".into()); }
+                    Ok(Expr::BVAnd(xs))
+                }
+                "bvor" => {
+                    let mut xs = Vec::new(); for a in &v[1..] { xs.push(parse_expr(a)?); }
+                    if xs.len() < 2 { return Err("bvor expects >=2 args".into()); }
+                    Ok(Expr::BVOr(xs))
+                }
+                "bvnot" => {
+                    if v.len() != 2 { return Err("bvnot expects 1 arg".into()); }
+                    Ok(Expr::BVNot(Box::new(parse_expr(&v[1])?)))
+                }
+                "bvneg" => {
+                    if v.len() != 2 { return Err("bvneg expects 1 arg".into()); }
+                    Ok(Expr::BVNeg(Box::new(parse_expr(&v[1])?)))
+                }
+                "bvadd" => {
+                    let mut xs = Vec::new(); for a in &v[1..] { xs.push(parse_expr(a)?); }
+                    if xs.len() < 2 { return Err("bvadd expects >=2 args".into()); }
+                    Ok(Expr::BVAdd(xs))
+                }
+                "bvsub" => {
+                    if v.len() != 3 { return Err("bvsub expects 2 args".into()); }
+                    Ok(Expr::BVSub(Box::new(parse_expr(&v[1])?), Box::new(parse_expr(&v[2])?)))
+                }
+                "bvmul" => {
+                    let mut xs = Vec::new(); for a in &v[1..] { xs.push(parse_expr(a)?); }
+                    if xs.len() < 2 { return Err("bvmul expects >=2 args".into()); }
+                    Ok(Expr::BVMul(xs))
+                }
+                "bvudiv" => {
+                    if v.len() != 3 { return Err("bvudiv expects 2 args".into()); }
+                    Ok(Expr::BVUDiv(Box::new(parse_expr(&v[1])?), Box::new(parse_expr(&v[2])?)))
+                }
+                "bvurem" => {
+                    if v.len() != 3 { return Err("bvurem expects 2 args".into()); }
+                    Ok(Expr::BVURem(Box::new(parse_expr(&v[1])?), Box::new(parse_expr(&v[2])?)))
+                }
+                "bvsdiv" => {
+                    if v.len() != 3 { return Err("bvsdiv expects 2 args".into()); }
+                    Ok(Expr::BVSDiv(Box::new(parse_expr(&v[1])?), Box::new(parse_expr(&v[2])?)))
+                }
+                "bvsrem" => {
+                    if v.len() != 3 { return Err("bvsrem expects 2 args".into()); }
+                    Ok(Expr::BVSRem(Box::new(parse_expr(&v[1])?), Box::new(parse_expr(&v[2])?)))
+                }
+                "bvsmod" => {
+                    if v.len() != 3 { return Err("bvsmod expects 2 args".into()); }
+                    Ok(Expr::BVSMod(Box::new(parse_expr(&v[1])?), Box::new(parse_expr(&v[2])?)))
+                }
+                "bvshl" => {
+                    if v.len() != 3 { return Err("bvshl expects 2 args".into()); }
+                    Ok(Expr::BVShl(Box::new(parse_expr(&v[1])?), Box::new(parse_expr(&v[2])?)))
+                }
+                "bvlshr" => {
+                    if v.len() != 3 { return Err("bvlshr expects 2 args".into()); }
+                    Ok(Expr::BVLshr(Box::new(parse_expr(&v[1])?), Box::new(parse_expr(&v[2])?)))
+                }
+                "bvashr" => {
+                    if v.len() != 3 { return Err("bvashr expects 2 args".into()); }
+                    Ok(Expr::BVAshr(Box::new(parse_expr(&v[1])?), Box::new(parse_expr(&v[2])?)))
+                }
+                "concat" => {
+                    let mut xs = Vec::new(); for a in &v[1..] { xs.push(parse_expr(a)?); }
+                    if xs.len() < 2 { return Err("concat expects >=2 args".into()); }
+                    Ok(Expr::Concat(xs))
+                }
+                "bvult" => { if v.len()!=3 {return Err("bvult expects 2 args".into());}
+                    Ok(Expr::BVUlt(Box::new(parse_expr(&v[1])?), Box::new(parse_expr(&v[2])?)))
+                }
+                "bvule" => { if v.len()!=3 {return Err("bvule expects 2 args".into());}
+                    Ok(Expr::BVUle(Box::new(parse_expr(&v[1])?), Box::new(parse_expr(&v[2])?)))
+                }
+                "bvugt" => { if v.len()!=3 {return Err("bvugt expects 2 args".into());}
+                    Ok(Expr::BVUgt(Box::new(parse_expr(&v[1])?), Box::new(parse_expr(&v[2])?)))
+                }
+                "bvuge" => { if v.len()!=3 {return Err("bvuge expects 2 args".into());}
+                    Ok(Expr::BVUge(Box::new(parse_expr(&v[1])?), Box::new(parse_expr(&v[2])?)))
+                }
+                "bvslt" => { if v.len()!=3 {return Err("bvslt expects 2 args".into());}
+                    Ok(Expr::BVSlt(Box::new(parse_expr(&v[1])?), Box::new(parse_expr(&v[2])?)))
+                }
+                "bvsle" => { if v.len()!=3 {return Err("bvsle expects 2 args".into());}
+                    Ok(Expr::BVSle(Box::new(parse_expr(&v[1])?), Box::new(parse_expr(&v[2])?)))
+                }
+                "bvsgt" => { if v.len()!=3 {return Err("bvsgt expects 2 args".into());}
+                    Ok(Expr::BVSgt(Box::new(parse_expr(&v[1])?), Box::new(parse_expr(&v[2])?)))
+                }
+                "bvsge" => { if v.len()!=3 {return Err("bvsge expects 2 args".into());}
+                    Ok(Expr::BVSge(Box::new(parse_expr(&v[1])?), Box::new(parse_expr(&v[2])?)))
+                }
+                "distinct" => {
+                    // SMT-LIB allows 0+ args; we accept any arity here.
+                    let mut xs = Vec::with_capacity(v.len().saturating_sub(1));
+                    for a in &v[1..] { xs.push(parse_expr(a)?); }
+                    Ok(Expr::Distinct(xs))
+                }
+
                 // Otherwise: helper application
                 _ => {
                     let name = strip_pipes(&v[0].as_atom().unwrap_or_default());
@@ -239,6 +390,42 @@ fn subst_expr(e: &Expr, sub: &IndexMap<String, Expr>) -> Expr {
         Expr::Not(x)    => Expr::Not(Box::new(subst_expr(x, sub))),
         Expr::Xor(xs)   => Expr::Xor(xs.iter().map(|x| subst_expr(x, sub)).collect()),
         Expr::BVXor(xs) => Expr::BVXor(xs.iter().map(|x| subst_expr(x, sub)).collect()),
+        Expr::Xor(xs)     => Expr::Xor(xs.iter().map(|x| subst_expr(x, sub)).collect()),
+        Expr::BVXor(xs)   => Expr::BVXor(xs.iter().map(|x| subst_expr(x, sub)).collect()),
+
+        Expr::BVAnd(xs)   => Expr::BVAnd(xs.iter().map(|x| subst_expr(x, sub)).collect()),
+        Expr::BVOr(xs)    => Expr::BVOr(xs.iter().map(|x| subst_expr(x, sub)).collect()),
+        Expr::BVNot(x)    => Expr::BVNot(Box::new(subst_expr(x, sub))),
+        Expr::BVNeg(x)    => Expr::BVNeg(Box::new(subst_expr(x, sub))),
+
+        Expr::BVAdd(xs)   => Expr::BVAdd(xs.iter().map(|x| subst_expr(x, sub)).collect()),
+        Expr::BVSub(a,b)  => Expr::BVSub(Box::new(subst_expr(a, sub)), Box::new(subst_expr(b, sub))),
+        Expr::BVMul(xs)   => Expr::BVMul(xs.iter().map(|x| subst_expr(x, sub)).collect()),
+
+        Expr::BVUDiv(a,b) => Expr::BVUDiv(Box::new(subst_expr(a, sub)), Box::new(subst_expr(b, sub))),
+        Expr::BVURem(a,b) => Expr::BVURem(Box::new(subst_expr(a, sub)), Box::new(subst_expr(b, sub))),
+        Expr::BVSDiv(a,b) => Expr::BVSDiv(Box::new(subst_expr(a, sub)), Box::new(subst_expr(b, sub))),
+        Expr::BVSRem(a,b) => Expr::BVSRem(Box::new(subst_expr(a, sub)), Box::new(subst_expr(b, sub))),
+        Expr::BVSMod(a,b) => Expr::BVSMod(Box::new(subst_expr(a, sub)), Box::new(subst_expr(b, sub))),
+
+        Expr::BVShl(a,b)  => Expr::BVShl (Box::new(subst_expr(a, sub)), Box::new(subst_expr(b, sub))),
+        Expr::BVLshr(a,b) => Expr::BVLshr(Box::new(subst_expr(a, sub)), Box::new(subst_expr(b, sub))),
+        Expr::BVAshr(a,b) => Expr::BVAshr(Box::new(subst_expr(a, sub)), Box::new(subst_expr(b, sub))),
+
+        Expr::Concat(xs)  => Expr::Concat(xs.iter().map(|x| subst_expr(x, sub)).collect()),
+        Expr::ZeroExtend{k,e} => Expr::ZeroExtend{ k:*k, e:Box::new(subst_expr(e, sub)) },
+        Expr::SignExtend{k,e} => Expr::SignExtend{ k:*k, e:Box::new(subst_expr(e, sub)) },
+
+        Expr::BVUlt(a,b)  => Expr::BVUlt(Box::new(subst_expr(a, sub)), Box::new(subst_expr(b, sub))),
+        Expr::BVUle(a,b)  => Expr::BVUle(Box::new(subst_expr(a, sub)), Box::new(subst_expr(b, sub))),
+        Expr::BVUgt(a,b)  => Expr::BVUgt(Box::new(subst_expr(a, sub)), Box::new(subst_expr(b, sub))),
+        Expr::BVUge(a,b)  => Expr::BVUge(Box::new(subst_expr(a, sub)), Box::new(subst_expr(b, sub))),
+        Expr::BVSlt(a,b)  => Expr::BVSlt(Box::new(subst_expr(a, sub)), Box::new(subst_expr(b, sub))),
+        Expr::BVSle(a,b)  => Expr::BVSle(Box::new(subst_expr(a, sub)), Box::new(subst_expr(b, sub))),
+        Expr::BVSgt(a,b)  => Expr::BVSgt(Box::new(subst_expr(a, sub)), Box::new(subst_expr(b, sub))),
+        Expr::BVSge(a,b)  => Expr::BVSge(Box::new(subst_expr(a, sub)), Box::new(subst_expr(b, sub))),
+        Expr::Distinct(xs) => Expr::Distinct(xs.iter().map(|x| subst_expr(x, sub)).collect()),
+
         Expr::App(n, args) => Expr::App(n.clone(), args.iter().map(|x| subst_expr(x, sub)).collect()),
     }
 }
@@ -275,6 +462,41 @@ fn inline_helpers(e: &Expr, fns: &FnTable, depth: usize) -> Result<Expr, String>
         Expr::And(xs) => Ok(Expr::And(xs.iter().map(|x| inline_helpers(x,fns,depth+1)).collect::<Result<Vec<_>,_>>()?)),
         Expr::Or(xs)  => Ok(Expr::Or(xs.iter().map(|x| inline_helpers(x,fns,depth+1)).collect::<Result<Vec<_>,_>>()?)),
         Expr::Not(x)  => Ok(Expr::Not(Box::new(inline_helpers(x,fns,depth+1)?))),
+        Expr::Xor(xs)   => Ok(Expr::Xor(xs.iter().map(|x| inline_helpers(x,fns,depth+1)).collect::<Result<Vec<_>,_>>()?)),
+        Expr::BVXor(xs) => Ok(Expr::BVXor(xs.iter().map(|x| inline_helpers(x,fns,depth+1)).collect::<Result<Vec<_>,_>>()?)),
+
+        Expr::BVAnd(xs) => Ok(Expr::BVAnd(xs.iter().map(|x| inline_helpers(x,fns,depth+1)).collect::<Result<Vec<_>,_>>()?)),
+        Expr::BVOr(xs)  => Ok(Expr::BVOr(xs.iter().map(|x| inline_helpers(x,fns,depth+1)).collect::<Result<Vec<_>,_>>()?)),
+        Expr::BVNot(x)  => Ok(Expr::BVNot(Box::new(inline_helpers(x,fns,depth+1)?))),
+        Expr::BVNeg(x)  => Ok(Expr::BVNeg(Box::new(inline_helpers(x,fns,depth+1)?))),
+
+        Expr::BVAdd(xs) => Ok(Expr::BVAdd(xs.iter().map(|x| inline_helpers(x,fns,depth+1)).collect::<Result<Vec<_>,_>>()?)),
+        Expr::BVSub(a,b)=> Ok(Expr::BVSub(Box::new(inline_helpers(a,fns,depth+1)?), Box::new(inline_helpers(b,fns,depth+1)?))),
+        Expr::BVMul(xs) => Ok(Expr::BVMul(xs.iter().map(|x| inline_helpers(x,fns,depth+1)).collect::<Result<Vec<_>,_>>()?)),
+
+        Expr::BVUDiv(a,b)=> Ok(Expr::BVUDiv(Box::new(inline_helpers(a,fns,depth+1)?), Box::new(inline_helpers(b,fns,depth+1)?))),
+        Expr::BVURem(a,b)=> Ok(Expr::BVURem(Box::new(inline_helpers(a,fns,depth+1)?), Box::new(inline_helpers(b,fns,depth+1)?))),
+        Expr::BVSDiv(a,b)=> Ok(Expr::BVSDiv(Box::new(inline_helpers(a,fns,depth+1)?), Box::new(inline_helpers(b,fns,depth+1)?))),
+        Expr::BVSRem(a,b)=> Ok(Expr::BVSRem(Box::new(inline_helpers(a,fns,depth+1)?), Box::new(inline_helpers(b,fns,depth+1)?))),
+        Expr::BVSMod(a,b)=> Ok(Expr::BVSMod(Box::new(inline_helpers(a,fns,depth+1)?), Box::new(inline_helpers(b,fns,depth+1)?))),
+
+        Expr::BVShl (a,b)=> Ok(Expr::BVShl (Box::new(inline_helpers(a,fns,depth+1)?), Box::new(inline_helpers(b,fns,depth+1)?))),
+        Expr::BVLshr(a,b)=> Ok(Expr::BVLshr(Box::new(inline_helpers(a,fns,depth+1)?), Box::new(inline_helpers(b,fns,depth+1)?))),
+        Expr::BVAshr(a,b)=> Ok(Expr::BVAshr(Box::new(inline_helpers(a,fns,depth+1)?), Box::new(inline_helpers(b,fns,depth+1)?))),
+
+        Expr::Concat(xs) => Ok(Expr::Concat(xs.iter().map(|x| inline_helpers(x,fns,depth+1)).collect::<Result<Vec<_>,_>>()?)),
+        Expr::ZeroExtend{k,e} => Ok(Expr::ZeroExtend{ k:*k, e:Box::new(inline_helpers(e,fns,depth+1)?) }),
+        Expr::SignExtend{k,e} => Ok(Expr::SignExtend{ k:*k, e:Box::new(inline_helpers(e,fns,depth+1)?) }),
+
+        Expr::BVUlt(a,b)=> Ok(Expr::BVUlt(Box::new(inline_helpers(a,fns,depth+1)?), Box::new(inline_helpers(b,fns,depth+1)?))),
+        Expr::BVUle(a,b)=> Ok(Expr::BVUle(Box::new(inline_helpers(a,fns,depth+1)?), Box::new(inline_helpers(b,fns,depth+1)?))),
+        Expr::BVUgt(a,b)=> Ok(Expr::BVUgt(Box::new(inline_helpers(a,fns,depth+1)?), Box::new(inline_helpers(b,fns,depth+1)?))),
+        Expr::BVUge(a,b)=> Ok(Expr::BVUge(Box::new(inline_helpers(a,fns,depth+1)?), Box::new(inline_helpers(b,fns,depth+1)?))),
+        Expr::BVSlt(a,b)=> Ok(Expr::BVSlt(Box::new(inline_helpers(a,fns,depth+1)?), Box::new(inline_helpers(b,fns,depth+1)?))),
+        Expr::BVSle(a,b)=> Ok(Expr::BVSle(Box::new(inline_helpers(a,fns,depth+1)?), Box::new(inline_helpers(b,fns,depth+1)?))),
+        Expr::BVSgt(a,b)=> Ok(Expr::BVSgt(Box::new(inline_helpers(a,fns,depth+1)?), Box::new(inline_helpers(b,fns,depth+1)?))),
+        Expr::BVSge(a,b)=> Ok(Expr::BVSge(Box::new(inline_helpers(a,fns,depth+1)?), Box::new(inline_helpers(b,fns,depth+1)?))),
+
         // leaves
         _ => Ok(e.clone()),
     }
@@ -375,156 +597,165 @@ fn expr_to_ast<'ctx>(
             Ok(acc.into())
         }        
         Expr::Not(x) => Ok(expr_to_ast(x,ctx,st)?.as_bool().ok_or("not arg not Bool")?.not().into()),
-        Expr::App(name, args) => {
-            // helpers to parse BV args
-            let mut as_bv_list = |min_arity: usize, opname: &str| -> Result<Vec<BV<'ctx>>, String> {
-                if args.len() < min_arity {
-                    return Err(format!("{} expects at least {} arg(s)", opname, min_arity));
-                }
-                let mut out = Vec::with_capacity(args.len());
-                for a in args {
-                    let d = expr_to_ast(a, ctx, st)?;
-                    out.push(d.as_bv().ok_or_else(|| format!("{} arg not BV", opname))?);
-                }
-                Ok(out)
-            };
-            let mut as_bv_pair = |opname: &str| -> Result<(BV<'ctx>, BV<'ctx>), String> {
-                if args.len() != 2 {
-                    return Err(format!("{} expects 2 arguments", opname));
-                }
-                let a0 = expr_to_ast(&args[0], ctx, st)?.as_bv().ok_or_else(|| format!("{} arg0 not BV", opname))?;
-                let a1 = expr_to_ast(&args[1], ctx, st)?.as_bv().ok_or_else(|| format!("{} arg1 not BV", opname))?;
-                Ok((a0, a1))
-            };
-            let mut as_bv_unary = |opname: &str| -> Result<BV<'ctx>, String> {
-                if args.len() != 1 {
-                    return Err(format!("{} expects 1 argument", opname));
-                }
-                let a0 = expr_to_ast(&args[0], ctx, st)?.as_bv().ok_or_else(|| format!("{} arg not BV", opname))?;
-                Ok(a0)
-            };
-
-            match name.as_str() {
-                // N-ary bitwise
-                "bvand" => {
-                    let mut xs = as_bv_list(2, "bvand")?;
-                    let mut acc = xs.remove(0);
-                    for x in xs { acc = acc.bvand(&x); }
-                    Ok(acc.into())
-                }
-                "bvor" => {
-                    let mut xs = as_bv_list(2, "bvor")?;
-                    let mut acc = xs.remove(0);
-                    for x in xs { acc = acc.bvor(&x); }
-                    Ok(acc.into())
-                }
-                "bvxor" => {
-                    let mut xs = as_bv_list(2, "bvxor")?;
-                    let mut acc = xs.remove(0);
-                    for x in xs { acc = acc.bvxor(&x); }
-                    Ok(acc.into())
-                }
-                "bvnand" => {
-                    let mut xs = as_bv_list(2, "bvnand")?;
-                    let mut acc = xs.remove(0);
-                    for x in xs { acc = acc.bvand(&x); }
-                    Ok(acc.bvnot().into())
-                }
-                "bvnor" => {
-                    let mut xs = as_bv_list(2, "bvnor")?;
-                    let mut acc = xs.remove(0);
-                    for x in xs { acc = acc.bvor(&x); }
-                    Ok(acc.bvnot().into())
-                }
-                "bvxnor" => {
-                    let mut xs = as_bv_list(2, "bvxnor")?;
-                    let mut acc = xs.remove(0);
-                    for x in xs { acc = acc.bvxor(&x); }
-                    Ok(acc.bvnot().into())
-                }
-
-                // Unary bitwise/arithmetic
-                "bvnot" => Ok(as_bv_unary("bvnot")?.bvnot().into()),
-                "bvneg" => Ok(as_bv_unary("bvneg")?.bvneg().into()),
-
-                // N-ary arithmetic
-                "bvadd" => {
-                    let mut xs = as_bv_list(2, "bvadd")?;
-                    let mut acc = xs.remove(0);
-                    for x in xs { acc = acc.bvadd(&x); }
-                    Ok(acc.into())
-                }
-                "bvsub" => {
-                    let xs = as_bv_list(2, "bvsub")?;
-                    let mut it = xs.into_iter();
-                    let mut acc = it.next().unwrap();
-                    for x in it { acc = acc.bvsub(&x); }
-                    Ok(acc.into())
-                }
-                "bvmul" => {
-                    let mut xs = as_bv_list(2, "bvmul")?;
-                    let mut acc = xs.remove(0);
-                    for x in xs { acc = acc.bvmul(&x); }
-                    Ok(acc.into())
-                }
-                "bvudiv" => {
-                    let (a,b) = as_bv_pair("bvudiv")?;
-                    Ok(a.bvudiv(&b).into())
-                }
-                "bvsdiv" => {
-                    let (a,b) = as_bv_pair("bvsdiv")?;
-                    Ok(a.bvsdiv(&b).into())
-                }
-                "bvurem" => {
-                    let (a,b) = as_bv_pair("bvurem")?;
-                    Ok(a.bvurem(&b).into())
-                }
-                "bvsrem" => {
-                    let (a,b) = as_bv_pair("bvsrem")?;
-                    Ok(a.bvsrem(&b).into())
-                }
-
-                // Shifts
-                "bvshl" => {
-                    let (a,b) = as_bv_pair("bvshl")?;
-                    Ok(a.bvshl(&b).into())
-                }
-                "bvlshr" => {
-                    let (a,b) = as_bv_pair("bvlshr")?;
-                    Ok(a.bvlshr(&b).into())
-                }
-                "bvashr" => {
-                    let (a,b) = as_bv_pair("bvashr")?;
-                    Ok(a.bvashr(&b).into())
-                }
-
-                // Concatenation (left fold)
-                "concat" => {
-                    let mut xs = as_bv_list(2, "concat")?;
-                    let mut acc = xs.remove(0);
-                    for x in xs { acc = acc.concat(&x); }
-                    Ok(acc.into())
-                }
-
-                // Unsigned comparisons
-                "bvult" => { let (a,b)=as_bv_pair("bvult")?; Ok(a.bvult(&b).into()) }
-                "bvule" => { let (a,b)=as_bv_pair("bvule")?; Ok(a.bvule(&b).into()) }
-                "bvugt" => { let (a,b)=as_bv_pair("bvugt")?; Ok(a.bvugt(&b).into()) }
-                "bvuge" => { let (a,b)=as_bv_pair("bvuge")?; Ok(a.bvuge(&b).into()) }
-
-                // Signed comparisons
-                "bvslt" => { let (a,b)=as_bv_pair("bvslt")?; Ok(a.bvslt(&b).into()) }
-                "bvsle" => { let (a,b)=as_bv_pair("bvsle")?; Ok(a.bvsle(&b).into()) }
-                "bvsgt" => { let (a,b)=as_bv_pair("bvsgt")?; Ok(a.bvsgt(&b).into()) }
-                "bvsge" => { let (a,b)=as_bv_pair("bvsge")?; Ok(a.bvsge(&b).into()) }
-
-                // If you later need extensions/rotates, add:
-                // "(_ zero_extend k)" / "(_ sign_extend k)" / "rotate_left" / "rotate_right"
-                // by enhancing `parse_expr` to parse those heads and handling here.
-
-                other => Err(format!("Unexpected raw App({}) after inlining; unsupported operator", other)),
+        Expr::BVAnd(xs) => {
+            if xs.len() < 2 { return Err("bvand expects >=2 args".into()); }
+            let mut it = xs.iter();
+            let mut acc = expr_to_ast(it.next().unwrap(), ctx, st)?.as_bv().ok_or("bvand arg not BV")?;
+            for x in it {
+                let b = expr_to_ast(x, ctx, st)?.as_bv().ok_or("bvand arg not BV")?;
+                acc = acc.bvand(&b);
             }
+            Ok(acc.into())
         }
+        Expr::BVOr(xs) => {
+            if xs.len() < 2 { return Err("bvor expects >=2 args".into()); }
+            let mut it = xs.iter();
+            let mut acc = expr_to_ast(it.next().unwrap(), ctx, st)?.as_bv().ok_or("bvor arg not BV")?;
+            for x in it {
+                let b = expr_to_ast(x, ctx, st)?.as_bv().ok_or("bvor arg not BV")?;
+                acc = acc.bvor(&b);
+            }
+            Ok(acc.into())
+        }
+        Expr::BVNot(x) => {
+            let a = expr_to_ast(x, ctx, st)?.as_bv().ok_or("bvnot arg not BV")?;
+            Ok(a.bvnot().into())
+        }
+        Expr::BVNeg(x) => {
+            let a = expr_to_ast(x, ctx, st)?.as_bv().ok_or("bvneg arg not BV")?;
+            Ok(a.bvneg().into())
+        }
+        
+        Expr::BVAdd(xs) => {
+            if xs.len() < 2 { return Err("bvadd expects >=2 args".into()); }
+            let mut it = xs.iter();
+            let mut acc = expr_to_ast(it.next().unwrap(), ctx, st)?.as_bv().ok_or("bvadd arg not BV")?;
+            for x in it {
+                let b = expr_to_ast(x, ctx, st)?.as_bv().ok_or("bvadd arg not BV")?;
+                acc = acc.bvadd(&b);
+            }
+            Ok(acc.into())
+        }
+        Expr::BVSub(a,b) => {
+            let aa = expr_to_ast(a, ctx, st)?.as_bv().ok_or("bvsub arg not BV")?;
+            let bb = expr_to_ast(b, ctx, st)?.as_bv().ok_or("bvsub arg not BV")?;
+            Ok(aa.bvsub(&bb).into())
+        }
+        Expr::BVMul(xs) => {
+            if xs.len() < 2 { return Err("bvmul expects >=2 args".into()); }
+            let mut it = xs.iter();
+            let mut acc = expr_to_ast(it.next().unwrap(), ctx, st)?.as_bv().ok_or("bvmul arg not BV")?;
+            for x in it {
+                let b = expr_to_ast(x, ctx, st)?.as_bv().ok_or("bvmul arg not BV")?;
+                acc = acc.bvmul(&b);
+            }
+            Ok(acc.into())
+        }
+        
+        Expr::BVUDiv(a,b) => {
+            let aa = expr_to_ast(a, ctx, st)?.as_bv().ok_or("bvudiv arg not BV")?;
+            let bb = expr_to_ast(b, ctx, st)?.as_bv().ok_or("bvudiv arg not BV")?;
+            Ok(aa.bvudiv(&bb).into())
+        }
+        Expr::BVURem(a,b) => {
+            let aa = expr_to_ast(a, ctx, st)?.as_bv().ok_or("bvurem arg not BV")?;
+            let bb = expr_to_ast(b, ctx, st)?.as_bv().ok_or("bvurem arg not BV")?;
+            Ok(aa.bvurem(&bb).into())
+        }
+        Expr::BVSDiv(a,b) => {
+            let aa = expr_to_ast(a, ctx, st)?.as_bv().ok_or("bvsdiv arg not BV")?;
+            let bb = expr_to_ast(b, ctx, st)?.as_bv().ok_or("bvsdiv arg not BV")?;
+            Ok(aa.bvsdiv(&bb).into())
+        }
+        Expr::BVSRem(a,b) => {
+            let aa = expr_to_ast(a, ctx, st)?.as_bv().ok_or("bvsrem arg not BV")?;
+            let bb = expr_to_ast(b, ctx, st)?.as_bv().ok_or("bvsrem arg not BV")?;
+            Ok(aa.bvsrem(&bb).into())
+        }
+        Expr::BVSMod(a,b) => {
+            let aa = expr_to_ast(a, ctx, st)?.as_bv().ok_or("bvsmod arg not BV")?;
+            let bb = expr_to_ast(b, ctx, st)?.as_bv().ok_or("bvsmod arg not BV")?;
+            Ok(aa.bvsmod(&bb).into())
+        }
+        
+        Expr::BVShl(a,b) => {
+            let aa = expr_to_ast(a, ctx, st)?.as_bv().ok_or("bvshl arg not BV")?;
+            let bb = expr_to_ast(b, ctx, st)?.as_bv().ok_or("bvshl shift not BV")?;
+            Ok(aa.bvshl(&bb).into())
+        }
+        Expr::BVLshr(a,b) => {
+            let aa = expr_to_ast(a, ctx, st)?.as_bv().ok_or("bvlshr arg not BV")?;
+            let bb = expr_to_ast(b, ctx, st)?.as_bv().ok_or("bvlshr shift not BV")?;
+            Ok(aa.bvlshr(&bb).into())
+        }
+        Expr::BVAshr(a,b) => {
+            let aa = expr_to_ast(a, ctx, st)?.as_bv().ok_or("bvashr arg not BV")?;
+            let bb = expr_to_ast(b, ctx, st)?.as_bv().ok_or("bvashr shift not BV")?;
+            Ok(aa.bvashr(&bb).into())
+        }
+        
+        Expr::Concat(xs) => {
+            if xs.len() < 2 { return Err("concat expects >=2 args".into()); }
+            let mut it = xs.iter();
+            let mut acc = expr_to_ast(it.next().unwrap(), ctx, st)?.as_bv().ok_or("concat arg not BV")?;
+            for x in it {
+                let b = expr_to_ast(x, ctx, st)?.as_bv().ok_or("concat arg not BV")?;
+                acc = acc.concat(&b);
+            }
+            Ok(acc.into())
+        }
+        Expr::ZeroExtend{k, e} => {
+            let a = expr_to_ast(e, ctx, st)?.as_bv().ok_or("zero_extend arg not BV")?;
+            Ok(a.zero_ext(*k).into())
+        }
+        Expr::SignExtend{k, e} => {
+            let a = expr_to_ast(e, ctx, st)?.as_bv().ok_or("sign_extend arg not BV")?;
+            Ok(a.sign_ext(*k).into())
+        }
+        
+        Expr::BVUlt(a,b) => {
+            let aa = expr_to_ast(a, ctx, st)?.as_bv().ok_or("bvult arg not BV")?;
+            let bb = expr_to_ast(b, ctx, st)?.as_bv().ok_or("bvult arg not BV")?;
+            Ok(aa.bvult(&bb).into())
+        }
+        Expr::BVUle(a,b) => { let aa=expr_to_ast(a,ctx,st)?.as_bv().ok_or("bvule arg not BV")?;
+                              let bb=expr_to_ast(b,ctx,st)?.as_bv().ok_or("bvule arg not BV")?;
+                              Ok(aa.bvule(&bb).into()) }
+        Expr::BVUgt(a,b) => { let aa=expr_to_ast(a,ctx,st)?.as_bv().ok_or("bvugt arg not BV")?;
+                              let bb=expr_to_ast(b,ctx,st)?.as_bv().ok_or("bvugt arg not BV")?;
+                              Ok(aa.bvugt(&bb).into()) }
+        Expr::BVUge(a,b) => { let aa=expr_to_ast(a,ctx,st)?.as_bv().ok_or("bvuge arg not BV")?;
+                              let bb=expr_to_ast(b,ctx,st)?.as_bv().ok_or("bvuge arg not BV")?;
+                              Ok(aa.bvuge(&bb).into()) }
+        Expr::BVSlt(a,b) => { let aa=expr_to_ast(a,ctx,st)?.as_bv().ok_or("bvslt arg not BV")?;
+                              let bb=expr_to_ast(b,ctx,st)?.as_bv().ok_or("bvslt arg not BV")?;
+                              Ok(aa.bvslt(&bb).into()) }
+        Expr::BVSle(a,b) => { let aa=expr_to_ast(a,ctx,st)?.as_bv().ok_or("bvsle arg not BV")?;
+                              let bb=expr_to_ast(b,ctx,st)?.as_bv().ok_or("bvsle arg not BV")?;
+                              Ok(aa.bvsle(&bb).into()) }
+        Expr::BVSgt(a,b) => { let aa=expr_to_ast(a,ctx,st)?.as_bv().ok_or("bvsgt arg not BV")?;
+                              let bb=expr_to_ast(b,ctx,st)?.as_bv().ok_or("bvsgt arg not BV")?;
+                              Ok(aa.bvsgt(&bb).into()) }
+        Expr::BVSge(a,b) => { let aa=expr_to_ast(a,ctx,st)?.as_bv().ok_or("bvsge arg not BV")?;
+                              let bb=expr_to_ast(b,ctx,st)?.as_bv().ok_or("bvsge arg not BV")?;
+                              Ok(aa.bvsge(&bb).into()) }
+                              Expr::Distinct(xs) => {
+                                match xs.len() {
+                                    0 | 1 => Ok(Bool::from_bool(ctx, true).into()),
+                                    _ => {
+                                        let ds: Vec<Dynamic> = xs.iter()
+                                            .map(|x| expr_to_ast(x, ctx, st))
+                                            .collect::<Result<_, _>>()?;
+                                        let refs: Vec<&Dynamic> = ds.iter().collect();
+                            
+                                        Ok(Dynamic::distinct(ctx, &refs).into())
+                                    }
+                                }
+                            }
+                            
+                            
+                            
+        Expr::App(name, _args) => Err(format!("Unexpected raw App({}) after inlining; missing helper def?", name)),
     }
 }
 
@@ -837,6 +1068,38 @@ fn fmt_expr(e: &Expr) -> String {
         Expr::Not(x)  => format!("(not {})", fmt_expr(x)),
         Expr::Xor(xs)   => format!("(xor {})",   join(&xs.iter().map(fmt_expr).collect::<Vec<_>>())),
         Expr::BVXor(xs) => format!("(bvxor {})", join(&xs.iter().map(fmt_expr).collect::<Vec<_>>())),
+        Expr::BVAnd(xs) => format!("(bvand {})", join(&xs.iter().map(fmt_expr).collect::<Vec<_>>())),
+        Expr::BVOr(xs)  => format!("(bvor {})",  join(&xs.iter().map(fmt_expr).collect::<Vec<_>>())),
+        Expr::BVNot(x)  => format!("(bvnot {})", fmt_expr(x)),
+        Expr::BVNeg(x)  => format!("(bvneg {})", fmt_expr(x)),
+
+        Expr::BVAdd(xs) => format!("(bvadd {})", join(&xs.iter().map(fmt_expr).collect::<Vec<_>>())),
+        Expr::BVSub(a,b)=> format!("(bvsub {} {})", fmt_expr(a), fmt_expr(b)),
+        Expr::BVMul(xs) => format!("(bvmul {})", join(&xs.iter().map(fmt_expr).collect::<Vec<_>>())),
+        Expr::BVUDiv(a,b)=> format!("(bvudiv {} {})", fmt_expr(a), fmt_expr(b)),
+        Expr::BVURem(a,b)=> format!("(bvurem {} {})", fmt_expr(a), fmt_expr(b)),
+        Expr::BVSDiv(a,b)=> format!("(bvsdiv {} {})", fmt_expr(a), fmt_expr(b)),
+        Expr::BVSRem(a,b)=> format!("(bvsrem {} {})", fmt_expr(a), fmt_expr(b)),
+        Expr::BVSMod(a,b)=> format!("(bvsmod {} {})", fmt_expr(a), fmt_expr(b)),
+
+        Expr::BVShl(a,b)  => format!("(bvshl {} {})",  fmt_expr(a), fmt_expr(b)),
+        Expr::BVLshr(a,b) => format!("(bvlshr {} {})", fmt_expr(a), fmt_expr(b)),
+        Expr::BVAshr(a,b) => format!("(bvashr {} {})", fmt_expr(a), fmt_expr(b)),
+
+        Expr::Concat(xs)  => format!("(concat {})", join(&xs.iter().map(fmt_expr).collect::<Vec<_>>())),
+        Expr::ZeroExtend{k,e} => format!("((_ zero_extend {}) {})", k, fmt_expr(e)),
+        Expr::SignExtend{k,e} => format!("((_ sign_extend {}) {})", k, fmt_expr(e)),
+
+        Expr::BVUlt(a,b)=> format!("(bvult {} {})", fmt_expr(a), fmt_expr(b)),
+        Expr::BVUle(a,b)=> format!("(bvule {} {})", fmt_expr(a), fmt_expr(b)),
+        Expr::BVUgt(a,b)=> format!("(bvugt {} {})", fmt_expr(a), fmt_expr(b)),
+        Expr::BVUge(a,b)=> format!("(bvuge {} {})", fmt_expr(a), fmt_expr(b)),
+        Expr::BVSlt(a,b)=> format!("(bvslt {} {})", fmt_expr(a), fmt_expr(b)),
+        Expr::BVSle(a,b)=> format!("(bvsle {} {})", fmt_expr(a), fmt_expr(b)),
+        Expr::BVSgt(a,b)=> format!("(bvsgt {} {})", fmt_expr(a), fmt_expr(b)),
+        Expr::BVSge(a,b)=> format!("(bvsge {} {})", fmt_expr(a), fmt_expr(b)),
+        Expr::Distinct(xs) => format!("(distinct {})", join(&xs.iter().map(fmt_expr).collect::<Vec<_>>())),
+
         Expr::App(name, args) =>
             format!("({} {})", name, join(&args.iter().map(fmt_expr).collect::<Vec<_>>())),
     }
@@ -858,100 +1121,389 @@ fn fp_bytes(mut h: u64, bs: &[u8]) -> u64 {
     for &b in bs { h = fp_u64(h, b as u64); }
     h
 }
-fn fingerprint_expr(e: &Expr) -> u64 {
-    fn go(h: u64, e: &Expr) -> u64 {
+use std::cmp::Ordering;
+
+/// Deterministic 64-bit FNV-1a
+#[inline]
+fn fnv1a_mix_u64(state: &mut u64, x: u64) {
+    const FNV_PRIME: u64 = 0x0000_0001_0000_01B3;
+    *state ^= x;
+    *state = state.wrapping_mul(FNV_PRIME);
+}
+#[inline]
+fn fnv1a_mix_bytes(state: &mut u64, bs: &[u8]) {
+    const FNV_PRIME: u64 = 0x0000_0001_0000_01B3;
+    for &b in bs {
+        *state ^= b as u64;
+        *state = state.wrapping_mul(FNV_PRIME);
+    }
+}
+#[inline]
+fn hash_str_d64(s: &str) -> u64 {
+    let mut st: u64 = 0xCBF2_9CE4_8422_2325;
+    fnv1a_mix_bytes(&mut st, s.as_bytes());
+    st
+}
+#[inline]
+fn combine_tag_parts(tag: &str, parts: &[u64]) -> u64 {
+    let mut st: u64 = 0xCBF2_9CE4_8422_2325;
+    fnv1a_mix_bytes(&mut st, tag.as_bytes());
+    fnv1a_mix_u64(&mut st, parts.len() as u64);
+    for &p in parts { fnv1a_mix_u64(&mut st, p); }
+    st
+}
+#[inline]
+fn combine2(tag: &str, first: u64, rest: &[u64]) -> u64 {
+    let mut parts = Vec::with_capacity(1 + rest.len());
+    parts.push(first);
+    parts.extend_from_slice(rest);
+    combine_tag_parts(tag, &parts)
+}
+
+pub fn fingerprint_expr(e: &Expr) -> u64 {
+    fn go(e: &Expr) -> u64 {
         match e {
-            Expr::Sym(s)           => fp_bytes(fp_u64(h, 1), s.as_bytes()),
-            Expr::BoolConst(b)     => fp_u64(fp_u64(h, 2), *b as u64),
-            Expr::IntConst(i)      => fp_u64(fp_u64(h, 3), *i as u64),
-            Expr::BVConst{bits}    => fp_bytes(fp_u64(h, 4), bits.as_bytes()),
-            Expr::Eq(a,b)          => { let h=fp_u64(h,5); let h=go(h,a); go(h,b) }
-            Expr::Ite(c,t,f)       => { let h=fp_u64(h,6); let h=go(h,c); let h=go(h,t); go(h,f) }
-            Expr::Extract{hi,lo,e} => { let h=fp_u64(h,7); let h=fp_u64(h,*hi as u64); let h=fp_u64(h,*lo as u64); go(h,e) }
-            Expr::And(xs)          => { let mut h=fp_u64(h,8); for x in xs { h=go(h,x); } h }
-            Expr::Or(xs)           => { let mut h=fp_u64(h,9); for x in xs { h=go(h,x); } h }
-            Expr::Not(x)           => go(fp_u64(h,10), x),
-            Expr::Xor(xs)          => { let mut h=fp_u64(h,12); for x in xs { h=go(h,x); } h }
-            Expr::BVXor(xs)        => { let mut h=fp_u64(h,13); for x in xs { h=go(h,x); } h }
-            Expr::App(n,args)      => { let mut h=fp_bytes(fp_u64(h,11), n.as_bytes()); for a in args { h=go(h,a); } h }
+            Expr::Sym(s)            => combine2("Sym", hash_str_d64(s), &[]),
+            Expr::BoolConst(b)      => combine_tag_parts("BoolConst", &[if *b {1} else {0}]),
+            Expr::IntConst(i)       => combine_tag_parts("IntConst", &[*i as u64]),
+            Expr::BVConst { bits }  => combine2("BVConst", hash_str_d64(bits), &[]),
+
+            Expr::Eq(a, b) => {
+                // canonicalize equality (commutative)
+                let mut xs = [go(a), go(b)];
+                xs.sort_unstable();
+                combine_tag_parts("Eq", &xs)
+            }
+            Expr::Ite(c, t, f) => combine_tag_parts("Ite", &[go(c), go(t), go(f)]),
+
+            Expr::Extract { hi, lo, e } =>
+                combine_tag_parts("Extract", &[*hi as u64, *lo as u64, go(e)]),
+
+            // Boolean connectives (AC)
+            Expr::And(xs) => {
+                let mut ps: Vec<u64> = xs.iter().map(go).collect();
+                ps.sort_unstable();
+                combine_tag_parts("And", &ps)
+            }
+            Expr::Or(xs) => {
+                let mut ps: Vec<u64> = xs.iter().map(go).collect();
+                ps.sort_unstable();
+                combine_tag_parts("Or", &ps)
+            }
+            Expr::Not(x) => combine_tag_parts("Not", &[go(x)]),
+
+            // XORs are AC
+            Expr::Xor(xs) => {
+                let mut ps: Vec<u64> = xs.iter().map(go).collect();
+                ps.sort_unstable();
+                combine_tag_parts("Xor", &ps)
+            }
+            Expr::BVXor(xs) => {
+                let mut ps: Vec<u64> = xs.iter().map(go).collect();
+                ps.sort_unstable();
+                combine_tag_parts("BVXor", &ps)
+            }
+
+            // ==== New BV ops ====
+
+            // AC families
+            Expr::BVAnd(xs) => {
+                let mut ps: Vec<u64> = xs.iter().map(go).collect();
+                ps.sort_unstable();
+                combine_tag_parts("BVAnd", &ps)
+            }
+            Expr::BVOr(xs) => {
+                let mut ps: Vec<u64> = xs.iter().map(go).collect();
+                ps.sort_unstable();
+                combine_tag_parts("BVOr", &ps)
+            }
+            Expr::BVAdd(xs) => {
+                let mut ps: Vec<u64> = xs.iter().map(go).collect();
+                ps.sort_unstable();
+                combine_tag_parts("BVAdd", &ps)
+            }
+            Expr::BVMul(xs) => {
+                let mut ps: Vec<u64> = xs.iter().map(go).collect();
+                ps.sort_unstable();
+                combine_tag_parts("BVMul", &ps)
+            }
+            Expr::Distinct(xs) => {
+                let mut ps: Vec<u64> = xs.iter().map(go).collect();
+                ps.sort_unstable();                // order-insensitive, duplicates preserved
+                combine_tag_parts("Distinct", &ps)
+            }
+            
+
+            // Unary
+            Expr::BVNot(x) => combine_tag_parts("BVNot", &[go(x)]),
+            Expr::BVNeg(x) => combine_tag_parts("BVNeg", &[go(x)]),
+
+            // Binary, order-sensitive
+            Expr::BVSub(a, b)  => combine_tag_parts("BVSub",  &[go(a), go(b)]),
+            Expr::BVUDiv(a, b) => combine_tag_parts("BVUDiv", &[go(a), go(b)]),
+            Expr::BVURem(a, b) => combine_tag_parts("BVURem", &[go(a), go(b)]),
+            Expr::BVSDiv(a, b) => combine_tag_parts("BVSDiv", &[go(a), go(b)]),
+            Expr::BVSRem(a, b) => combine_tag_parts("BVSRem", &[go(a), go(b)]),
+            Expr::BVSMod(a, b) => combine_tag_parts("BVSMod", &[go(a), go(b)]),
+
+            Expr::BVShl(a, b)  => combine_tag_parts("BVShl",  &[go(a), go(b)]),
+            Expr::BVLshr(a, b) => combine_tag_parts("BVLshr", &[go(a), go(b)]),
+            Expr::BVAshr(a, b) => combine_tag_parts("BVAshr", &[go(a), go(b)]),
+
+            // concat is order-sensitive
+            Expr::Concat(xs) => {
+                let ps: Vec<u64> = xs.iter().map(go).collect();
+                combine_tag_parts("Concat", &ps)
+            }
+
+            // Exts
+            Expr::ZeroExtend { k, e } => combine_tag_parts("ZeroExtend", &[*k as u64, go(e)]),
+            Expr::SignExtend { k, e } => combine_tag_parts("SignExtend", &[*k as u64, go(e)]),
+
+            // BV comparisons (Bool-valued, order-sensitive)
+            Expr::BVUlt(a, b) => combine_tag_parts("BVUlt", &[go(a), go(b)]),
+            Expr::BVUle(a, b) => combine_tag_parts("BVUle", &[go(a), go(b)]),
+            Expr::BVUgt(a, b) => combine_tag_parts("BVUgt", &[go(a), go(b)]),
+            Expr::BVUge(a, b) => combine_tag_parts("BVUge", &[go(a), go(b)]),
+            Expr::BVSlt(a, b) => combine_tag_parts("BVSlt", &[go(a), go(b)]),
+            Expr::BVSle(a, b) => combine_tag_parts("BVSle", &[go(a), go(b)]),
+            Expr::BVSgt(a, b) => combine_tag_parts("BVSgt", &[go(a), go(b)]),
+            Expr::BVSge(a, b) => combine_tag_parts("BVSge", &[go(a), go(b)]),
+
+            // Should not persist after inlining, but keep a stable fp
+            Expr::App(name, args) => {
+                let mut parts: Vec<u64> = Vec::with_capacity(1 + args.len());
+                parts.push(hash_str_d64(name));
+                parts.extend(args.iter().map(go));
+                combine_tag_parts("App", &parts)
+            }
         }
     }
-    go(0xcbf29ce484222325, e)
+    go(e)
 }
+
 
 
 // ---------- Memoized helper inliner (apps → bodies), high-performance ----------
 
 
-fn inline_helpers_memo(e: &Expr, fns: &FnTable, memo: &mut InlineMemo) -> Result<Expr, String> {
-    match e {
-        Expr::App(name, args) if fns.contains_key(name) => {
-            // Inline args first (and memoize them implicitly via recursion)
-            let mut inlined_args = Vec::with_capacity(args.len());
-            let mut arg_fps = Vec::with_capacity(args.len());
-            for a in args {
-                let a_in = inline_helpers_memo(a, fns, memo)?;
-                arg_fps.push(fingerprint_expr(&a_in));
-                inlined_args.push(a_in);
-            }
-            let key: InlineKey = (name.clone(), arg_fps);
-            if let Some(cached) = memo.get(&key) { return Ok(cached.clone()); }
+pub fn inline_helpers_memo(
+    e: &Expr,
+    fns: &FnTable,
+    memo: &mut InlineMemo,
+) -> Result<Expr, String> {
+    fn go(
+        e: &Expr,
+        fns: &FnTable,
+        memo: &mut InlineMemo,
+        depth: usize,
+    ) -> Result<Expr, String> {
+        if depth > 512 {
+            return Err("helper expansion depth exceeded".into());
+        }
+        match e {
+            // --- Inline helper applications with memoization ---
+            Expr::App(name, args) if fns.contains_key(name) => {
+                let def = &fns[name];
+                if def.params.len() != args.len() {
+                    return Err(format!(
+                        "arity mismatch in call {}: expected {}, got {}",
+                        name, def.params.len(), args.len()
+                    ));
+                }
 
-            let def = &fns[name];
-            if def.params.len() != inlined_args.len() {
-                return Err(format!("arity mismatch in call {}: expected {}, got {}",
-                                   name, def.params.len(), inlined_args.len()));
+                // 1) Inline arguments first
+                let mut inlined_args = Vec::with_capacity(args.len());
+                for a in args {
+                    inlined_args.push(go(a, fns, memo, depth + 1)?);
+                }
+
+                // 2) Build memo key from helper name + arg fingerprints
+                let fp_args: Vec<u64> = inlined_args.iter().map(fingerprint_expr).collect();
+                let key: InlineKey = (name.clone(), fp_args);
+
+                // 3) Return memoized result if available
+                if let Some(hit) = memo.get(&key) {
+                    return Ok(hit.clone());
+                }
+
+                // 4) Substitute formals with inlined actuals
+                let mut sub = IndexMap::<String, Expr>::new();
+                for ((p, _psort), act) in def.params.iter().zip(inlined_args.into_iter()) {
+                    sub.insert(p.clone(), act);
+                }
+                let body_sub = subst_expr(&def.body, &sub);
+
+                // 5) Recurse to inline helpers inside the substituted body
+                let res = go(&body_sub, fns, memo, depth + 1)?;
+
+                // 6) Memoize and return
+                memo.insert(key, res.clone());
+                Ok(res)
             }
-            // Build substitution env and substitute
-            let mut sub = IndexMap::new();
-            for ((p,_ps), a) in def.params.iter().zip(inlined_args.into_iter()) {
-                sub.insert(p.clone(), a);
-            }
-            let body = subst_expr(&def.body, &sub);
-            // Recurse: there may be nested helper calls
-            let body_in = inline_helpers_memo(&body, fns, memo)?;
-            memo.insert(key, body_in.clone());
-            Ok(body_in)
+
+            // --- Recurse structurally through all other nodes ---
+            Expr::Eq(a, b) => Ok(Expr::Eq(
+                Box::new(go(a, fns, memo, depth + 1)?),
+                Box::new(go(b, fns, memo, depth + 1)?),
+            )),
+            Expr::Ite(c, t, f) => Ok(Expr::Ite(
+                Box::new(go(c, fns, memo, depth + 1)?),
+                Box::new(go(t, fns, memo, depth + 1)?),
+                Box::new(go(f, fns, memo, depth + 1)?),
+            )),
+            Expr::Extract { hi, lo, e } => Ok(Expr::Extract {
+                hi: *hi,
+                lo: *lo,
+                e: Box::new(go(e, fns, memo, depth + 1)?),
+            }),
+
+            Expr::And(xs) => Ok(Expr::And(
+                xs.iter()
+                    .map(|x| go(x, fns, memo, depth + 1))
+                    .collect::<Result<Vec<_>, _>>()?,
+            )),
+            Expr::Or(xs) => Ok(Expr::Or(
+                xs.iter()
+                    .map(|x| go(x, fns, memo, depth + 1))
+                    .collect::<Result<Vec<_>, _>>()?,
+            )),
+            Expr::Not(x) => Ok(Expr::Not(Box::new(go(x, fns, memo, depth + 1)?))),
+            Expr::Xor(xs) => Ok(Expr::Xor(
+                xs.iter()
+                    .map(|x| go(x, fns, memo, depth + 1))
+                    .collect::<Result<Vec<_>, _>>()?,
+            )),
+            Expr::BVXor(xs) => Ok(Expr::BVXor(
+                xs.iter()
+                    .map(|x| go(x, fns, memo, depth + 1))
+                    .collect::<Result<Vec<_>, _>>()?,
+            )),
+
+            // === New BV nodes (structural recursion only) ===
+            Expr::BVAnd(xs) => Ok(Expr::BVAnd(
+                xs.iter()
+                    .map(|x| go(x, fns, memo, depth + 1))
+                    .collect::<Result<Vec<_>, _>>()?,
+            )),
+            Expr::BVOr(xs) => Ok(Expr::BVOr(
+                xs.iter()
+                    .map(|x| go(x, fns, memo, depth + 1))
+                    .collect::<Result<Vec<_>, _>>()?,
+            )),
+            Expr::BVNot(x) => Ok(Expr::BVNot(Box::new(go(x, fns, memo, depth + 1)?))),
+            Expr::BVNeg(x) => Ok(Expr::BVNeg(Box::new(go(x, fns, memo, depth + 1)?))),
+
+            Expr::BVAdd(xs) => Ok(Expr::BVAdd(
+                xs.iter()
+                    .map(|x| go(x, fns, memo, depth + 1))
+                    .collect::<Result<Vec<_>, _>>()?,
+            )),
+            Expr::BVSub(a, b) => Ok(Expr::BVSub(
+                Box::new(go(a, fns, memo, depth + 1)?),
+                Box::new(go(b, fns, memo, depth + 1)?),
+            )),
+            Expr::BVMul(xs) => Ok(Expr::BVMul(
+                xs.iter()
+                    .map(|x| go(x, fns, memo, depth + 1))
+                    .collect::<Result<Vec<_>, _>>()?,
+            )),
+
+            Expr::BVUDiv(a, b) => Ok(Expr::BVUDiv(
+                Box::new(go(a, fns, memo, depth + 1)?),
+                Box::new(go(b, fns, memo, depth + 1)?),
+            )),
+            Expr::BVURem(a, b) => Ok(Expr::BVURem(
+                Box::new(go(a, fns, memo, depth + 1)?),
+                Box::new(go(b, fns, memo, depth + 1)?),
+            )),
+            Expr::BVSDiv(a, b) => Ok(Expr::BVSDiv(
+                Box::new(go(a, fns, memo, depth + 1)?),
+                Box::new(go(b, fns, memo, depth + 1)?),
+            )),
+            Expr::BVSRem(a, b) => Ok(Expr::BVSRem(
+                Box::new(go(a, fns, memo, depth + 1)?),
+                Box::new(go(b, fns, memo, depth + 1)?),
+            )),
+            Expr::BVSMod(a, b) => Ok(Expr::BVSMod(
+                Box::new(go(a, fns, memo, depth + 1)?),
+                Box::new(go(b, fns, memo, depth + 1)?),
+            )),
+
+            Expr::BVShl(a, b) => Ok(Expr::BVShl(
+                Box::new(go(a, fns, memo, depth + 1)?),
+                Box::new(go(b, fns, memo, depth + 1)?),
+            )),
+            Expr::BVLshr(a, b) => Ok(Expr::BVLshr(
+                Box::new(go(a, fns, memo, depth + 1)?),
+                Box::new(go(b, fns, memo, depth + 1)?),
+            )),
+            Expr::BVAshr(a, b) => Ok(Expr::BVAshr(
+                Box::new(go(a, fns, memo, depth + 1)?),
+                Box::new(go(b, fns, memo, depth + 1)?),
+            )),
+
+            Expr::Concat(xs) => Ok(Expr::Concat(
+                xs.iter()
+                    .map(|x| go(x, fns, memo, depth + 1))
+                    .collect::<Result<Vec<_>, _>>()?,
+            )),
+            Expr::ZeroExtend { k, e } => Ok(Expr::ZeroExtend {
+                k: *k,
+                e: Box::new(go(e, fns, memo, depth + 1)?),
+            }),
+            Expr::SignExtend { k, e } => Ok(Expr::SignExtend {
+                k: *k,
+                e: Box::new(go(e, fns, memo, depth + 1)?),
+            }),
+
+            Expr::BVUlt(a, b) => Ok(Expr::BVUlt(
+                Box::new(go(a, fns, memo, depth + 1)?),
+                Box::new(go(b, fns, memo, depth + 1)?),
+            )),
+            Expr::BVUle(a, b) => Ok(Expr::BVUle(
+                Box::new(go(a, fns, memo, depth + 1)?),
+                Box::new(go(b, fns, memo, depth + 1)?),
+            )),
+            Expr::BVUgt(a, b) => Ok(Expr::BVUgt(
+                Box::new(go(a, fns, memo, depth + 1)?),
+                Box::new(go(b, fns, memo, depth + 1)?),
+            )),
+            Expr::BVUge(a, b) => Ok(Expr::BVUge(
+                Box::new(go(a, fns, memo, depth + 1)?),
+                Box::new(go(b, fns, memo, depth + 1)?),
+            )),
+            Expr::BVSlt(a, b) => Ok(Expr::BVSlt(
+                Box::new(go(a, fns, memo, depth + 1)?),
+                Box::new(go(b, fns, memo, depth + 1)?),
+            )),
+            Expr::BVSle(a, b) => Ok(Expr::BVSle(
+                Box::new(go(a, fns, memo, depth + 1)?),
+                Box::new(go(b, fns, memo, depth + 1)?),
+            )),
+            Expr::BVSgt(a, b) => Ok(Expr::BVSgt(
+                Box::new(go(a, fns, memo, depth + 1)?),
+                Box::new(go(b, fns, memo, depth + 1)?),
+            )),
+            Expr::BVSge(a, b) => Ok(Expr::BVSge(
+                Box::new(go(a, fns, memo, depth + 1)?),
+                Box::new(go(b, fns, memo, depth + 1)?),
+            )),
+            Expr::Distinct(xs) => Ok(Expr::Distinct(
+                xs.iter()
+                  .map(|x| go(x, fns, memo, depth + 1))
+                  .collect::<Result<Vec<_>, _>>()?
+            )),
+            
+
+            // Leaves / passthroughs
+            Expr::App(_, _) => Ok(e.clone()), // not a known helper: leave as-is
+            Expr::Sym(_) | Expr::BoolConst(_) | Expr::IntConst(_) | Expr::BVConst{..} => Ok(e.clone()),
         }
-        // Non-app nodes: recurse
-        Expr::Eq(a,b) => Ok(Expr::Eq(
-            Box::new(inline_helpers_memo(a,fns,memo)?),
-            Box::new(inline_helpers_memo(b,fns,memo)?),
-        )),
-        Expr::Ite(c,t,f) => Ok(Expr::Ite(
-            Box::new(inline_helpers_memo(c,fns,memo)?),
-            Box::new(inline_helpers_memo(t,fns,memo)?),
-            Box::new(inline_helpers_memo(f,fns,memo)?),
-        )),
-        Expr::Extract{hi,lo,e} => Ok(Expr::Extract{
-            hi:*hi, lo:*lo,
-            e: Box::new(inline_helpers_memo(e,fns,memo)?)
-        }),
-        Expr::And(xs) => {
-            let mut out = Vec::with_capacity(xs.len());
-            for x in xs { out.push(inline_helpers_memo(x, fns, memo)?); }
-            Ok(Expr::And(out))
-        }
-        Expr::Or(xs) => {
-            let mut out = Vec::with_capacity(xs.len());
-            for x in xs { out.push(inline_helpers_memo(x, fns, memo)?); }
-            Ok(Expr::Or(out))
-        }
-        Expr::Xor(xs) => {
-            let mut out = Vec::with_capacity(xs.len());
-            for x in xs { out.push(inline_helpers_memo(x, fns, memo)?); }
-            Ok(Expr::Xor(out))
-        }
-        Expr::BVXor(xs) => {
-            let mut out = Vec::with_capacity(xs.len());
-            for x in xs { out.push(inline_helpers_memo(x, fns, memo)?); }
-            Ok(Expr::BVXor(out))
-        }
-        Expr::Not(x) => Ok(Expr::Not(Box::new(inline_helpers_memo(x, fns, memo)?))),
-        // Leaves & non-helper apps
-        _ => Ok(e.clone()),
     }
+    go(e, fns, memo, 0)
 }
+
 
 // ---------- Smart ITE decomposition (skips obviously-false branches) ----------
 fn collect_ite_pairs_smart(e: &Expr) -> Vec<(Expr, Expr)> {
