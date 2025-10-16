@@ -892,6 +892,7 @@ pub fn build_env_from_flat_smt<'ctx>(ctx: &'ctx Context, smt: &str) -> Result<SM
                 } else {
                     None // leave unbounded if it wouldn't fit into i64
                 };
+                // unbounded gives marginally
                 env.register_variable(nm, VarType::BVector { width: w, lower: lo, upper: hi, init: None });
             }
         }
@@ -947,7 +948,10 @@ pub fn build_env_from_flat_smt<'ctx>(ctx: &'ctx Context, smt: &str) -> Result<SM
         let inlined = inline_helpers_memo(&n.body, &fns, &mut memo)?;
     
         // 2) Decompose into disjoint (guard, rhs) pairs
-        let pairs = collect_ite_pairs_smart(&inlined);
+        //let pairs = collect_ite_pairs_smart(&inlined);
+        let pairs = explode_all_ites_factored(&inlined);
+
+        
     
         // 3) Register each pair as a transition (guards/updates are arbitrary ASTs)
         // 3) Print & register each pair as a transition (guards/updates are arbitrary ASTs)
@@ -990,13 +994,13 @@ pub fn build_env_from_flat_smt<'ctx>(ctx: &'ctx Context, smt: &str) -> Result<SM
                 };
 
                 // Print the actual Z3 ASTs
-                println!(
+                /*println!(
                     "[IR DEBUG] {}[{}]: Guard ='{}' -> Update = '{}'",
                     var_nm,
                     rule_idx,
                     g_bool.to_string(),
                     rhs_dyn.to_string()
-                );
+                );*/
 
                 // --- Register transition (same closures as before) ---
                 let g_expr_cloned = g_expr.clone();
@@ -1528,4 +1532,362 @@ fn collect_ite_pairs_smart(e: &Expr) -> Vec<(Expr, Expr)> {
     let mut out = Vec::new();
     go(e, Expr::BoolConst(true), &mut out);
     out
+}
+
+
+use std::collections::{HashMap, HashSet};
+
+/// Fully lift all ITEs out of `e`, returning guarded alternatives whose RHSs
+/// contain **no Expr::Ite** anywhere. Includes mitigations:
+///  - left-to-right combination with early pruning,
+///  - skip singletons,
+///  - guard factoring on a common condition across children,
+///  - contradiction pruning (C ∧ ¬C),
+///  - soft cap on intermediate rows (prevents pathologies).
+pub fn explode_all_ites_factored(e: &Expr) -> Vec<(Expr, Expr)> {
+    const MAX_ROWS: usize = 1 << 14; // 16k; tune if needed
+
+    #[inline] fn t() -> Expr { Expr::BoolConst(true) }
+    #[inline] fn f() -> Expr { Expr::BoolConst(false) }
+
+    #[inline]
+    fn and_guard(a: Expr, b: Expr) -> Expr {
+        simplify_guard(Expr::And(vec![a, b]))
+    }
+
+    // ---------- Literal extraction on top-level AND ----------
+    // We treat a "literal" as either X or (not X) where X is not And/Or/Not.
+    #[derive(Clone, Copy, PartialEq, Eq)]
+    enum Pol { Pos, Neg }
+
+    #[inline]
+    fn is_atomic(x: &Expr) -> bool {
+        !matches!(x,
+            Expr::And(_) | Expr::Or(_) | Expr::Not(_)
+        )
+    }
+
+    fn guard_literals(g: &Expr) -> (HashSet<u64>, HashSet<u64>) {
+        // returns (pos_set, neg_set) of literal fingerprints
+        fn collect<'a>(g: &'a Expr, pos: &mut HashSet<u64>, neg: &mut HashSet<u64>) {
+            match g {
+                Expr::BoolConst(true) => {}
+                Expr::BoolConst(false) => { /* caller should have pruned */ }
+                Expr::And(xs) => { for x in xs { collect(x, pos, neg); } }
+                Expr::Not(b) => {
+                    if is_atomic(b) {
+                        neg.insert(fingerprint_expr(b));
+                    } else {
+                        // Nested not of non-atomic: keep recursively, we might still see literals inside
+                        collect(b, pos, neg);
+                    }
+                }
+                x if is_atomic(x) => { pos.insert(fingerprint_expr(x)); }
+                other => {
+                    // Non-atomic non-not/non-and: treat as a single literal to be safe
+                    // (keeps factoring conservative)
+                    pos.insert(fingerprint_expr(other));
+                }
+            }
+        }
+        let mut p = HashSet::new();
+        let mut n = HashSet::new();
+        collect(g, &mut p, &mut n);
+        (p, n)
+    }
+
+    #[inline]
+    fn guard_has_literal(g: &Expr, key: u64, pol: Pol) -> bool {
+        let (p, n) = guard_literals(g);
+        match pol {
+            Pol::Pos => p.contains(&key),
+            Pol::Neg => n.contains(&key),
+        }
+    }
+
+    #[inline]
+    fn guards_contradict(a: &Expr, b: &Expr) -> bool {
+        let (pa, na) = guard_literals(a);
+        let (pb, nb) = guard_literals(b);
+        // if a has X and b has ¬X (or vice versa), conjunction contradicts
+        !pa.is_disjoint(&nb) || !pb.is_disjoint(&na)
+    }
+
+    // ---------- Everywhere ITE-lifting core ----------
+    fn go(e: &Expr) -> Vec<(Expr, Expr)> {
+        match e {
+            // ---- ITE: hoist condition into guards, recursively eliminating nested ITEs in cond/branches ----
+            Expr::Ite(c, t_e, f_e) => {
+                let c_alts = go(c);
+                let t_alts = go(t_e);
+                let f_alts = go(f_e);
+
+                let mut out = Vec::new();
+                for (gc, ce) in c_alts {
+                    // THEN branch under (gc ∧ ce)
+                    for (gt, te) in &t_alts {
+                        let g = and_guard(and_guard(gc.clone(), gt.clone()), ce.clone());
+                        if !matches!(g, Expr::BoolConst(false)) {
+                            out.push((g, te.clone()));
+                        }
+                    }
+                    // ELSE branch under (gc ∧ ¬ce)
+                    let not_ce = Expr::Not(Box::new(ce));
+                    for (gf, fe) in &f_alts {
+                        let g = and_guard(and_guard(gc.clone(), gf.clone()), not_ce.clone());
+                        if !matches!(g, Expr::BoolConst(false)) {
+                            out.push((g, fe.clone()));
+                        }
+                    }
+                }
+                out
+            }
+
+            // ---- Leaves: already ITE-free ----
+            Expr::Sym(_) | Expr::BoolConst(_) | Expr::IntConst(_) | Expr::BVConst{..} => {
+                vec![(t(), e.clone())]
+            }
+
+            // ---- Unary map ----
+            Expr::Not(x)               => map_unary(go(x), |a| Expr::Not(Box::new(a))),
+            Expr::BVNot(x)             => map_unary(go(x), |a| Expr::BVNot(Box::new(a))),
+            Expr::BVNeg(x)             => map_unary(go(x), |a| Expr::BVNeg(Box::new(a))),
+            Expr::ZeroExtend{k,e}      => map_unary(go(e), |a| Expr::ZeroExtend{ k:*k, e:Box::new(a) }),
+            Expr::SignExtend{k,e}      => map_unary(go(e), |a| Expr::SignExtend{ k:*k, e:Box::new(a) }),
+            Expr::Extract{hi,lo,e}     => map_unary(go(e), |a| Expr::Extract{ hi:*hi, lo:*lo, e:Box::new(a) }),
+
+            // ---- Binary combine with factoring-aware product ----
+            Expr::Eq(a,b)              => combine_bin(go(a), go(b), |x,y| Expr::Eq(Box::new(x),Box::new(y))),
+            Expr::BVSub(a,b)           => combine_bin(go(a), go(b), |x,y| Expr::BVSub(Box::new(x),Box::new(y))),
+            Expr::BVUDiv(a,b)          => combine_bin(go(a), go(b), |x,y| Expr::BVUDiv(Box::new(x),Box::new(y))),
+            Expr::BVURem(a,b)          => combine_bin(go(a), go(b), |x,y| Expr::BVURem(Box::new(x),Box::new(y))),
+            Expr::BVSDiv(a,b)          => combine_bin(go(a), go(b), |x,y| Expr::BVSDiv(Box::new(x),Box::new(y))),
+            Expr::BVSRem(a,b)          => combine_bin(go(a), go(b), |x,y| Expr::BVSRem(Box::new(x),Box::new(y))),
+            Expr::BVSMod(a,b)          => combine_bin(go(a), go(b), |x,y| Expr::BVSMod(Box::new(x),Box::new(y))),
+            Expr::BVShl(a,b)           => combine_bin(go(a), go(b), |x,y| Expr::BVShl(Box::new(x),Box::new(y))),
+            Expr::BVLshr(a,b)          => combine_bin(go(a), go(b), |x,y| Expr::BVLshr(Box::new(x),Box::new(y))),
+            Expr::BVAshr(a,b)          => combine_bin(go(a), go(b), |x,y| Expr::BVAshr(Box::new(x),Box::new(y))),
+            Expr::BVUlt(a,b)           => combine_bin(go(a), go(b), |x,y| Expr::BVUlt(Box::new(x),Box::new(y))),
+            Expr::BVUle(a,b)           => combine_bin(go(a), go(b), |x,y| Expr::BVUle(Box::new(x),Box::new(y))),
+            Expr::BVUgt(a,b)           => combine_bin(go(a), go(b), |x,y| Expr::BVUgt(Box::new(x),Box::new(y))),
+            Expr::BVUge(a,b)           => combine_bin(go(a), go(b), |x,y| Expr::BVUge(Box::new(x),Box::new(y))),
+            Expr::BVSlt(a,b)           => combine_bin(go(a), go(b), |x,y| Expr::BVSlt(Box::new(x),Box::new(y))),
+            Expr::BVSle(a,b)           => combine_bin(go(a), go(b), |x,y| Expr::BVSle(Box::new(x),Box::new(y))),
+            Expr::BVSgt(a,b)           => combine_bin(go(a), go(b), |x,y| Expr::BVSgt(Box::new(x),Box::new(y))),
+            Expr::BVSge(a,b)           => combine_bin(go(a), go(b), |x,y| Expr::BVSge(Box::new(x),Box::new(y))),
+
+            // ---- N-ary with guard factoring & left-to-right product ----
+            Expr::And(xs)              => combine_n(xs, |ys| Expr::And(ys)),
+            Expr::Or(xs)               => combine_n(xs, |ys| Expr::Or(ys)),
+            Expr::Xor(xs)              => combine_n(xs, |ys| Expr::Xor(ys)),
+            Expr::BVXor(xs)            => combine_n(xs, |ys| Expr::BVXor(ys)),
+            Expr::BVAnd(xs)            => combine_n(xs, |ys| Expr::BVAnd(ys)),
+            Expr::BVOr(xs)             => combine_n(xs, |ys| Expr::BVOr(ys)),
+            Expr::BVAdd(xs)            => combine_n(xs, |ys| Expr::BVAdd(ys)),
+            Expr::BVMul(xs)            => combine_n(xs, |ys| Expr::BVMul(ys)),
+            Expr::Concat(xs)           => combine_n(xs, |ys| Expr::Concat(ys)),
+            Expr::Distinct(xs)         => combine_n(xs, |ys| Expr::Distinct(ys)),
+
+            // Helpers that survived inlining (shouldn’t): pass through; RHS is ITE-free already
+            Expr::App(_, _)            => vec![(t(), e.clone())],
+        }
+    }
+
+    // ---- unary/n-ary/binary helpers (with mitigations inside) ----
+
+    fn map_unary(v: Vec<(Expr, Expr)>, build: impl Fn(Expr) -> Expr) -> Vec<(Expr, Expr)> {
+        v.into_iter().map(|(g, e)| (g, build(e))).collect()
+    }
+
+    fn combine_bin(
+        a: Vec<(Expr, Expr)>,
+        b: Vec<(Expr, Expr)>,
+        build: impl Fn(Expr, Expr) -> Expr,
+    ) -> Vec<(Expr, Expr)> {
+        // left-to-right with pruning and small cap
+        let mut out = Vec::new();
+        for (ga, ea) in a {
+            for (gb, eb) in &b {
+                if guards_contradict(&ga, gb) { continue; }
+                let g = and_guard(ga.clone(), gb.clone());
+                if !matches!(g, Expr::BoolConst(false)) {
+                    out.push((g, build(ea.clone(), eb.clone())));
+                    if out.len() > MAX_ROWS { return out; }
+                }
+            }
+        }
+        out
+    }
+
+    // Guard factoring over a vector of children (already ITE-lifted) with an n-ary builder.
+    fn combine_n(
+        xs: &[Expr],
+        build: impl Fn(Vec<Expr>) -> Expr + Copy,
+    ) -> Vec<(Expr, Expr)> {
+        // Get alternatives per child
+        let mut parts: Vec<Vec<(Expr, Expr)>> = Vec::with_capacity(xs.len());
+        for x in xs {
+            let alts = go(x);
+            // skip singletons fast-path
+            parts.push(alts);
+        }
+
+        // Try guard factoring on a common condition across children.
+        if let Some((cond_key, cond_repr)) = choose_common_cond(&parts) {
+            // Positive branch (cond), Negative branch (¬cond)
+            let mut pos_parts = Vec::with_capacity(parts.len());
+            let mut neg_parts = Vec::with_capacity(parts.len());
+
+            for ch in &parts {
+                // Filter per branch:
+                //  - take those that explicitly mention the branch literal,
+                //  - or those neutral to cond (mention neither), which we keep in both branches.
+                let mut pos_vec = Vec::new();
+                let mut neg_vec = Vec::new();
+                for (g, e) in ch {
+                    let has_pos = guard_has_literal(g, cond_key, Pol::Pos);
+                    let has_neg = guard_has_literal(g, cond_key, Pol::Neg);
+                    if has_pos { pos_vec.push((g.clone(), e.clone())); }
+                    if has_neg { neg_vec.push((g.clone(), e.clone())); }
+                    if !has_pos && !has_neg {
+                        // neutral: allowed in both branches
+                        pos_vec.push((g.clone(), e.clone()));
+                        neg_vec.push((g.clone(), e.clone()));
+                    }
+                }
+                // If a branch becomes empty, factoring is not helpful; abort factoring.
+                if pos_vec.is_empty() || neg_vec.is_empty() {
+                    return ltr_product(parts, build);
+                }
+                pos_parts.push(pos_vec);
+                neg_parts.push(neg_vec);
+            }
+
+            // Build both branches left-to-right, then add the branch literal to the guard.
+            let mut out = Vec::new();
+
+            for (g, rhs) in ltr_product(pos_parts, build) {
+                // add `cond_repr` to guard (even if some children already had it; harmless)
+                let g2 = and_guard(g, cond_repr.clone());
+                if !matches!(g2, Expr::BoolConst(false)) { out.push((g2, rhs)); }
+                if out.len() > MAX_ROWS { return out; }
+            }
+            let not_cond = Expr::Not(Box::new(cond_repr));
+            for (g, rhs) in ltr_product(neg_parts, build) {
+                let g2 = and_guard(g, not_cond.clone());
+                if !matches!(g2, Expr::BoolConst(false)) { out.push((g2, rhs)); }
+                if out.len() > MAX_ROWS { return out; }
+            }
+            return out;
+        }
+
+        // Fallback: plain left-to-right product with pruning
+        ltr_product(parts, build)
+    }
+
+    // Left-to-right row builder with early pruning and a soft cap
+    fn ltr_product(
+        parts: Vec<Vec<(Expr, Expr)>>,
+        build: impl Fn(Vec<Expr>) -> Expr + Copy,
+    ) -> Vec<(Expr, Expr)> {
+        // Row = (guard, collected_child_exprs)
+        let mut rows: Vec<(Expr, Vec<Expr>)> = vec![(Expr::BoolConst(true), Vec::new())];
+
+        for ch in parts {
+            if ch.len() == 1 {
+                // singleton fast-path
+                let (g1, e1) = &ch[0];
+                let mut next = Vec::with_capacity(rows.len());
+                for (gr, mut es) in rows {
+                    if guards_contradict(&gr, g1) { continue; }
+                    let g = and_guard(gr, g1.clone());
+                    if !matches!(g, Expr::BoolConst(false)) {
+                        es.push(e1.clone());
+                        next.push((g, es));
+                    }
+                }
+                rows = next;
+            } else {
+                // general combine
+                let mut next = Vec::new();
+                for (gr, es) in &rows {
+                    for (g1, e1) in &ch {
+                        if guards_contradict(gr, g1) { continue; }
+                        let g = and_guard(gr.clone(), g1.clone());
+                        if matches!(g, Expr::BoolConst(false)) { continue; }
+                        let mut ys = es.clone();
+                        ys.push(e1.clone());
+                        next.push((g, ys));
+                        if next.len() > MAX_ROWS { return materialize(next, build); }
+                    }
+                }
+                rows = next;
+                if rows.is_empty() { break; }
+            }
+        }
+        materialize(rows, build)
+    }
+
+    #[inline]
+    fn materialize(rows: Vec<(Expr, Vec<Expr>)>, build: impl Fn(Vec<Expr>) -> Expr + Copy)
+        -> Vec<(Expr, Expr)>
+    {
+        rows.into_iter().map(|(g, ys)| (g, build(ys))).collect()
+    }
+
+    /// Pick a "best" common condition across children to factor on.
+    /// We look for a literal L that appears (positively or negatively) in **multiple children**.
+    fn choose_common_cond(parts: &[Vec<(Expr, Expr)>]) -> Option<(u64, Expr)> {
+        // For each candidate fingerprint, count in how many children it appears at least once.
+        // Also keep one representative Expr for pretty/guard insertion.
+        let mut child_presence: HashMap<u64, usize> = HashMap::new();
+        let mut any_repr: HashMap<u64, Expr> = HashMap::new();
+
+        for ch in parts {
+            let mut seen_in_child: HashSet<u64> = HashSet::new();
+            for (g, _e) in ch {
+                let (p, n) = guard_literals(g);
+                for k in p.iter().chain(n.iter()) {
+                    if seen_in_child.insert(*k) {
+                        *child_presence.entry(*k).or_insert(0) += 1;
+                        if !any_repr.contains_key(k) {
+                            // Try to find a positive representative literal for readability; fallback to first thing we see.
+                            // Here we can't recover the *exact* literal Expr from the set, so we re-scan once to find one.
+                            any_repr.insert(*k, pick_literal_expr(g, *k).unwrap_or_else(|| Expr::Sym(format!("lit_{}", k))));
+                        }
+                    }
+                }
+            }
+        }
+
+        // Choose the candidate seen in the most children (>= 2)
+        let (best_key, best_count) = child_presence
+        .iter()
+        .max_by_key(|(_, c)| *c)    // c: &usize -> compare by value
+        .map(|(k, c)| (*k, *c))?;   // copy out (&u64, &usize) -> (u64, usize)
+
+        if best_count < 2 { return None; }
+
+        // Representative literal to conjoin in branches; if it was negative in the only occurrence,
+        // we still return the base (positive) form and layer polarity in the branch.
+        let rep = any_repr.get(&best_key)?.clone();
+        Some((best_key, rep))
+    }
+
+    // Try to extract a concrete literal Expr with the given fingerprint from guard `g`.
+    fn pick_literal_expr(g: &Expr, key: u64) -> Option<Expr> {
+        match g {
+            Expr::And(xs) => {
+                for x in xs {
+                    if let Some(e) = pick_literal_expr(x, key) { return Some(e); }
+                }
+                None
+            }
+            Expr::Not(b) if fingerprint_expr(b) == key => Some((**b).clone()),
+            other if fingerprint_expr(other) == key => Some(other.clone()),
+            _ => None,
+        }
+    }
+
+    go(e)
 }

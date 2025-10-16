@@ -393,6 +393,8 @@ fn main() {
             get_z3_encoding(&envs, &ast_node, unrolling_bound, trajectory_bound.copied(), semantics, witness)
         };
         
+        //println!("{:#?}", encoding);
+
         let duration = start.elapsed();
         let secs = duration.as_secs_f64();
         println!("Encoding Time: {}", secs);

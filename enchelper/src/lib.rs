@@ -70,6 +70,7 @@ fn get_propositions_for_paths(formula: &AstNode, map: &mut HashMap<&str, Vec<Str
         AstNode::AIndexedProp {proposition, path_identifier, ..} => {
             map.get_mut(path_identifier as &str).unwrap().push(proposition.to_string());
         },
+        AstNode::Constant {..} => (),
         _ => unreachable!(),
     }
 }
