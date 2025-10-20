@@ -834,6 +834,8 @@ pub fn build_env_from_flat_smt<'ctx>(ctx: &'ctx Context, smt: &str) -> Result<SM
     let mut nexts: Vec<NextDef> = Vec::new();
     let mut inits: Vec<InitDef> = Vec::new();
 
+    let mut total_transitions: usize = 0;
+
     for top in sexps {
         let items = match top { SExp::List(v) => v, _ => continue };
         if items.is_empty() { continue; }
@@ -1046,12 +1048,14 @@ pub fn build_env_from_flat_smt<'ctx>(ctx: &'ctx Context, smt: &str) -> Result<SM
                         ReturnType::DynAst(dyn_ast)
                     }
                 );
+                total_transitions += 1;
             }
         } // dbg_state drops here
 
 
         // NOTE: We do NOT rely on stutter default; the pairs cover all cases from the ITEs.
     }
+    eprintln!("[IR] Built SMVEnv with {} total transitions", total_transitions);
     Ok(env)
 }
 
