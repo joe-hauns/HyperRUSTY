@@ -57,15 +57,16 @@ MODULE main
 
     proc2_halt         : boolean;
 
-	halt : boolean; 
+	-- halt : boolean; 
 
   ASSIGN
 
-	init(halt) := FALSE;
-    next(halt) := (proc1_halt & proc2_halt);
+	-- init(halt) := FALSE;
+    -- next(halt) := (proc1_halt & proc2_halt);
 
     -- original main assignments
     next(offset)    := offset;
+	init(var_Y)		:= 0;
     next(var_Y)     := var_Y;
     init(var_size)  := 4;
     next(var_size)  := var_size;

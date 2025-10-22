@@ -51,6 +51,7 @@ MODULE main
     -- main-level state
     next(offset) := offset;
     init(pointer_Y) := var_Y;
+    init(var_Y)		:= 0;
     next(var_Y) := var_Y;
     init(var_size) := 4;
     next(var_size) := var_size;

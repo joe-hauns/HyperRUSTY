@@ -31,7 +31,7 @@ MODULE main
 
     next(x) :=
 		case
-			((location = 1) & (x > 0)): (x - (2 * y));
+			((location = 1) & (x > 0)): (x - (y + y));
       		((location = 1) & (x <= 0)) : x;
       		TRUE : x;
     	esac;
