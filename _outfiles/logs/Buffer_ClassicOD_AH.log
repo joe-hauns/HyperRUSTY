@@ -1,0 +1,63 @@
+! Cannot compute witnesses AND utilize bisimulation quotients
+! We have disabled bisimulation quotients
+! Cannot compute witnesses AND use inclusion checks
+! We have switched to mode '--comp'
+========================= Initialization =========================
+> Parsing model-checking instance (--nusmv)...
+  ...done (47ms, 0.0470s)
+> Translating symbolic system to explicit-state system...
+  ...done (97ms, 0.0970s)
+> Translating symbolic system to explicit-state system...
+  ...hashed (0ms, 0.0000s)
+> system-sizes: [228,228]
+==================================================
+
+========================= LTL-to-NBA =========================
+> Start LTL-to-NBA translation...
+  ...done (143ms, 0.1430s)
+> size: 2
+==================================================
+
+========================= Compute final product for emptiness check =========================
+> Start automaton-system-product...
+  ...done (886ms, 0.8860s)
+> size: 16128
+==================================================
+
+========================= Emptiness Check + Witness =========================
+> size: 16128
+> Start lasso search...
+  ...done (8ms, 0.0080s)
+==================================================
+
+> total-time: 1327 ms (1.3270s)
+
+======= Witnesses =======
+A: ({"P1_sec_in":0, "P1_sec_out":0, "P2_unclass_in":0, "P2_unclass_out":0, "PC":1, "sec_read":false, "sec_write":false, "shared_buffer":0, "unclass_read":false, "unclass_write":false} {"P1_sec_in":0, "P1_sec_out":0, "P2_unclass_in":0, "P2_unclass_out":0, "PC":2, "sec_read":false, "sec_write":false, "shared_buffer":0, "unclass_read":false, "unclass_write":false} {"P1_sec_in":0, "P1_sec_out":0, "P2_unclass_in":0, "P2_unclass_out":0, "PC":3, "sec_read":false, "sec_write":false, "shared_buffer":0, "unclass_read":false, "unclass_write":false} {"P1_sec_in":0, "P1_sec_out":0, "P2_unclass_in":0, "P2_unclass_out":0, "PC":3, "sec_read":false, "sec_write":false, "shared_buffer":0, "unclass_read":false, "unclass_write":false}) ({"P1_sec_in":0, "P1_sec_out":0, "P2_unclass_in":0, "P2_unclass_out":0, "PC":3, "sec_read":false, "sec_write":false, "shared_buffer":0, "unclass_read":false, "unclass_write":false})
+B: ({"P1_sec_in":1, "P1_sec_out":0, "P2_unclass_in":0, "P2_unclass_out":0, "PC":1, "sec_read":false, "sec_write":true, "shared_buffer":0, "unclass_read":false, "unclass_write":true} {"P1_sec_in":1, "P1_sec_out":0, "P2_unclass_in":0, "P2_unclass_out":0, "PC":2, "sec_read":true, "sec_write":true, "shared_buffer":0, "unclass_read":true, "unclass_write":true} {"P1_sec_in":1, "P1_sec_out":0, "P2_unclass_in":0, "P2_unclass_out":0, "PC":3, "sec_read":true, "sec_write":true, "shared_buffer":1, "unclass_read":true, "unclass_write":true} {"P1_sec_in":1, "P1_sec_out":1, "P2_unclass_in":0, "P2_unclass_out":1, "PC":3, "sec_read":true, "sec_write":true, "shared_buffer":1, "unclass_read":true, "unclass_write":true}) ({"P1_sec_in":1, "P1_sec_out":1, "P2_unclass_in":0, "P2_unclass_out":1, "PC":3, "sec_read":true, "sec_write":true, "shared_buffer":1, "unclass_read":true, "unclass_write":true})
+=========================
+
+UNSAT
+! Cannot compute witnesses AND utilize bisimulation quotients
+! We have disabled bisimulation quotients
+! Cannot compute witnesses AND use inclusion checks
+! We have switched to mode '--comp'
+========================= Initialization =========================
+> Parsing model-checking instance (--nusmv)...
+  ...done (98ms, 0.0980s)
+> Translating symbolic system to explicit-state system...
+  ...done (950ms, 0.9500s)
+> Translating symbolic system to explicit-state system...
+  ...hashed (0ms, 0.0000s)
+> system-sizes: [876,876]
+==================================================
+
+========================= LTL-to-NBA =========================
+> Start LTL-to-NBA translation...
+  ...done (1475ms, 1.4750s)
+> size: 2
+==================================================
+
+========================= Compute final product for emptiness check =========================
+> Start automaton-system-product...
+[TIMEOUT] Buffer_ClassicOD (AH) exceeded 10s.

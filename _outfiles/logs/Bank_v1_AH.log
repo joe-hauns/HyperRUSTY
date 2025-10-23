@@ -1,0 +1,36 @@
+! Cannot compute witnesses AND utilize bisimulation quotients
+! We have disabled bisimulation quotients
+! Cannot compute witnesses AND use inclusion checks
+! We have switched to mode '--comp'
+========================= Initialization =========================
+> Parsing model-checking instance (--nusmv)...
+  ...done (52ms, 0.0520s)
+> Translating symbolic system to explicit-state system...
+  ...done (291ms, 0.2910s)
+> Translating symbolic system to explicit-state system...
+  ...hashed (0ms, 0.0000s)
+> Translating symbolic system to explicit-state system...
+  ...hashed (0ms, 0.0000s)
+> system-sizes: [864,864,864]
+==================================================
+
+========================= LTL-to-NBA =========================
+> Start LTL-to-NBA translation...
+  ...done (191ms, 0.1910s)
+> size: 1
+==================================================
+
+============ exists [C ]. ============
+> size: 1
+> Start automaton-system-product...
+  ...done (103ms, 0.1030s)
+> size: 864
+==================================================
+
+========================= Compute final product for emptiness check =========================
+> Automaton complementation...
+  ...done (97ms, 0.0970s)
+> size-before: 864
+> size-after: 11
+> Start automaton-system-product...
+[TIMEOUT] Bank_v1 (AH) exceeded 10s.

@@ -1,0 +1,35 @@
+========================= Initialization =========================
+> Parsing model-checking instance (--nusmv)...
+  ...done (132ms, 0.1320s)
+> Translating symbolic system to explicit-state system...
+  ...done (187ms, 0.1870s)
+> Translating symbolic system to explicit-state system...
+  ...hashed (6ms, 0.0060s)
+> system-sizes: [228,228]
+> Computing bisimulation quotients...
+  ...done (100ms, 0.1000s)
+> Computing bisimulation quotients...
+  ...hashed (3ms, 0.0030s)
+> system-sizes: [82,82]
+==================================================
+
+========================= LTL-to-NBA =========================
+> Start LTL-to-NBA translation...
+  ...done (127ms, 0.1270s)
+> size: 1
+==================================================
+
+============ exists [B ]. ============
+> size: 1
+> Start automaton-system-product...
+  ...done (42ms, 0.0420s)
+> size: 82
+==================================================
+
+========================= Inclusion Check =========================
+> size: 82
+> Construct self-composition...
+  ...done (6ms, 0.0060s)
+> self-composition-size: 82
+> Start inclusion check...
+[TIMEOUT] Buffer_Intrans_GMNI (AH) exceeded 10s.

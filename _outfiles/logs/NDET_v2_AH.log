@@ -1,0 +1,30 @@
+! Cannot compute witnesses AND utilize bisimulation quotients
+! We have disabled bisimulation quotients
+! Cannot compute witnesses AND use inclusion checks
+! We have switched to mode '--comp'
+========================= Initialization =========================
+> Parsing model-checking instance (--nusmv)...
+  ...done (42ms, 0.0420s)
+> Translating symbolic system to explicit-state system...
+  ...done (45ms, 0.0450s)
+> Translating symbolic system to explicit-state system...
+  ...hashed (0ms, 0.0000s)
+> system-sizes: [33,33]
+==================================================
+
+========================= LTL-to-NBA =========================
+> Start LTL-to-NBA translation...
+  ...done (121ms, 0.1210s)
+> size: 2
+==================================================
+
+============ exists [B ]. ============
+> size: 2
+> Start automaton-system-product...
+  ...done (27ms, 0.0270s)
+> size: 55
+==================================================
+
+========================= Compute final product for emptiness check =========================
+> Automaton complementation...
+[TIMEOUT] NDET_v2 (AH) exceeded 10s.

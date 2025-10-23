@@ -1,0 +1,2078 @@
+warning: unused import: `crate::definitions::*`
+ --> expressions/src/utils.rs:1:5
+  |
+1 | use crate::definitions::*;
+  |     ^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` on by default
+
+warning: unused import: `z3::Symbol`
+ --> expressions/src/utils.rs:4:5
+  |
+4 | use z3::Symbol;
+  |     ^^^^^^^^^^
+
+warning: unused import: `crate::expression_to_string`
+ --> expressions/src/exprparser.rs:7:5
+  |
+7 | use crate::expression_to_string;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `crate::exprparser::Rule as PRule`
+ --> expressions/src/exprparser.rs:9:5
+  |
+9 | use crate::exprparser::Rule as PRule;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `crate::Literal::*`
+  --> expressions/src/exprparser.rs:16:5
+   |
+16 | use crate::Literal::*;
+   |     ^^^^^^^^^^^^^^^^^
+
+warning: unused import: `Expression::*`
+   --> expressions/src/exprparser.rs:653:9
+    |
+653 |     use Expression::*;
+    |         ^^^^^^^^^^^^^
+
+warning: value assigned to `var` is never read
+   --> expressions/src/utils.rs:264:13
+    |
+264 |     let mut var = String::new();
+    |             ^^^
+    |
+    = help: maybe it is overwritten before being read?
+    = note: `#[warn(unused_assignments)]` on by default
+
+warning: variable does not need to be mutable
+  --> expressions/src/definitions.rs:88:24
+   |
+88 | pub fn drop_expression(mut expression: Expression) {
+   |                        ----^^^^^^^^^^
+   |                        |
+   |                        help: remove this `mut`
+   |
+   = note: `#[warn(unused_mut)]` on by default
+
+warning: unused variable: `j`
+   --> expressions/src/exprparser.rs:399:37
+    |
+399 | fn off_name(path: &str, traj: &str, j: usize) -> String {
+    |                                     ^ help: if this is intentional, prefix it with an underscore: `_j`
+    |
+    = note: `#[warn(unused_variables)]` on by default
+
+warning: unused variable: `more_prefix`
+    --> expressions/src/exprparser.rs:1373:42
+     |
+1373 |                     let (inner_tail, mut more_prefix) = collect_prefix(next)?;
+     |                                          ^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_more_prefix`
+
+warning: variable does not need to be mutable
+    --> expressions/src/exprparser.rs:1373:38
+     |
+1373 |                     let (inner_tail, mut more_prefix) = collect_prefix(next)?;
+     |                                      ----^^^^^^^^^^^
+     |                                      |
+     |                                      help: remove this `mut`
+
+warning: unused variable: `model_id`
+    --> expressions/src/exprparser.rs:1395:9
+     |
+1395 |     let model_id  = it.next().unwrap(); // ident
+     |         ^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_model_id`
+
+warning: unused variable: `q`
+    --> expressions/src/exprparser.rs:1401:9
+     |
+1401 |     let q = quant_tok.as_str();
+     |         ^ help: if this is intentional, prefix it with an underscore: `_q`
+
+warning: method `bump` is never used
+  --> expressions/src/utils.rs:36:8
+   |
+32 | impl<'a> Parser<'a> {
+   | ------------------- method in this implementation
+...
+36 |     fn bump(&mut self) -> Option<u8> {
+   |        ^^^^
+   |
+   = note: `#[warn(dead_code)]` on by default
+
+warning: type alias `Variable` is never used
+  --> expressions/src/exprparser.rs:17:6
+   |
+17 | type Variable = String;                         // adjust if you use a dedicated type
+   |      ^^^^^^^^
+
+warning: type alias `StampAtomFn` is never used
+   --> expressions/src/exprparser.rs:196:6
+    |
+196 | type StampAtomFn = dyn Fn(&Expression, usize, &str) -> Expression;
+    |      ^^^^^^^^^^^
+
+warning: function `big_or` is never used
+   --> expressions/src/exprparser.rs:716:4
+    |
+716 | fn big_or(mut xs: Vec<Expression>) -> Expression {
+    |    ^^^^^^
+
+warning: function `big_and` is never used
+   --> expressions/src/exprparser.rs:723:4
+    |
+723 | fn big_and(mut xs: Vec<Expression>) -> Expression {
+    |    ^^^^^^^
+
+warning: function `lit_atom` is never used
+   --> expressions/src/exprparser.rs:731:4
+    |
+731 | fn lit_atom<S: Into<String>>(s: S) -> Expression {
+    |    ^^^^^^^^
+
+warning: function `lit_neg_atom` is never used
+   --> expressions/src/exprparser.rs:734:4
+    |
+734 | fn lit_neg_atom<S: Into<String>>(s: S) -> Expression {
+    |    ^^^^^^^^^^^^
+
+warning: function `sel_name` is never used
+   --> expressions/src/exprparser.rs:739:4
+    |
+739 | fn sel_name(path: &str, i: usize) -> String {
+    |    ^^^^^^^^
+
+warning: function `atom_at` is never used
+   --> expressions/src/exprparser.rs:744:4
+    |
+744 | fn atom_at(base: &str, path: &str, i: usize) -> Expression {
+    |    ^^^^^^^
+
+warning: function `neg_atom_at` is never used
+   --> expressions/src/exprparser.rs:747:4
+    |
+747 | fn neg_atom_at(base: &str, path: &str, i: usize) -> Expression {
+    |    ^^^^^^^^^^^
+
+warning: function `lane_iff` is never used
+   --> expressions/src/exprparser.rs:752:4
+    |
+752 | fn lane_iff(base: &str, path: &str, i: usize, neg: bool) -> Expression {
+    |    ^^^^^^^^
+
+warning: creating a shared reference to mutable static is discouraged
+   --> expressions/src/exprparser.rs:770:23
+    |
+770 |     let re = unsafe { RE.as_ref().unwrap() };
+    |                       ^^^^^^^^^^^ shared reference to mutable static
+    |
+    = note: for more information, see <https://doc.rust-lang.org/nightly/edition-guide/rust-2024/static-mut-references.html>
+    = note: shared references to mutable statics are dangerous; it's undefined behavior if the static is mutated or if a mutable reference is created for it while the shared reference lives
+    = note: `#[warn(static_mut_refs)]` on by default
+
+warning: `expressions` (lib) generated 25 warnings (run `cargo fix --lib -p expressions` to apply 8 suggestions)
+warning: unused variable: `other`
+   --> enchelper/src/lib.rs:287:9
+    |
+287 |         other => formula
+    |         ^^^^^ help: if this is intentional, prefix it with an underscore: `_other`
+    |
+    = note: `#[warn(unused_variables)]` on by default
+
+warning: function `is_E` should have a snake case name
+   --> enchelper/src/lib.rs:178:8
+    |
+178 | pub fn is_E(formula: &AstNode) -> bool {
+    |        ^^^^ help: convert the identifier to snake case: `is_e`
+    |
+    = note: `#[warn(non_snake_case)]` on by default
+
+warning: function `is_A` should have a snake case name
+   --> enchelper/src/lib.rs:189:8
+    |
+189 | pub fn is_A(formula: &AstNode) -> bool {
+    |        ^^^^ help: convert the identifier to snake case: `is_a`
+
+warning: function `is_AE` should have a snake case name
+   --> enchelper/src/lib.rs:201:8
+    |
+201 | pub fn is_AE(formula: &AstNode) -> bool {
+    |        ^^^^^ help: convert the identifier to snake case: `is_ae`
+
+warning: function `check_AE_rec` should have a snake case name
+   --> enchelper/src/lib.rs:209:4
+    |
+209 | fn check_AE_rec(formula: &AstNode) -> bool {
+    |    ^^^^^^^^^^^^ help: convert the identifier to snake case: `check_ae_rec`
+
+warning: function `is_EA` should have a snake case name
+   --> enchelper/src/lib.rs:226:8
+    |
+226 | pub fn is_EA(formula: &AstNode) -> bool {
+    |        ^^^^^ help: convert the identifier to snake case: `is_ea`
+
+warning: function `check_EA_rec` should have a snake case name
+   --> enchelper/src/lib.rs:234:4
+    |
+234 | fn check_EA_rec(formula: &AstNode) -> bool {
+    |    ^^^^^^^^^^^^ help: convert the identifier to snake case: `check_ea_rec`
+
+warning: `enchelper` (lib) generated 7 warnings
+warning: unused variable: `env`
+  --> ir/src/lib.rs:58:55
+   |
+58 |     pub fn into_dynamic(self, ctx: &'ctx z3::Context, env: &SMVEnv<'ctx>, state: &EnvState<'ctx>, var_name: &str) -> Dynamic<'ctx> {
+   |                                                       ^^^ help: if this is intentional, prefix it with an underscore: `_env`
+   |
+   = note: `#[warn(unused_variables)]` on by default
+
+warning: `ir` (lib) generated 1 warning
+warning: unused import: `Context`
+ --> hltlunroller/src/lib.rs:4:10
+  |
+4 | use z3::{Context,
+  |          ^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` on by default
+
+warning: unused variable: `ctx`
+  --> hltlunroller/src/lib.rs:29:9
+   |
+29 |     let ctx = envs[0].ctx;
+   |         ^^^ help: if this is intentional, prefix it with an underscore: `_ctx`
+   |
+   = note: `#[warn(unused_variables)]` on by default
+
+warning: `hltlunroller` (lib) generated 2 warnings (run `cargo fix --lib -p hltlunroller` to apply 1 suggestion)
+warning: unused import: `std::collections::VecDeque`
+ --> fsm/src/helper_functions.rs:1:5
+  |
+1 | use std::collections::VecDeque;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` on by default
+
+warning: unused import: `std::fmt::Write`
+  --> fsm/src/helper_functions.rs:10:5
+   |
+10 | use std::fmt::Write;
+   |     ^^^^^^^^^^^^^^^
+
+warning: unused imports: `Quant` and `Variable`
+ --> fsm/src/gate_builder.rs:2:47
+  |
+2 | use expressions::{Expression, Literal as Lit, Variable, Quant};
+  |                                               ^^^^^^^^  ^^^^^
+
+warning: unused import: `expressions::expression_to_string`
+ --> fsm/src/gate_builder.rs:3:5
+  |
+3 | use expressions::expression_to_string;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `stacker`
+ --> fsm/src/gate_builder.rs:8:5
+  |
+8 | use stacker;
+  |     ^^^^^^^
+
+warning: unused imports: `HashMap` and `HashSet`
+ --> fsm/src/gate_builder.rs:9:24
+  |
+9 | use std::collections::{HashMap, HashSet};
+  |                        ^^^^^^^  ^^^^^^^
+
+warning: unnecessary parentheses around `if` condition
+   --> fsm/src/input_to_expressions.rs:136:32
+    |
+136 | ...                   if (next_token != "(")  { // We break if we are recursing with anything other than (
+    |                          ^                 ^
+    |
+    = note: `#[warn(unused_parens)]` on by default
+help: remove these parentheses
+    |
+136 -                             if (next_token != "(")  { // We break if we are recursing with anything other than (
+136 +                             if next_token != "("  { // We break if we are recursing with anything other than (
+    |
+
+warning: unnecessary parentheses around `if` condition
+   --> fsm/src/input_to_expressions.rs:346:32
+    |
+346 | ...                   if (next_token != "(")  { // We break if we are recursing with anything other than (
+    |                          ^                 ^
+    |
+help: remove these parentheses
+    |
+346 -                             if (next_token != "(")  { // We break if we are recursing with anything other than (
+346 +                             if next_token != "("  { // We break if we are recursing with anything other than (
+    |
+
+warning: unused import: `csv::WriterBuilder`
+ --> fsm/src/csv_parser.rs:3:5
+  |
+3 | use csv::WriterBuilder;
+  |     ^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `serde::Deserialize`
+ --> fsm/src/csv_parser.rs:5:5
+  |
+5 | use serde::Deserialize;
+  |     ^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `Write`
+  --> fsm/src/csv_parser.rs:10:21
+   |
+10 | use std::io::{self, Write};
+   |                     ^^^^^
+
+warning: unused import: `stacker`
+ --> fsm/src/encoder.rs:4:5
+  |
+4 | use stacker;
+  |     ^^^^^^^
+
+warning: unnecessary parentheses around type
+  --> fsm/src/encoder.rs:22:34
+   |
+22 |     association: HashMap<i32,Vec<((i32, i32, String))>>,
+   |                                  ^                  ^
+   |
+help: remove these parentheses
+   |
+22 -     association: HashMap<i32,Vec<((i32, i32, String))>>,
+22 +     association: HashMap<i32,Vec<(i32, i32, String)>>,
+   |
+
+warning: unused import: `std::collections::VecDeque`
+ --> fsm/src/qcir_builder.rs:1:5
+  |
+1 | use std::collections::VecDeque;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `expressions::expression_to_string`
+ --> fsm/src/qcir_builder.rs:3:5
+  |
+3 | use expressions::expression_to_string;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `std::fmt::Write as FmtWrite`
+ --> fsm/src/qcir_builder.rs:4:5
+  |
+4 | use std::fmt::Write as FmtWrite;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `logging::Logger`
+ --> fsm/src/qcir_builder.rs:5:5
+  |
+5 | use logging::Logger;
+  |     ^^^^^^^^^^^^^^^
+
+warning: unused import: `crate::parser::split_on_value`
+ --> fsm/src/qcir_builder.rs:6:5
+  |
+6 | use crate::parser::split_on_value;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `crate::symbol_map::SymbolMap`
+ --> fsm/src/qcir_builder.rs:7:5
+  |
+7 | use crate::symbol_map::SymbolMap;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `stacker`
+ --> fsm/src/qcir_builder.rs:8:5
+  |
+8 | use stacker;
+  |     ^^^^^^^
+
+warning: unnecessary parentheses around match arm expression
+   --> fsm/src/qcir_builder.rs:171:46
+    |
+171 |                 Literal(Lit::NegAtom(v)) =>  (self.intern_var(v) as isize),
+    |                                              ^                           ^
+    |
+help: remove these parentheses
+    |
+171 -                 Literal(Lit::NegAtom(v)) =>  (self.intern_var(v) as isize),
+171 +                 Literal(Lit::NegAtom(v)) =>  self.intern_var(v) as isize,
+    |
+
+warning: unused imports: `Quant` and `Variable`
+ --> fsm/src/hltl_unroller.rs:1:40
+  |
+1 | use expressions::{Expression, Literal, Variable, Quant};
+  |                                        ^^^^^^^^  ^^^^^
+
+warning: ambiguous glob re-exports
+  --> fsm/src/lib.rs:28:9
+   |
+28 | pub use gate_builder::*;
+   |         ^^^^^^^^^^^^^^^ the name `LowerError` in the type namespace is first re-exported here
+...
+31 | pub use qcir_builder::*;
+   |         --------------- but the name `LowerError` in the type namespace is also re-exported here
+   |
+   = note: `#[warn(ambiguous_glob_reexports)]` on by default
+
+warning: variable does not need to be mutable
+  --> fsm/src/helper_functions.rs:69:19
+   |
+69 |         for (key, mut value) in symbol_map_vec {
+   |                   ----^^^^^
+   |                   |
+   |                   help: remove this `mut`
+   |
+   = note: `#[warn(unused_mut)]` on by default
+
+warning: value assigned to `temp` is never read
+   --> fsm/src/helper_functions.rs:176:13
+    |
+176 |     let mut temp = 0;
+    |             ^^^^
+    |
+    = help: maybe it is overwritten before being read?
+    = note: `#[warn(unused_assignments)]` on by default
+
+warning: value assigned to `temp` is never read
+   --> fsm/src/helper_functions.rs:283:13
+    |
+283 |     let mut temp = 0;
+    |             ^^^^
+    |
+    = help: maybe it is overwritten before being read?
+
+warning: variable does not need to be mutable
+   --> fsm/src/helper_functions.rs:355:19
+    |
+355 |         for (key, mut value) in symbol_map_vec {
+    |                   ----^^^^^
+    |                   |
+    |                   help: remove this `mut`
+
+warning: unused variable: `final_ands`
+   --> fsm/src/helper_functions.rs:430:33
+    |
+430 |     let (starting_header,footer,final_ands) = get_string_quantifiers_and_ends_unified(model_map, quantifiers, logger, symbol_map, model_b...
+    |                                 ^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_final_ands`
+    |
+    = note: `#[warn(unused_variables)]` on by default
+
+warning: value assigned to `temp` is never read
+   --> fsm/src/helper_functions.rs:499:13
+    |
+499 |     let mut temp = 0;
+    |             ^^^^
+    |
+    = help: maybe it is overwritten before being read?
+
+warning: unused variable: `binding`
+   --> fsm/src/helper_functions.rs:537:13
+    |
+537 |     let mut binding = bmc.trim_end_matches(",").to_string();
+    |             ^^^^^^^ help: if this is intentional, prefix it with an underscore: `_binding`
+
+warning: variable does not need to be mutable
+   --> fsm/src/helper_functions.rs:537:9
+    |
+537 |     let mut binding = bmc.trim_end_matches(",").to_string();
+    |         ----^^^^^^^
+    |         |
+    |         help: remove this `mut`
+
+warning: value assigned to `truth` is never read
+   --> fsm/src/helper_functions.rs:641:17
+    |
+641 |         let mut truth = false;
+    |                 ^^^^^
+    |
+    = help: maybe it is overwritten before being read?
+
+warning: variable does not need to be mutable
+   --> fsm/src/helper_functions.rs:576:19
+    |
+576 |         for (key, mut value) in symbol_map_vec {
+    |                   ----^^^^^
+    |                   |
+    |                   help: remove this `mut`
+
+warning: variable does not need to be mutable
+  --> fsm/src/gate_builder.rs:42:9
+   |
+42 |     let mut max_gate_number = &mut max_gate_number; // ?
+   |         ----^^^^^^^^^^^^^^^
+   |         |
+   |         help: remove this `mut`
+
+warning: variable does not need to be mutable
+  --> fsm/src/gate_builder.rs:62:24
+   |
+62 |         while let Some(mut curr_expres) = stack.pop_back(){
+   |                        ----^^^^^^^^^^^
+   |                        |
+   |                        help: remove this `mut`
+
+warning: variable `conjunction_list` is assigned to, but never used
+  --> fsm/src/unroller.rs:29:13
+   |
+29 |     let mut conjunction_list: Vec<i32>;
+   |             ^^^^^^^^^^^^^^^^
+   |
+   = note: consider using `_conjunction_list` instead
+
+warning: value assigned to `output_str` is never read
+  --> fsm/src/unroller.rs:30:13
+   |
+30 |     let mut output_str = String::new();
+   |             ^^^^^^^^^^
+   |
+   = help: maybe it is overwritten before being read?
+
+warning: value assigned to `conjunction_list` is never read
+  --> fsm/src/unroller.rs:46:39
+   |
+46 |         (output_str, max_gate_number, conjunction_list) = create_gates_from_cdf(&fsm, logger, max_gate_number, layers, &mut symbol_map);
+   |                                       ^^^^^^^^^^^^^^^^
+   |
+   = help: maybe it is overwritten before being read?
+
+warning: variable `conjunction_list` is assigned to, but never used
+  --> fsm/src/unroller.rs:94:13
+   |
+94 |     let mut conjunction_list: Vec<i32>;
+   |             ^^^^^^^^^^^^^^^^
+   |
+   = note: consider using `_conjunction_list` instead
+
+warning: value assigned to `conjunction_list` is never read
+  --> fsm/src/unroller.rs:99:39
+   |
+99 |         (output_str, max_gate_number, conjunction_list) = create_gates_from_cdf(&fsm, logger, max_gate_number, layers, &mut symbol_map);
+   |                                       ^^^^^^^^^^^^^^^^
+   |
+   = help: maybe it is overwritten before being read?
+
+warning: value assigned to `output_str` is never read
+   --> fsm/src/unroller.rs:138:13
+    |
+138 |     let mut output_str = String::new();
+    |             ^^^^^^^^^^
+    |
+    = help: maybe it is overwritten before being read?
+
+warning: value assigned to `c_list` is never read
+   --> fsm/src/unroller.rs:181:43
+    |
+181 |             (output_str, max_gate_number, c_list) = create_gates_from_cdf(&fsm, logger, max_gate_number, layers, &mut symbol_map);
+    |                                           ^^^^^^
+    |
+    = help: maybe it is overwritten before being read?
+
+warning: unused variable: `gate_number`
+  --> fsm/src/input_to_expressions.rs:35:18
+   |
+35 |     if let Some(&gate_number) = symbol_map.get(&(return_val.to_string()+"_0")) {
+   |                  ^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_gate_number`
+
+warning: unused variable: `layers`
+   --> fsm/src/input_to_expressions.rs:263:56
+    |
+263 | pub fn input_to_expression_optimized(expression: &str, layers: &i32, symbol_map: &mut SymbolMap, max_gate_number: &mut i32) -> Box<Expres...
+    |                                                        ^^^^^^ help: if this is intentional, prefix it with an underscore: `_layers`
+
+warning: unused variable: `top_layer`
+   --> fsm/src/input_to_expressions.rs:301:142
+    |
+301 | ...n>>, pushed_break : bool, top_layer: bool, symbol_map: &mut SymbolMap, max_gate_number: &mut i32) {
+    |                              ^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_top_layer`
+
+warning: variable does not need to be mutable
+   --> fsm/src/input_to_expressions.rs:323:33
+    |
+323 | ...                   let mut formatted_literal = format_literal(&mut next_token.to_string(), symbol_map, max_gate_number);
+    |                           ----^^^^^^^^^^^^^^^^^
+    |                           |
+    |                           help: remove this `mut`
+
+warning: variable does not need to be mutable
+   --> fsm/src/input_to_expressions.rs:466:29
+    |
+466 |                         let mut formatted_literal = format_literal(&mut token.to_string(), symbol_map, max_gate_number);
+    |                             ----^^^^^^^^^^^^^^^^^
+    |                             |
+    |                             help: remove this `mut`
+
+warning: variable does not need to be mutable
+   --> fsm/src/parser.rs:314:17
+    |
+314 |             let mut neg : bool;
+    |                 ----^^^
+    |                 |
+    |                 help: remove this `mut`
+
+warning: unused variable: `test`
+   --> fsm/src/parser.rs:537:21
+    |
+537 |                 let test = expression_to_string(expression);
+    |                     ^^^^ help: if this is intentional, prefix it with an underscore: `_test`
+
+warning: unused variable: `test`
+   --> fsm/src/parser.rs:547:13
+    |
+547 |         let test = expression_to_string(expression);
+    |             ^^^^ help: if this is intentional, prefix it with an underscore: `_test`
+
+warning: variable does not need to be mutable
+   --> fsm/src/symbol_map.rs:138:13
+    |
+138 |         let mut temp = self.initial_map.get(model);
+    |             ----^^^^
+    |             |
+    |             help: remove this `mut`
+
+warning: variable does not need to be mutable
+   --> fsm/src/symbol_map.rs:150:13
+    |
+150 |         let mut temp = self.initial_map.get(model);
+    |             ----^^^^
+    |             |
+    |             help: remove this `mut`
+
+warning: variable does not need to be mutable
+   --> fsm/src/symbol_map.rs:168:24
+    |
+168 |         while let Some(mut curr_node) = stack.pop_front(){
+    |                        ----^^^^^^^^^
+    |                        |
+    |                        help: remove this `mut`
+
+warning: unused variable: `key`
+   --> fsm/src/csv_parser.rs:180:10
+    |
+180 |     for (key, value) in &result_map {
+    |          ^^^ help: if this is intentional, prefix it with an underscore: `_key`
+
+warning: unused variable: `value`
+   --> fsm/src/csv_parser.rs:180:15
+    |
+180 |     for (key, value) in &result_map {
+    |               ^^^^^ help: if this is intentional, prefix it with an underscore: `_value`
+
+warning: value assigned to `state_map` is never read
+   --> fsm/src/csv_parser.rs:203:13
+    |
+203 |     let mut state_map = StateMap::new();
+    |             ^^^^^^^^^
+    |
+    = help: maybe it is overwritten before being read?
+
+warning: value assigned to `combined_init` is never read
+   --> fsm/src/csv_parser.rs:304:17
+    |
+304 |         let mut combined_init: Box<Expression> = Box::new(Expression::Literal(Literal::Atom("STATE_VEC_BUG".to_string())));
+    |                 ^^^^^^^^^^^^^
+    |
+    = help: maybe it is overwritten before being read?
+
+warning: value assigned to `combined_next` is never read
+   --> fsm/src/csv_parser.rs:305:17
+    |
+305 |         let mut combined_next: Box<Expression> = Box::new(Expression::Literal(Literal::Atom("STATE_VEC_BUG".to_string())));
+    |                 ^^^^^^^^^^^^^
+    |
+    = help: maybe it is overwritten before being read?
+
+warning: variable does not need to be mutable
+   --> fsm/src/csv_parser.rs:495:9
+    |
+495 |     let mut blasted_var: Box<Expression> = Box::new(Expression::MAnd(bit_vector));
+    |         ----^^^^^^^^^^^
+    |         |
+    |         help: remove this `mut`
+
+warning: variable does not need to be mutable
+  --> fsm/src/encoder.rs:50:22
+   |
+50 |                 let (mut name, mut layer) = split_on_value(helper, '_');
+   |                      ----^^^^
+   |                      |
+   |                      help: remove this `mut`
+
+warning: variable does not need to be mutable
+  --> fsm/src/encoder.rs:50:32
+   |
+50 |                 let (mut name, mut layer) = split_on_value(helper, '_');
+   |                                ----^^^^^
+   |                                |
+   |                                help: remove this `mut`
+
+warning: unused variable: `model`
+  --> fsm/src/encoder.rs:66:14
+   |
+66 |         for (model, vec) in &self.association {
+   |              ^^^^^ help: if this is intentional, prefix it with an underscore: `_model`
+
+warning: unused variable: `helper`
+  --> fsm/src/encoder.rs:68:18
+   |
+68 |             for (helper, real, name) in vec {
+   |                  ^^^^^^ help: if this is intentional, prefix it with an underscore: `_helper`
+
+warning: unused variable: `real`
+  --> fsm/src/encoder.rs:68:26
+   |
+68 |             for (helper, real, name) in vec {
+   |                          ^^^^ help: if this is intentional, prefix it with an underscore: `_real`
+
+warning: unused variable: `name`
+  --> fsm/src/encoder.rs:68:32
+   |
+68 |             for (helper, real, name) in vec {
+   |                                ^^^^ help: if this is intentional, prefix it with an underscore: `_name`
+
+warning: unused variable: `entries`
+   --> fsm/src/qcir_builder.rs:285:13
+    |
+285 |     let mut entries: Vec<_> = b.var_map().iter().collect();
+    |             ^^^^^^^ help: if this is intentional, prefix it with an underscore: `_entries`
+
+warning: variable does not need to be mutable
+   --> fsm/src/qcir_builder.rs:285:9
+    |
+285 |     let mut entries: Vec<_> = b.var_map().iter().collect();
+    |         ----^^^^^^^
+    |         |
+    |         help: remove this `mut`
+
+warning: unused variable: `entries`
+   --> fsm/src/qcir_builder.rs:370:13
+    |
+370 |     let mut entries: Vec<_> = b.var_map().iter().collect();
+    |             ^^^^^^^ help: if this is intentional, prefix it with an underscore: `_entries`
+
+warning: variable does not need to be mutable
+   --> fsm/src/qcir_builder.rs:370:9
+    |
+370 |     let mut entries: Vec<_> = b.var_map().iter().collect();
+    |         ----^^^^^^^
+    |         |
+    |         help: remove this `mut`
+
+warning: unused variable: `q`
+   --> fsm/src/qcir_builder.rs:569:14
+    |
+569 |         let (q, path) = &path_prefixes[p_idx];
+    |              ^ help: if this is intentional, prefix it with an underscore: `_q`
+
+warning: unused variable: `q`
+   --> fsm/src/qcir_builder.rs:688:14
+    |
+688 |         let (q, path) = &path_prefixes[p_idx];
+    |              ^ help: if this is intentional, prefix it with an underscore: `_q`
+
+warning: unused variable: `pos_prefix`
+   --> fsm/src/qcir_builder.rs:910:5
+    |
+910 |     pos_prefix: &[(Quant, Vec<Variable>)],
+    |     ^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_pos_prefix`
+
+warning: unused variable: `pos`
+  --> fsm/src/hltl_unroller.rs:11:17
+   |
+11 |     if let Some(pos) = base.rfind(']') {
+   |                 ^^^ help: if this is intentional, prefix it with an underscore: `_pos`
+
+warning: variable does not need to be mutable
+  --> fsm/src/hltl_unroller.rs:91:16
+   |
+91 |     fn big_and(mut xs: Vec<Expression>) -> Expression {
+   |                ----^^
+   |                |
+   |                help: remove this `mut`
+
+warning: variable does not need to be mutable
+  --> fsm/src/hltl_unroller.rs:96:15
+   |
+96 |     fn big_or(mut xs: Vec<Expression>) -> Expression {
+   |               ----^^
+   |               |
+   |               help: remove this `mut`
+
+warning: function `get_output_string_encoding_version` is never used
+   --> fsm/src/helper_functions.rs:239:8
+    |
+239 | pub fn get_output_string_encoding_version(model_map: &Vec<(String, i32)>,max_gate_number: i32, logger: &Logger, formula: &str, quantifier...
+    |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: `#[warn(dead_code)]` on by default
+
+warning: function `get_string_quantifiers_and_ends_encoding_version` is never used
+   --> fsm/src/helper_functions.rs:337:4
+    |
+337 | fn get_string_quantifiers_and_ends_encoding_version(model_map: &Vec<(String, i32)>, quantifiers: &Vec<(String,String)>, logger: &Logger, ...
+    |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: enum `LowerError` is never used
+  --> fsm/src/gate_builder.rs:16:10
+   |
+16 | pub enum LowerError { Temporal(&'static str) }
+   |          ^^^^^^^^^^
+   |
+   = note: `LowerError` has a derived impl for the trait `Debug`, but this is intentionally ignored during dead code analysis
+
+warning: method `get_expression` is never used
+  --> fsm/src/parser.rs:79:8
+   |
+65 | impl Parser<'_>{
+   | --------------- method in this implementation
+...
+79 |     fn get_expression(&self) -> Box<Expression> {
+   |        ^^^^^^^^^^^^^^
+
+warning: fields `expression_map` and `models` are never read
+  --> fsm/src/symbol_map.rs:23:5
+   |
+19 | pub struct SymbolMap {
+   |            --------- fields in this struct
+...
+23 |     expression_map: HashMap<(i32,i32), HashMap<Expression,i32>>, // (layer, model) -> (expression -> gate)
+   |     ^^^^^^^^^^^^^^
+24 |     models: i32,
+   |     ^^^^^^
+   |
+   = note: `SymbolMap` has a derived impl for the trait `Debug`, but this is intentionally ignored during dead code analysis
+
+warning: methods `initial_states_size` and `final_states_size` are never used
+  --> fsm/src/csv_parser.rs:71:8
+   |
+20 | impl VariableStates {
+   | ------------------- methods in this implementation
+...
+71 |     fn initial_states_size(&self) -> usize {
+   |        ^^^^^^^^^^^^^^^^^^^
+...
+75 |     fn final_states_size(&self) -> usize {
+   |        ^^^^^^^^^^^^^^^^^
+
+warning: methods `add_variable`, `get_initial_states`, and `get_next_states` are never used
+   --> fsm/src/csv_parser.rs:92:8
+    |
+85  | impl StateMap {
+    | ------------- methods in this implementation
+...
+92  |     fn add_variable(&mut self, name: String) {
+    |        ^^^^^^^^^^^^
+...
+122 |     fn get_initial_states(&self, name: &str) -> Option<impl Iterator<Item = &Box<Expression>>> {
+    |        ^^^^^^^^^^^^^^^^^^
+...
+126 |     fn get_next_states(&self, name: &str) -> Option<impl Iterator<Item = &Box<Expression>>> {
+    |        ^^^^^^^^^^^^^^^
+
+warning: function `map_to_expr` is never used
+   --> fsm/src/csv_parser.rs:369:4
+    |
+369 | fn map_to_expr(state_map: &StateMap) -> Box<Expression> {
+    |    ^^^^^^^^^^^
+
+warning: fields `models` and `index` are never read
+  --> fsm/src/encoder.rs:21:5
+   |
+19 | pub struct Encoder<'a> {
+   |            ------- fields in this struct
+20 |     layers: i32,
+21 |     models: i32,
+   |     ^^^^^^
+22 |     association: HashMap<i32,Vec<((i32, i32, String))>>,
+23 |     index: i32,
+   |     ^^^^^
+   |
+   = note: `Encoder` has a derived impl for the trait `Debug`, but this is intentionally ignored during dead code analysis
+
+warning: method `print_association` is never used
+  --> fsm/src/encoder.rs:65:12
+   |
+28 | impl Encoder<'_> {
+   | ---------------- method in this implementation
+...
+65 |     pub fn print_association(&self) {
+   |            ^^^^^^^^^^^^^^^^^
+
+warning: fields `const_var` and `aux_vars` are never read
+  --> fsm/src/qcir_builder.rs:31:5
+   |
+22 | pub struct QcirBuilder {
+   |            ----------- fields in this struct
+...
+31 |     const_var: Option<usize>,
+   |     ^^^^^^^^^
+32 |     aux_vars: std::collections::BTreeSet<usize>,
+   |     ^^^^^^^^
+
+warning: function `unroll_on_path` is never used
+   --> fsm/src/qcir_builder.rs:460:4
+    |
+460 | fn unroll_on_path(expr: &Expression, path: &str, k: usize) -> Expression {
+    |    ^^^^^^^^^^^^^^
+
+warning: function `join_ids_debug` is never used
+   --> fsm/src/qcir_builder.rs:513:4
+    |
+513 | fn join_ids_debug(b: &QcirBuilder, ids: &[usize]) -> String {
+    |    ^^^^^^^^^^^^^^
+
+warning: function `big_and` is never used
+  --> fsm/src/hltl_unroller.rs:72:4
+   |
+72 | fn big_and(mut parts: Vec<Expression>) -> Expression {
+   |    ^^^^^^^
+
+warning: function `big_or` is never used
+  --> fsm/src/hltl_unroller.rs:79:4
+   |
+79 | fn big_or(mut parts: Vec<Expression>) -> Expression {
+   |    ^^^^^^
+
+warning: unused `Result` that must be used
+  --> fsm/src/gate_builder.rs:48:5
+   |
+48 |     write!(output_string, "### Start building model\n");
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: this `Result` may be an `Err` variant, which should be handled
+   = note: `#[warn(unused_must_use)]` on by default
+   = note: this warning originates in the macro `write` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+warning: unused `Result` that must be used
+   --> fsm/src/gate_builder.rs:146:43
+    |
+146 |                     if negation         { write!(previous_layer_string[parent_string_index as usize], "-"); } // quick patch
+    |                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+    = note: this warning originates in the macro `write` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+warning: unused `Result` that must be used
+   --> fsm/src/gate_builder.rs:147:43
+    |
+147 |                     if logger.get_mode(){ write!(previous_layer_string[parent_string_index as usize], "g"); } // quick patch
+    |                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+    = note: this warning originates in the macro `write` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+warning: unused `Result` that must be used
+   --> fsm/src/gate_builder.rs:161:43
+    |
+161 | ...                   if negation { write!(previous_layer_string[parent_string_index as usize], "-"); } // quick patch
+    |                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+    = note: this warning originates in the macro `write` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+warning: variable `T_gate` should have a snake case name
+  --> fsm/src/encoder.rs:75:108
+   |
+75 |     pub fn build_association_gates(&self, logger: &Logger, max_gate_number: &mut i32, output: &mut String, T_gate: &i32) {
+   |                                                                                                            ^^^^^^ help: convert the identifier to snake case: `t_gate`
+   |
+   = note: `#[warn(non_snake_case)]` on by default
+
+warning: unused `Result` that must be used
+  --> fsm/src/encoder.rs:89:9
+   |
+89 |         write!(output, "# association gates for model {}\n", self.symbol_map.model);
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: this `Result` may be an `Err` variant, which should be handled
+   = note: this warning originates in the macro `write` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+warning: unused `Result` that must be used
+   --> fsm/src/encoder.rs:122:13
+    |
+122 |             write!(output, "# Ending association gates for model {}\n", self.symbol_map.model);
+    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+    = note: this warning originates in the macro `write` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+warning: unused `Result` that must be used
+   --> fsm/src/encoder.rs:153:13
+    |
+153 |             write!(output, "# Ending association gates for model {}\n", self.symbol_map.model);
+    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+    = note: this warning originates in the macro `write` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+warning: variable `QBF_encoding` should have a snake case name
+   --> fsm/src/qcir_builder.rs:250:9
+    |
+250 |     let QBF_encoding = build_QBF(&prefix, &models, &formula_expr).unwrap();
+    |         ^^^^^^^^^^^^ help: convert the identifier to snake case: `qbf_encoding`
+
+warning: variable `QBF_encoding` should have a snake case name
+   --> fsm/src/qcir_builder.rs:307:9
+    |
+307 |     let QBF_encoding = build_async_QBF(&prefix, &models, &formula_expr, &traj_prefix).unwrap();
+    |         ^^^^^^^^^^^^ help: convert the identifier to snake case: `qbf_encoding`
+
+warning: function `build_QBF` should have a snake case name
+   --> fsm/src/qcir_builder.rs:863:8
+    |
+863 | pub fn build_QBF(
+    |        ^^^^^^^^^ help: convert the identifier to snake case: `build_qbf`
+
+warning: function `build_async_QBF` should have a snake case name
+   --> fsm/src/qcir_builder.rs:906:8
+    |
+906 | pub fn build_async_QBF(
+    |        ^^^^^^^^^^^^^^^ help: convert the identifier to snake case: `build_async_qbf`
+
+warning: `fsm` (lib) generated 102 warnings (run `cargo fix --lib -p fsm` to apply 41 suggestions)
+warning: found module declaration for main.rs
+ --> unroller_qbf/src/lib.rs:1:1
+  |
+1 | pub mod main; // or whatever your module file is
+  | ^^^^^^^^^^^^^
+  |
+  = note: a binary crate cannot be used as library
+  = note: `#[warn(special_module_name)]` on by default
+
+warning: unused import: `logging::*`
+ --> unroller_qbf/src/main.rs:6:5
+  |
+6 | use logging::*;
+  |     ^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` on by default
+
+warning: unused imports: `Config` and `Sort`
+ --> unroller_qbf/src/main.rs:9:10
+  |
+9 | use z3::{Config, Context, Sort};
+  |          ^^^^^^           ^^^^
+
+warning: unused import: `utils::*`
+  --> unroller_qbf/src/main.rs:10:5
+   |
+10 | use utils::*;
+   |     ^^^^^^^^
+
+warning: unused import: `std::fs::File`
+  --> unroller_qbf/src/main.rs:12:5
+   |
+12 | use std::fs::File;
+   |     ^^^^^^^^^^^^^
+
+warning: unused import: `std::process`
+  --> unroller_qbf/src/main.rs:14:5
+   |
+14 | use std::process;
+   |     ^^^^^^^^^^^^
+
+warning: unused import: `fsm::to_qcir_string`
+  --> unroller_qbf/src/main.rs:16:5
+   |
+16 | use fsm::to_qcir_string;
+   |     ^^^^^^^^^^^^^^^^^^^
+
+warning: unused imports: `Atom` and `NegAtom`
+  --> unroller_qbf/src/main.rs:21:28
+   |
+21 | use expressions::Literal::{Atom, NegAtom};
+   |                            ^^^^  ^^^^^^^
+
+warning: unused import: `Variable`
+  --> unroller_qbf/src/main.rs:22:35
+   |
+22 | use expressions::{Literal as Lit, Variable, Quant};
+   |                                   ^^^^^^^^
+
+warning: unused import: `expressions::Expression::*`
+  --> unroller_qbf/src/main.rs:23:5
+   |
+23 | use expressions::Expression::*;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `flags::flags::parse_flags`
+  --> unroller_qbf/src/main.rs:26:5
+   |
+26 | use flags::flags::parse_flags;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unnecessary parentheses around `if` condition
+   --> unroller_qbf/src/main.rs:243:8
+    |
+243 |     if (is_ahltl(formula)) {
+    |        ^                 ^
+    |
+    = note: `#[warn(unused_parens)]` on by default
+help: remove these parentheses
+    |
+243 -     if (is_ahltl(formula)) {
+243 +     if is_ahltl(formula) {
+    |
+
+warning: unnecessary trailing semicolon
+   --> unroller_qbf/src/main.rs:279:62
+    |
+279 | ...                   .expect("QCIR unrolling failed");;
+    |                                                        ^ help: remove this semicolon
+    |
+    = note: `#[warn(redundant_semicolons)]` on by default
+
+warning: unnecessary trailing semicolon
+   --> unroller_qbf/src/main.rs:333:62
+    |
+333 | ...                   .expect("QCIR unrolling failed");;
+    |                                                        ^ help: remove this semicolon
+
+warning: unused variable: `init_map`
+  --> unroller_qbf/src/main.rs:42:13
+   |
+42 |     let mut init_map: HashMap<String, Vec<String>> = HashMap::new();
+   |             ^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_init_map`
+   |
+   = note: `#[warn(unused_variables)]` on by default
+
+warning: unused variable: `init_map_vec`
+  --> unroller_qbf/src/main.rs:44:13
+   |
+44 |     let mut init_map_vec: Vec<(String, HashMap<String, Vec<String>>)> = Vec::new(); 
+   |             ^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_init_map_vec`
+
+warning: unused variable: `models`
+  --> unroller_qbf/src/main.rs:45:13
+   |
+45 |     let mut models: Vec<(String,String)> = Vec::new(); // all init maps in a vec
+   |             ^^^^^^ help: if this is intentional, prefix it with an underscore: `_models`
+
+warning: unused variable: `i`
+  --> unroller_qbf/src/main.rs:48:10
+   |
+48 |     for (i, (env, file)) in envs.iter().zip(files.iter()).enumerate() {
+   |          ^ help: if this is intentional, prefix it with an underscore: `_i`
+
+warning: unused variable: `file`
+  --> unroller_qbf/src/main.rs:48:19
+   |
+48 |     for (i, (env, file)) in envs.iter().zip(files.iter()).enumerate() {
+   |                   ^^^^ help: if this is intentional, prefix it with an underscore: `_file`
+
+warning: unused variable: `i`
+  --> unroller_qbf/src/main.rs:98:18
+   |
+98 |             for (i, (guard_fn, update_fn)) in transitions_vec.iter().enumerate() {
+   |                  ^ help: if this is intentional, prefix it with an underscore: `_i`
+
+warning: unused variable: `next_var`
+   --> unroller_qbf/src/main.rs:138:29
+    |
+138 |                         let next_var = Expression::Literal(Lit::Atom(format!("{}'", var_name)));
+    |                             ^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_next_var`
+
+warning: unused variable: `i_ast`
+   --> unroller_qbf/src/main.rs:149:45
+    |
+149 | ...                   if let Some(i_ast) = update_node.as_int() {
+    |                                   ^^^^^ help: if this is intentional, prefix it with an underscore: `_i_ast`
+
+warning: unused variable: `quantifiers`
+   --> unroller_qbf/src/main.rs:245:17
+    |
+245 |         let mut quantifiers: Vec<(String, String)> = Vec::new();
+    |                 ^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_quantifiers`
+
+warning: unused variable: `quantifiers`
+   --> unroller_qbf/src/main.rs:297:17
+    |
+297 |         let mut quantifiers: Vec<(String, String)> = Vec::new();
+    |                 ^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_quantifiers`
+
+warning: unused variable: `semantics`
+  --> unroller_qbf/src/main.rs:37:5
+   |
+37 |     semantics: &str,
+   |     ^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_semantics`
+
+warning: variable does not need to be mutable
+  --> unroller_qbf/src/main.rs:42:9
+   |
+42 |     let mut init_map: HashMap<String, Vec<String>> = HashMap::new();
+   |         ----^^^^^^^^
+   |         |
+   |         help: remove this `mut`
+   |
+   = note: `#[warn(unused_mut)]` on by default
+
+warning: variable does not need to be mutable
+  --> unroller_qbf/src/main.rs:44:9
+   |
+44 |     let mut init_map_vec: Vec<(String, HashMap<String, Vec<String>>)> = Vec::new(); 
+   |         ----^^^^^^^^^^^^
+   |         |
+   |         help: remove this `mut`
+
+warning: variable does not need to be mutable
+  --> unroller_qbf/src/main.rs:45:9
+   |
+45 |     let mut models: Vec<(String,String)> = Vec::new(); // all init maps in a vec
+   |         ----^^^^^^
+   |         |
+   |         help: remove this `mut`
+
+warning: variable does not need to be mutable
+   --> unroller_qbf/src/main.rs:245:13
+    |
+245 |         let mut quantifiers: Vec<(String, String)> = Vec::new();
+    |             ----^^^^^^^^^^^
+    |             |
+    |             help: remove this `mut`
+
+warning: variable does not need to be mutable
+   --> unroller_qbf/src/main.rs:297:13
+    |
+297 |         let mut quantifiers: Vec<(String, String)> = Vec::new();
+    |             ----^^^^^^^^^^^
+    |             |
+    |             help: remove this `mut`
+
+warning: unused variable: `decl_name`
+   --> unroller_qbf/src/main.rs:443:9
+    |
+443 |     let decl_name = node.decl().name().to_string();
+    |         ^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_decl_name`
+
+warning: unused variable: `curr_var`
+    --> unroller_qbf/src/main.rs:1185:9
+     |
+1185 |     let curr_var = Expression::Literal(Lit::Atom(var_name.to_string()));
+     |         ^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_curr_var`
+
+warning: unused variable: `next_var`
+    --> unroller_qbf/src/main.rs:1186:9
+     |
+1186 |     let next_var = Expression::Literal(Lit::Atom(format!("{}'", var_name)));
+     |         ^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_next_var`
+
+warning: variable does not need to be mutable
+    --> unroller_qbf/src/main.rs:1346:5
+     |
+1346 |     mut ret: ReturnType<'ctx>,
+     |     ----^^^
+     |     |
+     |     help: remove this `mut`
+
+warning: unused variable: `l_sort`
+    --> unroller_qbf/src/main.rs:1452:9
+     |
+1452 |     let l_sort = left.get_sort().kind();
+     |         ^^^^^^ help: if this is intentional, prefix it with an underscore: `_l_sort`
+
+warning: unused variable: `r_sort`
+    --> unroller_qbf/src/main.rs:1453:9
+     |
+1453 |     let r_sort = right.get_sort().kind();
+     |         ^^^^^^ help: if this is intentional, prefix it with an underscore: `_r_sort`
+
+warning: unused variable: `c`
+    --> unroller_qbf/src/main.rs:1503:15
+     |
+1503 |         (Some(c), None, None, Some(v)) => {
+     |               ^ help: if this is intentional, prefix it with an underscore: `_c`
+
+warning: unused variable: `v`
+    --> unroller_qbf/src/main.rs:1503:36
+     |
+1503 |         (Some(c), None, None, Some(v)) => {
+     |                                    ^ help: if this is intentional, prefix it with an underscore: `_v`
+
+warning: unused variable: `is_primed`
+    --> unroller_qbf/src/main.rs:1641:29
+     |
+1641 | fn var_base_of(d: &Dynamic, is_primed: bool) -> Option<String> {
+     |                             ^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_is_primed`
+
+warning: function `bool_to_var_literal` is never used
+    --> unroller_qbf/src/main.rs:1309:4
+     |
+1309 | fn bool_to_var_literal(v: &String, next_expr: &Expression) -> Expression {
+     |    ^^^^^^^^^^^^^^^^^^^
+     |
+     = note: `#[warn(dead_code)]` on by default
+
+warning: function `parse_quant` is never used
+    --> unroller_qbf/src/main.rs:1330:4
+     |
+1330 | fn parse_quant(s: &str) -> Quant {
+     |    ^^^^^^^^^^^
+
+warning: function `is_symbol` is never used
+    --> unroller_qbf/src/main.rs:1392:4
+     |
+1392 | fn is_symbol(node: &Dynamic) -> bool {
+     |    ^^^^^^^^^
+
+warning: function `bool_const_of` is never used
+    --> unroller_qbf/src/main.rs:1397:4
+     |
+1397 | fn bool_const_of(node: &Dynamic) -> Option<bool> {
+     |    ^^^^^^^^^^^^^
+
+warning: function `atom_from_symbol` is never used
+    --> unroller_qbf/src/main.rs:1402:4
+     |
+1402 | fn atom_from_symbol(node: &Dynamic, is_primed: bool) -> Expression {
+     |    ^^^^^^^^^^^^^^^^
+
+warning: function `has_trailing_time` is never used
+    --> unroller_qbf/src/main.rs:1567:4
+     |
+1567 | fn has_trailing_time(name: &str) -> bool {
+     |    ^^^^^^^^^^^^^^^^^
+
+warning: function `stamp_name_once` is never used
+    --> unroller_qbf/src/main.rs:1576:4
+     |
+1576 | fn stamp_name_once(name: &str, t: usize) -> String {
+     |    ^^^^^^^^^^^^^^^
+
+warning: function `stamp_name` is never used
+    --> unroller_qbf/src/main.rs:1585:4
+     |
+1585 | fn stamp_name(name: &str, t: usize) -> String {
+     |    ^^^^^^^^^^
+
+warning: function `is_int_lit` is never used
+    --> unroller_qbf/src/main.rs:1597:4
+     |
+1597 | fn is_int_lit(d: &Dynamic) -> bool {
+     |    ^^^^^^^^^^
+
+warning: function `var_base_of` is never used
+    --> unroller_qbf/src/main.rs:1641:4
+     |
+1641 | fn var_base_of(d: &Dynamic, is_primed: bool) -> Option<String> {
+     |    ^^^^^^^^^^^
+
+warning: function `is_bool` is never used
+    --> unroller_qbf/src/main.rs:1839:4
+     |
+1839 | fn is_bool(node: &Dynamic) -> bool {
+     |    ^^^^^^^
+
+warning: unused imports: `Context` and `Dynamic`
+ --> ahltlunroller/src/lib.rs:4:10
+  |
+4 | use z3::{Context,
+  |          ^^^^^^^
+5 |     ast::{
+6 |         Ast, Dynamic, Bool, Int,
+  |              ^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` on by default
+
+warning: variable `trajs_A` should have a snake case name
+   --> ahltlunroller/src/lib.rs:322:17
+    |
+322 |             let trajs_A = get_forall_trajs(self.formula);
+    |                 ^^^^^^^ help: convert the identifier to snake case: `trajs_a`
+    |
+    = note: `#[warn(non_snake_case)]` on by default
+
+warning: variable `trajs_E` should have a snake case name
+   --> ahltlunroller/src/lib.rs:323:17
+    |
+323 |             let trajs_E = get_exists_trajs(self.formula);
+    |                 ^^^^^^^ help: convert the identifier to snake case: `trajs_e`
+
+warning: variable `trajs_A` should have a snake case name
+   --> ahltlunroller/src/lib.rs:347:17
+    |
+347 |             let trajs_A = get_forall_trajs(self.formula);
+    |                 ^^^^^^^ help: convert the identifier to snake case: `trajs_a`
+
+warning: variable `trajs_E` should have a snake case name
+   --> ahltlunroller/src/lib.rs:348:17
+    |
+348 |             let trajs_E = get_exists_trajs(self.formula);
+    |                 ^^^^^^^ help: convert the identifier to snake case: `trajs_e`
+
+warning: found module declaration for main.rs
+ --> parser_nusmv/src/lib.rs:1:1
+  |
+1 | pub mod main; // or whatever your module file is
+  | ^^^^^^^^^^^^^
+  |
+  = note: a binary crate cannot be used as library
+  = note: `#[warn(special_module_name)]` on by default
+
+warning: unused import: `Config`
+ --> parser_nusmv/src/main.rs:7:10
+  |
+7 | use z3::{Config, Context};
+  |          ^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` on by default
+
+warning: unused import: `Variable`
+  --> parser_nusmv/src/main.rs:11:27
+   |
+11 | use ir::{SMVEnv, VarType, Variable, ReturnType, EnvState};
+   |                           ^^^^^^^^
+
+warning: unused import: `z3::Sort`
+  --> parser_nusmv/src/main.rs:12:5
+   |
+12 | use z3::Sort;
+   |     ^^^^^^^^
+
+warning: unused imports: `Command` and `Stdio`
+  --> parser_nusmv/src/main.rs:16:20
+   |
+16 | use std::process::{Command, Stdio};
+   |                    ^^^^^^^  ^^^^^
+
+warning: unused import: `std::fs`
+  --> parser_nusmv/src/main.rs:20:5
+   |
+20 | use std::fs;
+   |     ^^^^^^^
+
+warning: unused import: `std::iter::Peekable`
+  --> parser_nusmv/src/main.rs:22:5
+   |
+22 | use std::iter::Peekable;
+   |     ^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `std::str::Chars`
+  --> parser_nusmv/src/main.rs:23:5
+   |
+23 | use std::str::Chars;
+   |     ^^^^^^^^^^^^^^^
+
+warning: unused import: `std::str::FromStr`
+  --> parser_nusmv/src/main.rs:24:5
+   |
+24 | use std::str::FromStr;
+   |     ^^^^^^^^^^^^^^^^^
+
+warning: unused import: `ir::choice`
+  --> parser_nusmv/src/main.rs:31:5
+   |
+31 | use ir::choice;
+   |     ^^^^^^^^^^
+
+warning: unused import: `ir::choice_int_to_dyn`
+  --> parser_nusmv/src/main.rs:32:5
+   |
+32 | use ir::choice_int_to_dyn;
+   |     ^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused imports: `Expression`, `Literal as Lit`, and `Quant`
+  --> parser_nusmv/src/main.rs:33:19
+   |
+33 | use expressions::{Expression, Literal as Lit, Quant};
+   |                   ^^^^^^^^^^  ^^^^^^^^^^^^^^  ^^^^^
+
+warning: unused variable: `smv_env`
+   --> parser_nusmv/src/main.rs:894:5
+    |
+894 |     smv_env: &SMVEnv<'ctx>,
+    |     ^^^^^^^ help: if this is intentional, prefix it with an underscore: `_smv_env`
+    |
+    = note: `#[warn(unused_variables)]` on by default
+
+warning: unused variable: `var_type`
+   --> parser_nusmv/src/main.rs:897:5
+    |
+897 |     var_type: &ParsedVarType,
+    |     ^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_var_type`
+
+warning: type `main::Args` is more private than the item `parse_args`
+  --> parser_nusmv/src/main.rs:54:1
+   |
+54 | pub fn parse_args() -> Args {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^ function `parse_args` is reachable at visibility `pub`
+   |
+note: but type `main::Args` is only usable at visibility `pub(self)`
+  --> parser_nusmv/src/main.rs:44:1
+   |
+44 | struct Args {
+   | ^^^^^^^^^^^
+   = note: `#[warn(private_interfaces)]` on by default
+
+warning: type `Transition` is more private than the item `parse_block`
+   --> parser_nusmv/src/main.rs:120:1
+    |
+120 | pub fn parse_block(lines: &[String]) -> Transition {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ function `parse_block` is reachable at visibility `pub`
+    |
+note: but type `Transition` is only usable at visibility `pub(self)`
+   --> parser_nusmv/src/main.rs:38:1
+    |
+38  | struct Transition {
+    | ^^^^^^^^^^^^^^^^^
+
+warning: type `Transition` is more private than the item `parse_transitions`
+   --> parser_nusmv/src/main.rs:136:1
+    |
+136 | pub fn parse_transitions(content: &str) -> Vec<Transition> {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ function `parse_transitions` is reachable at visibility `pub`
+    |
+note: but type `Transition` is only usable at visibility `pub(self)`
+   --> parser_nusmv/src/main.rs:38:1
+    |
+38  | struct Transition {
+    | ^^^^^^^^^^^^^^^^^
+
+warning: type `Transition` is more private than the item `generate_format_primed`
+   --> parser_nusmv/src/main.rs:157:1
+    |
+157 | pub fn generate_format_primed(transitions: &[Transition], bit_encode: bool) -> String {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ function `generate_format_primed` is reachable at visibility `pub`
+    |
+note: but type `Transition` is only usable at visibility `pub(self)`
+   --> parser_nusmv/src/main.rs:38:1
+    |
+38  | struct Transition {
+    | ^^^^^^^^^^^^^^^^^
+
+warning: type `Transition` is more private than the item `parse_flattened_fsm`
+   --> parser_nusmv/src/main.rs:230:1
+    |
+230 | pub fn parse_flattened_fsm(content: &str) -> Vec<Transition> {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ function `parse_flattened_fsm` is reachable at visibility `pub`
+    |
+note: but type `Transition` is only usable at visibility `pub(self)`
+   --> parser_nusmv/src/main.rs:38:1
+    |
+38  | struct Transition {
+    | ^^^^^^^^^^^^^^^^^
+
+warning: type `Transition` is more private than the item `generate_format_functions`
+   --> parser_nusmv/src/main.rs:333:1
+    |
+333 | pub fn generate_format_functions(transitions: &[Transition]) -> String {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ function `generate_format_functions` is reachable at visibility `pub`
+    |
+note: but type `Transition` is only usable at visibility `pub(self)`
+   --> parser_nusmv/src/main.rs:38:1
+    |
+38  | struct Transition {
+    | ^^^^^^^^^^^^^^^^^
+
+warning: fields `input_path`, `output_path`, `bit_encode`, `input_format`, and `output_format` are never read
+  --> parser_nusmv/src/main.rs:45:5
+   |
+44 | struct Args {
+   |        ---- fields in this struct
+45 |     input_path: String,
+   |     ^^^^^^^^^^
+46 |     output_path: Option<String>,
+   |     ^^^^^^^^^^^
+47 |     bit_encode: bool,
+   |     ^^^^^^^^^^
+48 |     input_format: String,
+   |     ^^^^^^^^^^^^
+49 |     output_format: String,
+   |     ^^^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` on by default
+
+warning: function `mk_update_single_var` is never used
+   --> parser_nusmv/src/main.rs:832:4
+    |
+832 | fn mk_update_single_var(var_sym: String, var_type: ParsedVarType)
+    |    ^^^^^^^^^^^^^^^^^^^^
+
+warning: enum `Choice` is never used
+   --> parser_nusmv/src/main.rs:886:6
+    |
+886 | enum Choice {
+    |      ^^^^^^
+
+warning: field `name` is never read
+    --> parser_nusmv/src/main.rs:1170:5
+     |
+1169 | struct Module {
+     |        ------ field in this struct
+1170 |     name: String,
+     |     ^^^^
+     |
+     = note: `Module` has derived impls for the traits `Debug` and `Clone`, but these are intentionally ignored during dead code analysis
+
+warning: `unroller_qbf` (lib) generated 50 warnings (run `cargo fix --lib -p unroller_qbf` to apply 17 suggestions)
+warning: `ahltlunroller` (lib) generated 5 warnings (run `cargo fix --lib -p ahltlunroller` to apply 1 suggestion)
+warning: `parser_nusmv` (lib) generated 24 warnings (run `cargo fix --lib -p parser_nusmv` to apply 11 suggestions)
+warning: unused import: `CStr`
+ --> encoder/src/lib.rs:9:25
+  |
+9 | use std::ffi::{CString, CStr};
+  |                         ^^^^
+  |
+  = note: `#[warn(unused_imports)]` on by default
+
+warning: unused import: `indexmap::IndexMap`
+  --> encoder/src/lib.rs:10:5
+   |
+10 | use indexmap::IndexMap;
+   |     ^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `std::ptr`
+  --> encoder/src/lib.rs:18:5
+   |
+18 | use std::ptr;
+   |     ^^^^^^^^
+
+warning: unused import: `core::ptr`
+ --> encoder/src/verilog_helper.rs:2:5
+  |
+2 | use core::ptr;
+  |     ^^^^^^^^^
+
+warning: unused import: `regex::Regex`
+ --> encoder/src/verilog_helper.rs:4:5
+  |
+4 | use regex::Regex;
+  |     ^^^^^^^^^^^^
+
+warning: unused import: `std::ffi::CStr`
+ --> encoder/src/verilog_helper.rs:5:5
+  |
+5 | use std::ffi::CStr;
+  |     ^^^^^^^^^^^^^^
+
+warning: unused imports: `Bool` and `Context`
+ --> encoder/src/verilog_helper.rs:7:16
+  |
+7 |     ast::{Ast, Bool, Dynamic},
+  |                ^^^^
+8 |     Context,
+  |     ^^^^^^^
+
+warning: unused imports: `AstNode`, `BinOperator`, and `UnaryOperator`
+  --> encoder/src/verilog_helper.rs:11:5
+   |
+11 |     UnaryOperator, BinOperator,
+   |     ^^^^^^^^^^^^^  ^^^^^^^^^^^
+12 |     AstNode,
+   |     ^^^^^^^
+
+warning: unused import: `z3_sys::*`
+  --> encoder/src/verilog_helper.rs:15:5
+   |
+15 | use z3_sys::*;
+   |     ^^^^^^^^^
+
+warning: using `.clone()` on a double reference, which returns `&str` instead of cloning the inner type
+   --> encoder/src/lib.rs:101:33
+    |
+101 |             path_map.insert(path.clone(), ij_map);
+    |                                 ^^^^^^^^
+    |
+    = note: `#[warn(suspicious_double_ref_op)]` on by default
+
+warning: using `.clone()` on a double reference, which returns `&str` instead of cloning the inner type
+   --> encoder/src/lib.rs:103:30
+    |
+103 |         positions.insert(traj.clone(), path_map);
+    |                              ^^^^^^^^
+
+warning: using `.clone()` on a double reference, which returns `&str` instead of cloning the inner type
+   --> encoder/src/lib.rs:108:28
+    |
+108 |         let traj_key = traj.clone();
+    |                            ^^^^^^^^
+
+warning: using `.clone()` on a double reference, which returns `&str` instead of cloning the inner type
+   --> encoder/src/lib.rs:111:32
+    |
+111 |             let path_key = path.clone();
+    |                                ^^^^^^^^
+
+warning: using `.clone()` on a double reference, which returns `&str` instead of cloning the inner type
+   --> encoder/src/lib.rs:125:28
+    |
+125 |         let traj_key = traj.clone();
+    |                            ^^^^^^^^
+
+warning: using `.clone()` on a double reference, which returns `&str` instead of cloning the inner type
+   --> encoder/src/lib.rs:128:32
+    |
+128 |             let path_key = path.clone();
+    |                                ^^^^^^^^
+
+warning: function `unrolled_states_from_Z3_ast` should have a snake case name
+  --> encoder/src/verilog_helper.rs:18:8
+   |
+18 | pub fn unrolled_states_from_Z3_ast<'ctx, T: Ast<'ctx>>(
+   |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: convert the identifier to snake case (notice the capitalization): `unrolled_states_from_z3_ast`
+   |
+   = note: `#[warn(non_snake_case)]` on by default
+
+warning: unused import: `BV`
+ --> loop_conditions/src/lib.rs:6:14
+  |
+6 |         Int, BV,
+  |              ^^
+  |
+  = note: `#[warn(unused_imports)]` on by default
+
+warning: unused import: `logging::*`
+  --> loop_conditions/src/lib.rs:15:5
+   |
+15 | use logging::*;
+   |     ^^^^^^^^^^
+
+warning: unused import: `utils::*`
+  --> loop_conditions/src/lib.rs:17:5
+   |
+17 | use utils::*;
+   |     ^^^^^^^^
+
+warning: unused import: `std::fs`
+  --> loop_conditions/src/lib.rs:18:5
+   |
+18 | use std::fs;
+   |     ^^^^^^^
+
+warning: unnecessary parentheses around `for` iterator expression
+   --> loop_conditions/src/lib.rs:239:18
+    |
+239 |         for n in (1..self.symstates1.len()){
+    |                  ^                        ^
+    |
+    = note: `#[warn(unused_parens)]` on by default
+help: remove these parentheses
+    |
+239 -         for n in (1..self.symstates1.len()){
+239 +         for n in 1..self.symstates1.len() {
+    |
+
+warning: unused variable: `paths`
+   --> loop_conditions/src/lib.rs:386:21
+    |
+386 |                 let paths = vec![
+    |                     ^^^^^ help: if this is intentional, prefix it with an underscore: `_paths`
+    |
+    = note: `#[warn(unused_variables)]` on by default
+
+warning: variable does not need to be mutable
+   --> loop_conditions/src/lib.rs:506:13
+    |
+506 |         let mut max_bit_map: HashMap<String, usize> = self.build_max_bit_map();
+    |             ----^^^^^^^^^^^
+    |             |
+    |             help: remove this `mut`
+    |
+    = note: `#[warn(unused_mut)]` on by default
+
+warning: method `initial_state_sim_EA` should have a snake case name
+   --> loop_conditions/src/lib.rs:132:12
+    |
+132 |     pub fn initial_state_sim_EA(&self) -> Vec<Bool<'env>> {
+    |            ^^^^^^^^^^^^^^^^^^^^ help: convert the identifier to snake case: `initial_state_sim_ea`
+    |
+    = note: `#[warn(non_snake_case)]` on by default
+
+warning: method `initial_state_sim_AE` should have a snake case name
+   --> loop_conditions/src/lib.rs:149:12
+    |
+149 |     pub fn initial_state_sim_AE(&self) -> Vec<Bool<'env>> {
+    |            ^^^^^^^^^^^^^^^^^^^^ help: convert the identifier to snake case: `initial_state_sim_ae`
+
+warning: method `valid_path_EA` should have a snake case name
+   --> loop_conditions/src/lib.rs:201:12
+    |
+201 |     pub fn valid_path_EA(&self, n: usize) -> Vec<Bool<'env>> {
+    |            ^^^^^^^^^^^^^ help: convert the identifier to snake case: `valid_path_ea`
+
+warning: method `loop_back_EA` should have a snake case name
+   --> loop_conditions/src/lib.rs:216:12
+    |
+216 |     pub fn loop_back_EA(&self, n: usize) -> Bool<'env> {
+    |            ^^^^^^^^^^^^ help: convert the identifier to snake case: `loop_back_ea`
+
+warning: method `simulation_constrains_EA` should have a snake case name
+   --> loop_conditions/src/lib.rs:235:12
+    |
+235 |     pub fn simulation_constrains_EA(&self) -> Bool<'env> {
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^ help: convert the identifier to snake case: `simulation_constrains_ea`
+
+warning: unnecessary parentheses around function argument
+   --> verilog/src/ir_parser.rs:771:70
+    |
+771 |                 let g_else = Expr::And(vec![path, Expr::Not(Box::new((*c.clone())))]);
+    |                                                                      ^          ^
+    |
+    = note: `#[warn(unused_parens)]` on by default
+help: remove these parentheses
+    |
+771 -                 let g_else = Expr::And(vec![path, Expr::Not(Box::new((*c.clone())))]);
+771 +                 let g_else = Expr::And(vec![path, Expr::Not(Box::new(*c.clone()))]);
+    |
+
+warning: unused import: `std::collections::hash_map::DefaultHasher`
+    --> verilog/src/ir_parser.rs:1118:5
+     |
+1118 | use std::collections::hash_map::DefaultHasher;
+     |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+     |
+     = note: `#[warn(unused_imports)]` on by default
+
+warning: unused import: `Hash`
+    --> verilog/src/ir_parser.rs:1119:17
+     |
+1119 | use std::hash::{Hash, Hasher};
+     |                 ^^^^
+
+warning: unused import: `std::cmp::Ordering`
+    --> verilog/src/ir_parser.rs:1132:5
+     |
+1132 | use std::cmp::Ordering;
+     |     ^^^^^^^^^^^^^^^^^^
+
+warning: unnecessary parentheses around function argument
+    --> verilog/src/ir_parser.rs:1522:85
+     |
+1522 |                 let g_else = simplify_guard(Expr::And(vec![path, Expr::Not(Box::new((*c.clone())))]));
+     |                                                                                     ^          ^
+     |
+help: remove these parentheses
+     |
+1522 -                 let g_else = simplify_guard(Expr::And(vec![path, Expr::Not(Box::new((*c.clone())))]));
+1522 +                 let g_else = simplify_guard(Expr::And(vec![path, Expr::Not(Box::new(*c.clone()))]));
+     |
+
+warning: unused imports: `Ast`, `BV`, `Bool`, `Dynamic`, and `Int`
+  --> verilog/src/lib.rs:11:16
+   |
+11 | use z3::{ast::{Ast, Bool, Dynamic, Int, BV}, Context};
+   |                ^^^  ^^^^  ^^^^^^^  ^^^  ^^
+
+warning: unused import: `Hasher`
+    --> verilog/src/ir_parser.rs:1119:23
+     |
+1119 | use std::hash::{Hash, Hasher};
+     |                       ^^^^^^
+
+warning: unused variable: `clause`
+   --> verilog/src/parser.rs:127:17
+    |
+127 |             let clause = format!(
+    |                 ^^^^^^ help: if this is intentional, prefix it with an underscore: `_clause`
+    |
+    = note: `#[warn(unused_variables)]` on by default
+
+warning: variable does not need to be mutable
+   --> verilog/src/parser.rs:109:9
+    |
+109 |     let mut probe_assertions: Vec<String> = Vec::new();
+    |         ----^^^^^^^^^^^^^^^^
+    |         |
+    |         help: remove this `mut`
+    |
+    = note: `#[warn(unused_mut)]` on by default
+
+warning: unused variable: `param_map`
+   --> verilog/src/smt_preprocess.rs:490:13
+    |
+490 |         let param_map = &helper_params; // for calls
+    |             ^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_param_map`
+
+warning: unused variable: `helper_names`
+   --> verilog/src/smt_preprocess.rs:734:9
+    |
+734 |     let helper_names: HashSet<String> = helper_rets.keys().cloned().collect();
+    |         ^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_helper_names`
+
+warning: unreachable pattern
+   --> verilog/src/ir_parser.rs:393:9
+    |
+391 |         Expr::Xor(xs)   => Expr::Xor(xs.iter().map(|x| subst_expr(x, sub)).collect()),
+    |         ------------- matches all the relevant values
+392 |         Expr::BVXor(xs) => Expr::BVXor(xs.iter().map(|x| subst_expr(x, sub)).collect()),
+393 |         Expr::Xor(xs)     => Expr::Xor(xs.iter().map(|x| subst_expr(x, sub)).collect()),
+    |         ^^^^^^^^^^^^^ no value can reach this
+    |
+    = note: `#[warn(unreachable_patterns)]` on by default
+
+warning: unreachable pattern
+   --> verilog/src/ir_parser.rs:394:9
+    |
+392 |         Expr::BVXor(xs) => Expr::BVXor(xs.iter().map(|x| subst_expr(x, sub)).collect()),
+    |         --------------- matches all the relevant values
+393 |         Expr::Xor(xs)     => Expr::Xor(xs.iter().map(|x| subst_expr(x, sub)).collect()),
+394 |         Expr::BVXor(xs)   => Expr::BVXor(xs.iter().map(|x| subst_expr(x, sub)).collect()),
+    |         ^^^^^^^^^^^^^^^ no value can reach this
+
+warning: unused variable: `g_bool`
+   --> verilog/src/ir_parser.rs:976:21
+    |
+976 |                 let g_bool = match g_dyn.as_bool() {
+    |                     ^^^^^^ help: if this is intentional, prefix it with an underscore: `_g_bool`
+
+warning: unused variable: `rhs_dyn`
+   --> verilog/src/ir_parser.rs:987:21
+    |
+987 |                 let rhs_dyn = match expr_to_ast(&rhs_expr, ctx, &dbg_state) {
+    |                     ^^^^^^^ help: if this is intentional, prefix it with an underscore: `_rhs_dyn`
+
+warning: type `Expr` is more private than the item `fingerprint_expr`
+    --> verilog/src/ir_parser.rs:1171:1
+     |
+1171 | pub fn fingerprint_expr(e: &Expr) -> u64 {
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ function `fingerprint_expr` is reachable at visibility `pub(crate)`
+     |
+note: but type `Expr` is only usable at visibility `pub(self)`
+    --> verilog/src/ir_parser.rs:21:1
+     |
+21   | enum Expr {
+     | ^^^^^^^^^
+     = note: `#[warn(private_interfaces)]` on by default
+
+warning: type `Expr` is more private than the item `inline_helpers_memo`
+    --> verilog/src/ir_parser.rs:1298:1
+     |
+1298 | / pub fn inline_helpers_memo(
+1299 | |     e: &Expr,
+1300 | |     fns: &FnTable,
+1301 | |     memo: &mut InlineMemo,
+1302 | | ) -> Result<Expr, String> {
+     | |_________________________^ function `inline_helpers_memo` is reachable at visibility `pub(crate)`
+     |
+note: but type `Expr` is only usable at visibility `pub(self)`
+    --> verilog/src/ir_parser.rs:21:1
+     |
+21   | enum Expr {
+     | ^^^^^^^^^
+
+warning: type `FnDef` is more private than the item `inline_helpers_memo`
+    --> verilog/src/ir_parser.rs:1298:1
+     |
+1298 | / pub fn inline_helpers_memo(
+1299 | |     e: &Expr,
+1300 | |     fns: &FnTable,
+1301 | |     memo: &mut InlineMemo,
+1302 | | ) -> Result<Expr, String> {
+     | |_________________________^ function `inline_helpers_memo` is reachable at visibility `pub(crate)`
+     |
+note: but type `FnDef` is only usable at visibility `pub(self)`
+    --> verilog/src/ir_parser.rs:77:1
+     |
+77   | struct FnDef {
+     | ^^^^^^^^^^^^
+
+warning: type `Expr` is more private than the item `explode_all_ites_factored`
+    --> verilog/src/ir_parser.rs:1551:1
+     |
+1551 | pub fn explode_all_ites_factored(e: &Expr) -> Vec<(Expr, Expr)> {
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ function `explode_all_ites_factored` is reachable at visibility `pub(crate)`
+     |
+note: but type `Expr` is only usable at visibility `pub(self)`
+    --> verilog/src/ir_parser.rs:21:1
+     |
+21   | enum Expr {
+     | ^^^^^^^^^
+
+warning: function `list` is never used
+  --> verilog/src/smt_preprocess.rs:20:4
+   |
+20 | fn list(v: Vec<SExpr>) -> SExpr { SExpr::List(v) }
+   |    ^^^^
+   |
+   = note: `#[warn(dead_code)]` on by default
+
+warning: field `ctor` is never read
+   --> verilog/src/smt_preprocess.rs:124:5
+    |
+122 | struct ModuleState {
+    |        ----------- field in this struct
+123 |     sort_symbol: String,
+124 |     ctor: String,
+    |     ^^^^
+    |
+    = note: `ModuleState` has derived impls for the traits `Debug` and `Clone`, but these are intentionally ignored during dead code analysis
+
+warning: function `name_endswith` is never used
+   --> verilog/src/smt_preprocess.rs:216:4
+    |
+216 | fn name_endswith(sym: &str, suffix: &str) -> bool {
+    |    ^^^^^^^^^^^^^
+
+warning: function `main` is never used
+   --> verilog/src/smt_preprocess.rs:854:4
+    |
+854 | fn main() -> io::Result<()> {
+    |    ^^^^
+
+warning: field `ret` is never read
+  --> verilog/src/ir_parser.rs:79:5
+   |
+77 | struct FnDef {
+   |        ----- field in this struct
+78 |     params: Vec<(String, Sort)>,
+79 |     ret: Sort,
+   |     ^^^
+   |
+   = note: `FnDef` has derived impls for the traits `Debug` and `Clone`, but these are intentionally ignored during dead code analysis
+
+warning: function `inline_helpers` is never used
+   --> verilog/src/ir_parser.rs:434:4
+    |
+434 | fn inline_helpers(e: &Expr, fns: &FnTable, depth: usize) -> Result<Expr, String> {
+    |    ^^^^^^^^^^^^^^
+
+warning: struct `TyCtxt` is never constructed
+   --> verilog/src/ir_parser.rs:509:8
+    |
+509 | struct TyCtxt { vars: IndexMap<String, Sort> }
+    |        ^^^^^^
+
+warning: function `collect_ite_pairs` is never used
+   --> verilog/src/ir_parser.rs:766:4
+    |
+766 | fn collect_ite_pairs(e: &Expr) -> Vec<(Expr, Expr)> {
+    |    ^^^^^^^^^^^^^^^^^
+
+warning: field `ret` is never read
+   --> verilog/src/ir_parser.rs:829:35
+    |
+829 |     struct NextDef { var: String, ret: Sort, body: Expr }
+    |            -------                ^^^
+    |            |
+    |            field in this struct
+
+warning: function `fp_u64` is never used
+    --> verilog/src/ir_parser.rs:1122:4
+     |
+1122 | fn fp_u64(mut h: u64, x: u64) -> u64 { // FNV-1a style mix (simple and fast)
+     |    ^^^^^^
+
+warning: function `fp_bytes` is never used
+    --> verilog/src/ir_parser.rs:1128:4
+     |
+1128 | fn fp_bytes(mut h: u64, bs: &[u8]) -> u64 {
+     |    ^^^^^^^^
+
+warning: function `collect_ite_pairs_smart` is never used
+    --> verilog/src/ir_parser.rs:1517:4
+     |
+1517 | fn collect_ite_pairs_smart(e: &Expr) -> Vec<(Expr, Expr)> {
+     |    ^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `f` is never used
+    --> verilog/src/ir_parser.rs:1555:18
+     |
+1555 |     #[inline] fn f() -> Expr { Expr::BoolConst(false) }
+     |                  ^
+
+warning: `encoder` (lib) generated 16 warnings (run `cargo fix --lib -p encoder` to apply 9 suggestions)
+warning: `loop_conditions` (lib) generated 12 warnings (run `cargo fix --lib -p loop_conditions` to apply 6 suggestions)
+warning: `hqb_verilog` (lib) generated 32 warnings (run `cargo fix --lib -p hqb_verilog` to apply 7 suggestions)
+    Finished `release` profile [optimized] target(s) in 0.23s
+     Running `target/release/HyperRUSTY -n benchmarks/sync/15_bank/bank3_complex_V2.smv benchmarks/sync/15_bank/bank3_complex_V2.smv benchmarks/sync/15_bank/bank3_complex_V2.smv -f benchmarks/sync/15_bank/gmni.hq -k 10 -s hpes -q`
+Model Creation Time: 0.012267083
+QBF Build & Solving Time: 0.212 s
+UNSAT

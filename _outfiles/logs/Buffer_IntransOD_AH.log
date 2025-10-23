@@ -1,0 +1,36 @@
+========================= Initialization =========================
+> Parsing model-checking instance (--nusmv)...
+  ...done (46ms, 0.0460s)
+> Translating symbolic system to explicit-state system...
+  ...done (121ms, 0.1210s)
+> Translating symbolic system to explicit-state system...
+  ...hashed (0ms, 0.0000s)
+> system-sizes: [228,228]
+> Computing bisimulation quotients...
+  ...done (68ms, 0.0680s)
+> Computing bisimulation quotients...
+  ...hashed (4ms, 0.0040s)
+> system-sizes: [82,82]
+==================================================
+
+========================= LTL-to-NBA =========================
+> Start LTL-to-NBA translation...
+  ...done (141ms, 0.1410s)
+> size: 2
+==================================================
+
+========================= Compute final product for emptiness check =========================
+> Start automaton-system-product...
+  ...done (341ms, 0.3410s)
+> size: 2782
+==================================================
+
+========================= Emptiness Check =========================
+> size: 2782
+> Start emptiness check...
+   ...done (258ms, 0.2580s)
+==================================================
+
+> total-time: 1132 ms (1.1320s)
+
+SAT

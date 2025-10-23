@@ -1,0 +1,36 @@
+! Cannot compute witnesses AND utilize bisimulation quotients
+! We have disabled bisimulation quotients
+! Cannot compute witnesses AND use inclusion checks
+! We have switched to mode '--comp'
+========================= Initialization =========================
+> Parsing model-checking instance (--nusmv)...
+  ...done (48ms, 0.0480s)
+Warning: No init condition for variable dequeFAIL
+Warning: No init condition for variable enqueFAIL
+> Translating symbolic system to explicit-state system...
+  ...done (3472ms, 3.4720s)
+> Translating symbolic system to explicit-state system...
+  ...done (1530ms, 1.5300s)
+> system-sizes: [11028,4846]
+==================================================
+
+========================= LTL-to-NBA =========================
+> Start LTL-to-NBA translation...
+  ...done (146ms, 0.1460s)
+> size: 3
+==================================================
+
+============ exists [B ]. ============
+> size: 3
+> Start automaton-system-product...
+  ...done (1563ms, 1.5630s)
+> size: 14536
+==================================================
+
+========================= Compute final product for emptiness check =========================
+> Automaton complementation...
+Unexpected exit code by spot: 143
+=========== ERROR ===========
+Unexpected exit code by spot
+=============================
+[TIMEOUT] IQueue (AH) exceeded 10s.

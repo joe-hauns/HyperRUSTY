@@ -1,0 +1,53 @@
+! Cannot compute witnesses AND utilize bisimulation quotients
+! We have disabled bisimulation quotients
+! Cannot compute witnesses AND use inclusion checks
+! We have switched to mode '--comp'
+========================= Initialization =========================
+> Parsing model-checking instance (--nusmv)...
+  ...done (42ms, 0.0420s)
+> Translating symbolic system to explicit-state system...
+  ...done (87ms, 0.0870s)
+> Translating symbolic system to explicit-state system...
+  ...hashed (0ms, 0.0000s)
+> Translating symbolic system to explicit-state system...
+  ...hashed (0ms, 0.0000s)
+> system-sizes: [155,155,155]
+==================================================
+
+========================= LTL-to-NBA =========================
+> Start LTL-to-NBA translation...
+  ...done (187ms, 0.1870s)
+> size: 1
+==================================================
+
+============ exists [C ]. ============
+> size: 1
+> Start automaton-system-product...
+  ...done (37ms, 0.0370s)
+> size: 155
+==================================================
+
+========================= Compute final product for emptiness check =========================
+> Automaton complementation...
+  ...done (111ms, 0.1110s)
+> size-before: 155
+> size-after: 9
+> Start automaton-system-product...
+  ...done (733ms, 0.7330s)
+> size: 9308
+==================================================
+
+========================= Emptiness Check + Witness =========================
+> size: 9308
+> Start lasso search...
+  ...done (5ms, 0.0050s)
+==================================================
+
+> total-time: 1344 ms (1.3440s)
+
+======= Witnesses =======
+A: ({"creds":0, "httpclient":1, "loginfo":0, "matchedAdminPassword":0, "matchedUserPassword":0, "password":0, "result":0, "serverport":0, "startactivity":0, "username":0} {"creds":1, "httpclient":0, "loginfo":0, "matchedAdminPassword":0, "matchedUserPassword":0, "password":0, "result":1, "serverport":0, "startactivity":0, "username":0} {"creds":0, "httpclient":0, "loginfo":1, "matchedAdminPassword":0, "matchedUserPassword":0, "password":0, "result":1, "serverport":0, "startactivity":1, "username":0}) ({"creds":0, "httpclient":0, "loginfo":1, "matchedAdminPassword":0, "matchedUserPassword":0, "password":0, "result":1, "serverport":0, "startactivity":0, "username":0})
+B: ({"creds":0, "httpclient":1, "loginfo":0, "matchedAdminPassword":0, "matchedUserPassword":0, "password":2, "result":0, "serverport":0, "startactivity":0, "username":0} {"creds":0, "httpclient":0, "loginfo":0, "matchedAdminPassword":0, "matchedUserPassword":0, "password":2, "result":2, "serverport":0, "startactivity":0, "username":0} {"creds":0, "httpclient":0, "loginfo":2, "matchedAdminPassword":0, "matchedUserPassword":0, "password":2, "result":2, "serverport":0, "startactivity":0, "username":0}) ({"creds":0, "httpclient":0, "loginfo":2, "matchedAdminPassword":0, "matchedUserPassword":0, "password":2, "result":2, "serverport":0, "startactivity":0, "username":0})
+=========================
+
+UNSAT

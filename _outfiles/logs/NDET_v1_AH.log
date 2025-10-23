@@ -1,0 +1,50 @@
+! Cannot compute witnesses AND utilize bisimulation quotients
+! We have disabled bisimulation quotients
+! Cannot compute witnesses AND use inclusion checks
+! We have switched to mode '--comp'
+========================= Initialization =========================
+> Parsing model-checking instance (--nusmv)...
+  ...done (43ms, 0.0430s)
+> Translating symbolic system to explicit-state system...
+  ...done (42ms, 0.0420s)
+> Translating symbolic system to explicit-state system...
+  ...hashed (0ms, 0.0000s)
+> system-sizes: [6,6]
+==================================================
+
+========================= LTL-to-NBA =========================
+> Start LTL-to-NBA translation...
+  ...done (133ms, 0.1330s)
+> size: 2
+==================================================
+
+============ exists [B ]. ============
+> size: 2
+> Start automaton-system-product...
+  ...done (25ms, 0.0250s)
+> size: 10
+==================================================
+
+========================= Compute final product for emptiness check =========================
+> Automaton complementation...
+  ...done (81ms, 0.0810s)
+> size-before: 10
+> size-after: 14
+> Start automaton-system-product...
+  ...done (1ms, 0.0010s)
+> size: 8
+==================================================
+
+========================= Emptiness Check + Witness =========================
+> size: 8
+> Start lasso search...
+  ...done (4ms, 0.0040s)
+==================================================
+
+> total-time: 471 ms (0.4710s)
+
+======= Witnesses =======
+A: ({"HIGH":0, "LOW":0, "PC":1} {"HIGH":0, "LOW":0, "PC":2} {"HIGH":0, "LOW":0, "PC":3}) ({"HIGH":0, "LOW":0, "PC":3})
+=========================
+
+UNSAT

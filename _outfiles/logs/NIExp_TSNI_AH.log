@@ -1,0 +1,40 @@
+========================= Initialization =========================
+> Parsing model-checking instance (--nusmv)...
+  ...done (79ms, 0.0790s)
+> Translating symbolic system to explicit-state system...
+  ...done (166ms, 0.1660s)
+> Translating symbolic system to explicit-state system...
+  ...hashed (0ms, 0.0000s)
+> system-sizes: [576,576]
+> Computing bisimulation quotients...
+  ...done (335ms, 0.3350s)
+> Computing bisimulation quotients...
+  ...hashed (17ms, 0.0170s)
+> system-sizes: [190,190]
+==================================================
+
+========================= LTL-to-NBA =========================
+> Start LTL-to-NBA translation...
+  ...done (194ms, 0.1940s)
+> size: 3
+==================================================
+
+============ exists [B ]. ============
+> size: 3
+> Start automaton-system-product...
+  ...done (81ms, 0.0810s)
+> size: 319
+==================================================
+
+========================= Inclusion Check =========================
+> size: 319
+> Construct self-composition...
+  ...done (19ms, 0.0190s)
+> self-composition-size: 190
+> Start inclusion check...
+  ...done (582ms, 0.5820s)
+==================================================
+
+> total-time: 1726 ms (1.7260s)
+
+SAT

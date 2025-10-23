@@ -1,0 +1,63 @@
+========================= Initialization =========================
+> Parsing model-checking instance (--nusmv)...
+  ...done (48ms, 0.0480s)
+> Translating symbolic system to explicit-state system...
+  ...done (77ms, 0.0770s)
+> Translating symbolic system to explicit-state system...
+  ...done (6ms, 0.0060s)
+> Translating symbolic system to explicit-state system...
+  ...done (0ms, 0.0000s)
+> Translating symbolic system to explicit-state system...
+  ...hashed (0ms, 0.0000s)
+> Translating symbolic system to explicit-state system...
+  ...hashed (0ms, 0.0000s)
+> system-sizes: [16,10,7,10,7]
+> Computing bisimulation quotients...
+  ...done (20ms, 0.0200s)
+> Computing bisimulation quotients...
+  ...done (3ms, 0.0030s)
+> Computing bisimulation quotients...
+  ...done (0ms, 0.0000s)
+> Computing bisimulation quotients...
+  ...hashed (0ms, 0.0000s)
+> Computing bisimulation quotients...
+  ...hashed (0ms, 0.0000s)
+> system-sizes: [16,9,7,9,7]
+==================================================
+
+========================= LTL-to-NBA =========================
+> Start LTL-to-NBA translation...
+  ...done (123ms, 0.1230s)
+> size: 3
+==================================================
+
+============ forall [D E ]. ============
+> size: 3
+> Start automaton-system-product...
+  ...done (40ms, 0.0400s)
+> size: 48
+==================================================
+
+============ exists [B C ]. ============
+> size: 48
+> Automaton complementation...
+  ...done (82ms, 0.0820s)
+> size-before: 48
+> size-after: 2
+> Start automaton-system-product...
+  ...done (10ms, 0.0100s)
+> size: 43
+==================================================
+
+========================= Inclusion Check =========================
+> size: 43
+> Construct self-composition...
+  ...done (4ms, 0.0040s)
+> self-composition-size: 16
+> Start inclusion check...
+  ...done (69ms, 0.0690s)
+==================================================
+
+> total-time: 644 ms (0.6440s)
+
+SAT

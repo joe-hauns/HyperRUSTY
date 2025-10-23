@@ -1,0 +1,35 @@
+========================= Initialization =========================
+> Parsing model-checking instance (--nusmv)...
+  ...done (42ms, 0.0420s)
+> Translating symbolic system to explicit-state system...
+  ...done (45ms, 0.0450s)
+> Translating symbolic system to explicit-state system...
+  ...hashed (0ms, 0.0000s)
+> system-sizes: [34,34]
+> Computing bisimulation quotients...
+  ...done (20ms, 0.0200s)
+> Computing bisimulation quotients...
+  ...hashed (1ms, 0.0010s)
+> system-sizes: [26,26]
+==================================================
+
+========================= LTL-to-NBA =========================
+> Start LTL-to-NBA translation...
+  ...done (200ms, 0.2000s)
+> size: 2
+==================================================
+
+============ exists [B ]. ============
+> size: 2
+> Start automaton-system-product...
+  ...done (26ms, 0.0260s)
+> size: 51
+==================================================
+
+========================= Inclusion Check =========================
+> size: 51
+> Construct self-composition...
+  ...done (3ms, 0.0030s)
+> self-composition-size: 26
+> Start inclusion check...
+[TIMEOUT] NDET_v3 (AH) exceeded 10s.
