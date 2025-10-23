@@ -77,6 +77,7 @@ fn main() {
                 -l --loop_conditions "Use loop conditions instead of unrolling"
             )
             .required(false)
+            .action(clap::ArgAction::SetTrue),
         )
         .arg(
             arg!(
@@ -111,40 +112,35 @@ fn main() {
             .required(true)
             .multiple(false)
         );
-        // .group(ArgGroup::new("verilog-branch")
-        //     .args(["top", "yosys_output"])
-        //     .requires("verilog")
-        // );
 
     let matches = cli.get_matches();
-
-    let mut unrolling_bound = *matches
-        .get_one::<usize>("unrolling_bound")
-        .expect("Unrolling bound (-k) is required when not using loop conditions (-l)");
-
-    let semantics_as_str = matches
-        .get_one::<String>("semantics")
-        .expect("Semantics (-s) is required when not using loop conditions (-l)");
-
-    let mut semantics = match semantics_as_str.as_str() {
-        "pes" => Semantics::Pes,
-        "opt" => Semantics::Opt,
-        "hpes" => Semantics::Hopt,
-        "hopt" => Semantics::Hpes,
-        _ => panic!("Invalid choice of semantics")
-    };
-
-    // Check if loop conditions flag is set
-    if *matches.get_one::<bool>("loop_conditions").unwrap() {
-        unrolling_bound = 0;
-        semantics = Semantics::Pes;
+    let use_loop_conditions = matches.get_flag("loop_conditions");
+    let mut unrolling_bound : usize = 0;
+    let mut semantics_as_str = &String::from("");
+    let mut semantics = Semantics::Pes;
+    if !use_loop_conditions {
+        unrolling_bound = *matches
+            .get_one::<usize>("unrolling_bound")
+            .expect("Unrolling bound (-k) is required when not using loop conditions (-l)");
+        
+        semantics_as_str = matches
+            .get_one::<String>("semantics")
+            .expect("Semantics (-s) is required when not using loop conditions (-l)");
+        
+        semantics = match semantics_as_str.as_str() {
+            "pes" => Semantics::Pes,
+            "opt" => Semantics::Opt,
+            "hpes" => Semantics::Hopt,
+            "hopt" => Semantics::Hpes,
+            _ => panic!("Invalid choice of semantics")
+        };
+        
     }
+    let trajectory_bound = matches
+        .get_one::<usize>("trajectory_bound");
 
     let formula_path = matches
         .get_one::<PathBuf>("formula").unwrap();
-
-    let trajectory_bound = matches
-        .get_one::<usize>("trajectory_bound");
 
     if let Some(nusmv_models) = matches.get_many::<PathBuf>("nusmv") {
         // NuSMV Path
@@ -160,11 +156,6 @@ fn main() {
         let formula = fs::read_to_string(formula_path).expect("Failed to read the formula");
         let mut ast_node = parse(&formula).expect("Failed parsing the formula");
         if *matches.get_one::<bool>("qbf_solver").unwrap() {
-
-            // QBF unrolling
-
-
-            // create ENV
             let mut cfg = Config::new();
             cfg.set_model_generation(true);
             let ctx = Context::new(&cfg);
@@ -216,10 +207,6 @@ fn main() {
             let stdout = String::from_utf8_lossy(&output.stdout);
             let stderr = String::from_utf8_lossy(&output.stderr);
 
-            // Print based on success or failure
-            // if !stdout.trim().is_empty() {
-            //     println!("{}", stdout);
-            // }
             if !stderr.trim().is_empty() {
                 println!("{}", stderr);
             }
@@ -244,9 +231,6 @@ fn main() {
             
             println!("QBF Build & Solving Time: {:.3} s", secs);
             println!("{}", status);
-
-            // let duration = start.elapsed();
-            // let secs = duration.as_secs_f64();
 
         } else {
             // Should we use the negation for counterexample generation?
@@ -290,7 +274,7 @@ fn main() {
             // Start the timer for encoding
             let start = Instant::now();
             let encoding = if *matches.get_one::<bool>("loop_conditions").unwrap() {
-                let lp = LoopCondition::new(&ctx, &envs[0], &envs[1]);
+                let mut lp = LoopCondition::new(&ctx, &envs[0], &envs[1]);
                 lp.build_loop_condition(&ast_node)
 
             } else {
@@ -332,13 +316,6 @@ fn main() {
                     println!("result: unknown.");
                 }
             };
-            // grab the statistics of the solver
-            // let stats = solver.get_statistics();
-            // let val_str = match stats.value("time").unwrap() {
-            //     StatisticsValue::UInt(u)   => u.to_string(),
-            //     StatisticsValue::Double(d) => d.to_string(),
-            // };
-            // println!("Solve Time: {}", val_str);
         }
     } else {
         // Verilog Path
@@ -410,7 +387,7 @@ fn main() {
         let start = Instant::now();
 
         let encoding = if *matches.get_one::<bool>("loop_conditions").unwrap() {
-            let lp = LoopCondition::new(&ctx, &envs[0], &envs[1]);
+            let mut lp = LoopCondition::new(&ctx, &envs[0], &envs[1]);
             lp.build_loop_condition(&ast_node)
 
         } else {

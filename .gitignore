@@ -2,9 +2,9 @@
 /AutoHyper
 Cargo.lock
 commands.txt
-
+simulation_pair_constraints.txt
 _outfiles/*
-
+z3_encoding_output.smt2
 aut1.hoa
 aut2.hoa
 autRes.hoa

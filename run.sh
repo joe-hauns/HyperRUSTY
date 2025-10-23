@@ -4,17 +4,6 @@
 
 # AutoHyper/app/AutoHyper --nusmv mini.smv auto_mini.hq
 
-# cargo run --release -- -n benchmarks/0_infoflow/info.smv benchmarks/0_infoflow/info.smv -f benchmarks/0_infoflow/info.hq -k 10 -s hpes -q 
-
-# time cargo run --release -- -n benchmarks/async/0_test/m1.smv benchmarks/async/0_test/m2.smv -f benchmarks/async/0_test/formula.hq -k 4 -m 8 -s hpes -q
-
-
-# cargo run --release -- -n benchmarks/0_infoflow/info.smv benchmarks/0_infoflow/info.smv -f benchmarks/0_infoflow/info.hq -k 10 -s hpes -q 
-
-# time cargo run --release -- -n benchmarks/async/0_test/m1.smv benchmarks/async/0_test/m2.smv -f benchmarks/async/0_test/formula.hq -k 4 -m 8 -s hpes -q
-
-
-
 #=== BAKERY ===#
 
 # echo "bakery 3"
@@ -54,6 +43,15 @@
 # Emm ABA bug
 
 # time cargo run --release -- -n benchmarks/emm_aba/emm_aba_conc.smv benchmarks/emm_aba/emm_aba_seq.smv -f benchmarks/emm_aba/emm_aba.hq -k 6 -s hpes
+
+#=== Linearizability ===#
+
+# Lazy-list
+# time cargo run --release -- -n benchmarks/lazy_list/lazy_list_conc.smv benchmarks/lazy_list/lazy_list_seq.smv -f benchmarks/lazy_list/lazy_list.hq -k 13 -s hpes
+
+# Emm ABA bug
+
+#time cargo run --release -- -n benchmarks/emm_aba/emm_aba_conc.smv benchmarks/emm_aba/emm_aba_seq.smv -f benchmarks/emm_aba/emm_aba.hq -k 6 -s hpes
 
 
 #=== SNARK ===#
@@ -363,6 +361,16 @@
 
 # cargo run --release -- -n benchmarks/loop_conditions/abp/abp_1.smv benchmarks/loop_conditions/abp/abp_2.smv -f benchmarks/loop_conditions/abp/abp.hq -l
 
+# cargo run --release -- -n benchmarks/loop_conditions/abp/abp_1_buggy.smv benchmarks/loop_conditions/abp/abp_2_buggy.smv -f benchmarks/loop_conditions/abp/abp.hq -l
+
+# cargo run --release -- -n benchmarks/loop_conditions/mm/mm1.smv benchmarks/loop_conditions/mm/mm2.smv -f benchmarks/loop_conditions/mm/mm.hq -l
+
+#cargo run --release -- -n benchmarks/loop_conditions/mm/mm1_buggy.smv benchmarks/loop_conditions/mm/mm2_buggy.smv -f benchmarks/loop_conditions/mm/mm.hq -l
+
+#cargo run --release -- -n benchmarks/loop_conditions/cbf/cbf1.smv benchmarks/loop_conditions/cbf/cbf2.smv -f benchmarks/loop_conditions/cbf/cbf.hq -l
+
+# cargo run --release -- -n benchmarks/loop_conditions/cbf/cbf1_buggy.smv benchmarks/loop_conditions/cbf/cbf2_buggy.smv -f benchmarks/loop_conditions/cbf/cbf.hq -l
+
 # cargo run --release -- -n benchmarks/loop_conditions/robust_path_planning/rp_1.smv benchmarks/loop_conditions/robust_path_planning/rp_2.smv -f benchmarks/loop_conditions/robust_path_planning/rp.hq -l
 
 # cargo run --release -- -n benchmarks/loop_conditions/robust_path_planning/rp_1_no_sol.smv benchmarks/loop_conditions/robust_path_planning/rp_2.smv -f benchmarks/loop_conditions/robust_path_planning/rp.hq -l
@@ -370,6 +378,14 @@
 # cargo run --release -- -n benchmarks/loop_conditions/simple_loop/simple_loop1.smv benchmarks/loop_conditions/simple_loop/simple_loop2.smv -f benchmarks/loop_conditions/simple_loop/simple_loop.hq -l
 
 # cargo run --release -- -n benchmarks/loop_conditions/test_loop/rs1.smv benchmarks/loop_conditions/test_loop/rs2.smv -f benchmarks/loop_conditions/test_loop/rs.hq -l
+
+# cargo run --release -- -n benchmarks/loop_conditions/gcw/gcw1.smv benchmarks/loop_conditions/gcw/gcw2.smv -f benchmarks/loop_conditions/gcw/gcw.hq -l
+
+cargo run --release -- -n benchmarks/loop_conditions/gcw/gcw1_buggy.smv benchmarks/loop_conditions/gcw/gcw2_buggy.smv -f benchmarks/loop_conditions/gcw/gcw.hq -l
+
+# cargo run --release -- -n benchmarks/loop_conditions/simple_loop/simple_loop1.smv benchmarks/loop_conditions/simple_loop/simple_loop2.smv -f benchmarks/loop_conditions/simple_loop/simple_loop.hq -l
+
+#  cargo run --release -- -n benchmarks/loop_conditions/test_loop/rs1.smv benchmarks/loop_conditions/test_loop/rs2.smv -f benchmarks/loop_conditions/test_loop/rs.hq -l
 
 
 
@@ -500,13 +516,4 @@
 
 #=== CACHE -ndet -loop ===#
 # time cargo run --release -- -n benchmarks/async/5_cache/flattened/cache_loops.smv benchmarks/async/5_cache/flattened/cache_loops.smv -f benchmarks/async/5_cache/flattened/odnd.hq -k 35 -m 70 -s hpes 
-
-
-
-
-
-
-
-
-
 

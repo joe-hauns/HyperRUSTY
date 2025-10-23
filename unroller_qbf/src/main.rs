@@ -232,6 +232,7 @@ pub fn gen_qcir<'env, 'ctx>(
 
         let full_trans_expr = Expression::MAnd(expr_vec.clone());
         expr_vec.clear();
+        
         complete_bit_map.extend(
             max_bit_map.iter().map(|(k, v)| (k.clone(), *v as usize))
         );

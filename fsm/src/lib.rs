@@ -8,7 +8,7 @@
 /// If there is an or, we need to create a branching path.
 /// We won't evaluate the expression yet, This is just creating the finite state machine and
 /// some functions that take the time parameter and return the possible states at that time.
-mod helper_functions;
+pub mod helper_functions;
 mod gate_builder;
 mod unroller;
 mod input_to_expressions;
@@ -20,6 +20,7 @@ mod qcir_builder;
 mod hltl_unroller;
 // pub mod ir_parser;
 
+pub use helper_functions::create_file;
 pub use unroller::unwrap;
 pub use csv_parser::csv_to_expr;
 pub use helper_functions::replace_last_occurrence;
