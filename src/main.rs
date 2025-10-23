@@ -200,31 +200,53 @@ fn main() {
 
 
             let semantics = "hpes"; // temp, not sure what's wrong
-            gen_qcir(&envs, &model_paths, &formula, unrolling_bound, false, semantics, Path::new("outputs/HQ.qcir"));
+            gen_qcir(&envs, &model_paths, &formula, unrolling_bound, false, semantics, Path::new("_outfiles/HQ.qcir"));
 
             let output = process::Command::new("./quabs")
                 .arg("--partial-assignment")
-                .arg("outputs/HQ.qcir")
+                .arg("_outfiles/HQ.qcir")
                 .stdout(process::Stdio::piped())
+                .stderr(process::Stdio::piped())
                 .spawn()
-                .expect("QuAbs can not be executed")
-                .wait_with_output().expect("QuAbs output is problematic.");
+                .expect("Failed to execute QuAbs, please check QuABs")
+                .wait_with_output()
+                .expect("Failed to capture QuAbs output");
             
             // Convert stdout and stderr from bytes to string
             let stdout = String::from_utf8_lossy(&output.stdout);
             let stderr = String::from_utf8_lossy(&output.stderr);
 
             // Print based on success or failure
-            if !stdout.trim().is_empty() {
-                println!("{}", stdout);
-            }
+            // if !stdout.trim().is_empty() {
+            //     println!("{}", stdout);
+            // }
             if !stderr.trim().is_empty() {
                 println!("{}", stderr);
             }
 
-            let duration = start.elapsed();
-            let secs = duration.as_secs_f64();
-            println!("QBF Build & Solving Time: {}", secs);
+            let secs = start.elapsed().as_secs_f64();
+
+            let out_path = "_outfiles/quabs.out";
+            {
+                let mut file = fs::File::create(out_path).expect("Cannot create quabs.out");
+                file.write_all(&output.stdout).expect("Failed to write QuAbs output");
+            }
+            
+            let quabs_output = String::from_utf8_lossy(&output.stdout);
+            let status = if quabs_output.contains("r UNSAT") {
+                "UNSAT"
+            } else if quabs_output.contains("r SAT") {
+                "SAT"
+            } else {
+                "UNKNOWN"
+            };
+
+            
+            println!("QBF Build & Solving Time: {:.3} s", secs);
+            println!("{}", status);
+
+            // let duration = start.elapsed();
+            // let secs = duration.as_secs_f64();
 
         } else {
             // Should we use the negation for counterexample generation?
