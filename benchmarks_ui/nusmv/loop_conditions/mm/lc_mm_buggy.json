@@ -1,9 +1,9 @@
 {
-  "name": "Matrix Multiplication",
+  "name": "Matrix Multiplication (Buggy)",
   "inputLanguage": "nusmv",
   "files": {
     "nusmvFiles": ["mm1_buggy.smv", "mm2_buggy.smv"],
-    "formula": "abp.hq"
+    "formula": "mm.hq"
   },
   "options": {
     "useLoopConditions": true,
