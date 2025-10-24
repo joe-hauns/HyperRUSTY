@@ -95,7 +95,7 @@ time_run() {
 # ---- Pretty-print table (plain + markdown) ----
 render_tables() {
   echo
-  echo "=== Table 1 runtimes (plain text) ==="
+  echo "=== Table 4 runtimes (TACAS'21 cases) ==="
   column -s, -t < "$CSV" | sed '1s/^/**/;1s/$/**/' | column -t
 
   # Markdown table

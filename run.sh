@@ -405,10 +405,10 @@
 #cargo run --release -- -v benchmarks/verilog/LED/build_ea.ys benchmarks/verilog/LED/build_ea.ys -t led_fsm -o model.smt2 -f benchmarks/verilog/LED/formula_ea.hq -k 101 -s pes
 
 #=== SPI ===#
-#cargo run --release -- -v benchmarks/verilog/SPI/spi_build.ys benchmarks/verilog/SPI/spi_build.ys -t SPISlave -o spi.smt2 -f benchmarks/verilog/SPI/formula.hq -k 8 -s hpes
+# cargo run --release -- -v benchmarks/verilog/SPI/spi_build.ys benchmarks/verilog/SPI/spi_build.ys -t SPISlave -o spi.smt2 -f benchmarks/verilog/SPI/formula.hq -k 8 -s hpes
 
 #=== fpu2 ===#
-RUST_BACKTRACE=full cargo run --release -- -v benchmarks/verilog/divider/divider.ys benchmarks/verilog/divider/divider.ys -t divider -o model.smt2 -f benchmarks/verilog/divider/formula.hq -k 8 -s pes
+# RUST_BACKTRACE=full cargo run --release -- -v benchmarks/verilog/divider/divider.ys benchmarks/verilog/divider/divider.ys -t divider -o model.smt2 -f benchmarks/verilog/divider/formula.hq -k 8 -s pes
 
 
 #=== A-HLTL cases ===#

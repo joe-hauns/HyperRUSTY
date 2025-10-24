@@ -95,7 +95,7 @@ time_run() {
 # ---- Pretty-print table (plain + markdown) ----
 render_tables() {
   echo
-  echo "=== Table 2 runtimes (plain text) ==="
+  echo "=== Table 5 runtimes (New HyperLTL cases) ==="
   column -s, -t < "$CSV" | sed '1s/^/**/;1s/$/**/' | column -t
 
   # Markdown table
