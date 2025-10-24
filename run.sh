@@ -408,11 +408,7 @@
 # cargo run --release -- -v benchmarks/verilog/SPI/spi_build.ys benchmarks/verilog/SPI/spi_build.ys -t SPISlave -o spi.smt2 -f benchmarks/verilog/SPI/formula.hq -k 8 -s hpes
 
 #=== fpu2 ===#
-<<<<<<< HEAD
 # RUST_BACKTRACE=full cargo run --release -- -v benchmarks/verilog/divider/divider.ys benchmarks/verilog/divider/divider.ys -t divider -o model.smt2 -f benchmarks/verilog/divider/formula.hq -k 8 -s pes
-=======
-#RUST_BACKTRACE=full cargo run --release -- -v benchmarks/verilog/divider/divider.ys benchmarks/verilog/divider/divider.ys -t divider -o model.smt2 -f benchmarks/verilog/divider/formula.hq -k 8 -s pes
->>>>>>> c6ed39c (abp added to ui folder)
 
 
 #=== A-HLTL cases ===#
