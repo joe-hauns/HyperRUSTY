@@ -1,0 +1,13 @@
+{
+  "name": "Matrix Multiplication",
+  "inputLanguage": "nusmv",
+  "files": {
+    "nusmvFiles": ["mm1.smv", "mm2.smv"],
+    "formula": "mm.hq"
+  },
+  "options": {
+    "useLoopConditions": true,
+    "unrollingBound": null,
+    "semantics": null
+  }
+}
