@@ -1280,6 +1280,10 @@ case "${1:-}" in
       run_single_case_matrix "$1" smt ah qbf
     fi
     ;;
+    
+  -all)
+    run_matrix smt
+    ;;
 
   -smt|-ah|-qbf)
     mode="${1#-}"

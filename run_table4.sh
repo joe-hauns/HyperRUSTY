@@ -15,8 +15,8 @@ fi
 # ---- Paths for results/logs ----
 RESULTS_DIR="_outfiles"
 LOG_DIR="${RESULTS_DIR}/logs"
-CSV="${RESULTS_DIR}/table1_runtimes.csv"
-MD="${RESULTS_DIR}/table1_runtimes.md"
+CSV="${RESULTS_DIR}/table4_runtimes.csv"
+MD="${RESULTS_DIR}/table4_runtimes.md"
 
 # Fresh start: recreate logs dir and reset CSV/MD
 mkdir -p "$RESULTS_DIR"
@@ -29,7 +29,7 @@ fi
 
 # Initialize CSV (once per script run)
 # echo "timestamp,case,variant,exit,real_s,user_s,sys_s,max_rss_kb,log" > "$CSV"
-echo "case,variant,real_s,log" > "$CSV"
+echo "case,variant,result,real_s,user_s,sys_s,max_rss_kb,log" > "$CSV"
 
 # ---- Timing helper ----
 time_run() {
@@ -48,16 +48,14 @@ time_run() {
     # Run with/without timeout, capture output to log and preserve exit code
     set +e
     if [[ -n "${TIMEOUT_BIN:-}" ]]; then
-        (
-          "$TIMEOUT_BIN" "$TIMEOUT_SEC" bash -c \
-            "gtime -f '%e,%U,%S,%M' -o '$tmp' bash -c \"$cmd\""
-        ) > >(tee -a "$log_file") 2> >(tee -a "$log_file" >&2)
-        exit_code=$?
+        "$TIMEOUT_BIN" "$TIMEOUT_SEC" bash -c \
+          "gtime -f '%e,%U,%S,%M' -o '$tmp' bash -c \"$cmd\"" \
+          2>&1 | tee -a "$log_file"
+        exit_code=${PIPESTATUS[0]}
     else
-        (
-          gtime -f "%e,%U,%S,%M" -o "$tmp" bash -c "$cmd"
-        ) > >(tee -a "$log_file") 2> >(tee -a "$log_file" >&2)
-        exit_code=$?
+        gtime -f "%e,%U,%S,%M" -o "$tmp" bash -c "$cmd" \
+          2>&1 | tee -a "$log_file"
+        exit_code=${PIPESTATUS[0]}
     fi
     set -e
 
@@ -83,8 +81,8 @@ time_run() {
 
     # execution finished.  
     # Append one row to CSV (simple real time)
-    printf "%s,%s,%s,%.3f,%s\n" \
-        "$case_name" "$variant" "$status" "${real_s:-0.0}" "$log_file" >> "$CSV"
+    printf "%s,%s,%s,%.3f,%.3f,%.3f,%s,%s\n" \
+        "$case_name" "$variant" "$status" "${real_s:-0.0}" "${user_s:-0.0}" "${sys_s:-0.0}" "${max_rss_kb:-0}" "$log_file" >> "$CSV"
     # Append one row to CSV (full info)
     # printf "%s,%s,%s,%s,%s,%.3f,%.3f,%.3f,%s,%s\n" \
     # "$stamp" "$case_name" "$variant" "$status" "$exit_code" \
@@ -100,9 +98,9 @@ render_tables() {
 
   # Markdown table
   {
-    echo "| Case | Variant | Exit | Real (s) | User (s) | Sys (s) | MaxRSS (KB) | Log |"
-    echo "|------|---------|------|----------:|---------:|--------:|------------:|-----|"
-    tail -n +2 "$CSV" | awk -F, '{printf "| %s | %s | %s | %.3f | %.3f | %.3f | %s | %s |\n",$2,$3,$4,$5,$6,$7,$8,$9}'
+    echo "| Case | Variant | Result | Real (s) | User (s) | Sys (s) | MaxRSS (KB) | Log |"
+    echo "|------|---------|--------|----------:|---------:|--------:|------------:|-----|"
+    tail -n +2 "$CSV" | awk -F, '{printf "| %s | %s | %s | %.3f | %.3f | %.3f | %s | %s |\n",$1,$2,$3,$4,$5,$6,$7,$8}'
   } > "$MD"
   printf "\nMarkdown table written to: $MD"
 }
@@ -902,13 +900,17 @@ case "${1:-}" in
     fi
     ;;
 
+  -all)
+    run_matrix smt
+    ;;
+
   -smt|-ah|-qbf)
     mode="${1#-}"
     run_matrix "$mode"
     ;;
 
   -light)
-    local_subset=(case_bakery3 case_bakery5)
+    local_subset=(case_bakery3 case_bakery7)
     for c in "${local_subset[@]}"; do
       "$c" smt
     done

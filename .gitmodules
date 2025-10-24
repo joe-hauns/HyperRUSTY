@@ -1,0 +1,3 @@
+[submodule "AutoHyper"]
+	path = AutoHyper
+	url = https://github.com/AutoHyper/AutoHyper
