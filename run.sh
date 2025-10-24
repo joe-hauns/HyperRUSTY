@@ -381,7 +381,7 @@
 
 # cargo run --release -- -n benchmarks/loop_conditions/gcw/gcw1.smv benchmarks/loop_conditions/gcw/gcw2.smv -f benchmarks/loop_conditions/gcw/gcw.hq -l
 
-cargo run --release -- -n benchmarks/loop_conditions/gcw/gcw1_buggy.smv benchmarks/loop_conditions/gcw/gcw2_buggy.smv -f benchmarks/loop_conditions/gcw/gcw.hq -l
+# cargo run --release -- -n benchmarks/loop_conditions/gcw/gcw1_buggy.smv benchmarks/loop_conditions/gcw/gcw2_buggy.smv -f benchmarks/loop_conditions/gcw/gcw.hq -l
 
 # cargo run --release -- -n benchmarks/loop_conditions/simple_loop/simple_loop1.smv benchmarks/loop_conditions/simple_loop/simple_loop2.smv -f benchmarks/loop_conditions/simple_loop/simple_loop.hq -l
 
@@ -391,7 +391,7 @@ cargo run --release -- -n benchmarks/loop_conditions/gcw/gcw1_buggy.smv benchmar
 
 #=== VERLIOG EXAMPLES ===#
 
-#RUST_BACKTRACE=1 cargo run --release -- -v verilog_benchmarks/build_infoflow.ys verilog_benchmarks/build_infoflow.ys -t main -o model.smt2 -f verilog_benchmarks/formula.hq -k 3 -s hpes
+# RUST_BACKTRACE=1 cargo run --release -- -v verilog_benchmarks/build_infoflow.ys verilog_benchmarks/build_infoflow.ys -t main -o model.smt2 -f verilog_benchmarks/formula.hq -k 3 -s hpes
 
 #=== LED EE===#
 #cargo run --release -- -v benchmarks/verilog/LED/build_ee.ys benchmarks/verilog/LED/build_ee.ys -t light -o model.smt2 -f benchmarks/verilog/LED/formula_ee_t.hq -k 101 -s hpes
@@ -408,7 +408,7 @@ cargo run --release -- -n benchmarks/loop_conditions/gcw/gcw1_buggy.smv benchmar
 #cargo run --release -- -v benchmarks/verilog/SPI/spi_build.ys benchmarks/verilog/SPI/spi_build.ys -t SPISlave -o spi.smt2 -f benchmarks/verilog/SPI/formula.hq -k 8 -s hpes
 
 #=== fpu2 ===#
-# RUST_BACKTRACE=full cargo run --release -- -v benchmarks/verilog/divider/divider.ys benchmarks/verilog/divider/divider.ys -t divider -o model.smt2 -f benchmarks/verilog/divider/formula.hq -k 8 -s pes
+RUST_BACKTRACE=full cargo run --release -- -v benchmarks/verilog/divider/divider.ys benchmarks/verilog/divider/divider.ys -t divider -o model.smt2 -f benchmarks/verilog/divider/formula.hq -k 8 -s pes
 
 
 #=== A-HLTL cases ===#
