@@ -1,0 +1,13 @@
+{
+  "name": "Wolf–Goat–Cabbage (Buggy)",
+  "inputLanguage": "nusmv",
+  "files": {
+    "nusmvFiles": ["gcw1_buggy.smv", "gcw2_buggy.smv"],
+    "formula": "gcw.hq"
+  },
+  "options": {
+    "useLoopConditions": true,
+    "unrollingBound": null,
+    "semantics": null
+  }
+}

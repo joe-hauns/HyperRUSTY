@@ -1,0 +1,13 @@
+{
+  "name": "Wolf–Goat–Cabbage",
+  "inputLanguage": "nusmv",
+  "files": {
+    "nusmvFiles": ["gcw1.smv", "gcw2.smv"],
+    "formula": "gcw.hq"
+  },
+  "options": {
+    "useLoopConditions": true,
+    "unrollingBound": null,
+    "semantics": null
+  }
+}
