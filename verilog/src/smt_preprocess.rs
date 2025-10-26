@@ -1,15 +1,8 @@
-// yosys_smt2_flatten_helpers_min.rs
-// Keep helpers as helper functions; remove state datatype.
-// Each helper takes ONLY the fields it (transitively) uses.
-// Next functions call helpers with those minimized parameter lists.
-// Init functions are emitted for fields constrained by |<top>_i|.
-
 use std::collections::{HashMap, HashSet};
 use std::env;
 use std::fs;
 use std::io;
 
-// ---------------- SExpr ----------------
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 enum SExpr {
@@ -17,7 +10,6 @@ enum SExpr {
     List(Vec<SExpr>),
 }
 fn atom<S: Into<String>>(s: S) -> SExpr { SExpr::Atom(s.into()) }
-fn list(v: Vec<SExpr>) -> SExpr { SExpr::List(v) }
 
 fn sexpr_to_string(x: &SExpr) -> String {
     match x {
@@ -122,7 +114,7 @@ struct FunDef {
 struct ModuleState {
     sort_symbol: String,
     ctor: String,
-    fields: Vec<(String, Sort)>, // (field_name, sort)
+    fields: Vec<(String, Sort)>,
 }
 
 #[derive(Clone, Debug)]
@@ -200,8 +192,6 @@ fn load_model_ir(text: &str) -> ModelIR {
     ModelIR { module, funs }
 }
 
-// ---------------- utilities ----------------
-
 fn strip_pipes(s: &str) -> &str {
     if s.len()>=2 && s.starts_with('|') && s.ends_with('|') { &s[1..s.len()-1] } else { s }
 }
@@ -212,9 +202,6 @@ fn modname_from_sort(sort_symbol: &str) -> String {
 }
 fn sort_is_state(s: &Sort, state_sort_symbol: &str) -> bool {
     matches!(&s.ast, SExpr::Atom(a) if a==state_sort_symbol)
-}
-fn name_endswith(sym: &str, suffix: &str) -> bool {
-    strip_pipes(sym).ends_with(suffix)
 }
 
 fn flatten_and(expr: &SExpr) -> Vec<SExpr> {
@@ -231,8 +218,6 @@ fn flatten_and(expr: &SExpr) -> Vec<SExpr> {
     }
     vec![expr.clone()]
 }
-
-// ---------------- find transition/init ----------------
 
 fn find_transition_fun(ir: &ModelIR) -> Option<FunDef> {
     let module = ir.module.as_ref()?;
@@ -296,7 +281,7 @@ fn concat_of_bit_ites_fields(e:&SExpr) -> Option<Vec<String>> {
         let fname = match &v[1] { SExpr::Atom(s) => s.clone(), _ => return None };
         fields.push(fname);
     }
-    Some(fields) // MSB..LSB order
+    Some(fields)
 }
 
 // Match: (bvand <concat(bit-ites)> #b....)
@@ -314,7 +299,6 @@ fn match_bvand_concat_mask(e:&SExpr) -> Option<(Vec<String>, String)> {
     }
     None
 }
-
 
 fn find_init_fun(ir: &ModelIR) -> Option<FunDef> {
     let module = ir.module.as_ref()?;
@@ -334,8 +318,6 @@ fn find_init_fun(ir: &ModelIR) -> Option<FunDef> {
     }
     None
 }
-
-// ---------------- collect next-assignments ----------------
 
 fn collect_assignments_from_t(f_t: &FunDef, module: &ModuleState) -> HashMap<String, SExpr> {
     let next_var = &f_t.params[1].0;
@@ -367,8 +349,6 @@ fn collect_assignments_from_t(f_t: &FunDef, module: &ModuleState) -> HashMap<Str
     mapping
 }
 
-// =================== HELPERS WITH MIN PARAM LISTS ===================
-
 fn collect_helpers(ir: &ModelIR, module: &ModuleState) -> HashMap<String, FunDef> {
     ir.funs.iter()
         .filter_map(|(n,f)| {
@@ -379,7 +359,6 @@ fn collect_helpers(ir: &ModelIR, module: &ModuleState) -> HashMap<String, FunDef
         .collect()
 }
 
-/// Analyze direct usage of a helper: fields directly selected and helpers directly called.
 fn analyze_helper_direct(
     f: &FunDef,
     module: &ModuleState,
@@ -415,13 +394,13 @@ fn analyze_helper_direct(
     (fields, deps)
 }
 
-/// Compute minimized parameter lists and rewritten bodies (calls pass only required args).
+/// Compute minimized parameter lists and rewritten bodies
 fn build_parametric_helpers(
     ir: &ModelIR,
     module: &ModuleState,
 ) -> (
     HashMap<String, Sort>,                         // helper -> return sort
-    HashMap<String, Vec<(String, Sort)>>,         // helper -> param list (field, sort) IN ORDER
+    HashMap<String, Vec<(String, Sort)>>,         // helper -> param list (field, sort)
     HashMap<String, Vec<String>>,                 // helper -> direct helper deps
     HashMap<String, SExpr>,                       // helper -> rewritten body
 ) {
@@ -437,7 +416,6 @@ fn build_parametric_helpers(
         direct_deps.insert(name.clone(), deps.into_iter().collect());
     }
 
-    // Topo order (deps first)
     fn topo_all(helpers: &HashSet<String>, deps: &HashMap<String, Vec<String>>) -> Vec<String> {
         fn dfs(n:&str, deps:&HashMap<String, Vec<String>>, seen:&mut HashSet<String>, out:&mut Vec<String>) {
             if !seen.insert(n.to_string()) { return; }
@@ -451,7 +429,7 @@ fn build_parametric_helpers(
     }
     let order = topo_all(&helper_names, &direct_deps);
 
-    // Accumulate required fields transitively
+    // Accumulate required fields
     let mut req_fields: HashMap<String, HashSet<String>> = HashMap::new();
     for h in &order {
         let mut req = direct_fields.get(h).cloned().unwrap_or_default();
@@ -524,12 +502,10 @@ fn build_parametric_helpers(
         helper_bodies.insert(hname.clone(), body);
     }
 
-    // Return maps
     let helper_rets: HashMap<String, Sort> = helpers.iter().map(|(n,f)| (n.clone(), f.ret.clone())).collect();
     (helper_rets, helper_params, direct_deps, helper_bodies)
 }
 
-// ---------------- init extraction (selectors only; helpers rarely appear in _i) ----------------
 
 fn is_true(x:&SExpr)->bool { matches!(x, SExpr::Atom(a) if a=="true") }
 fn is_false(x:&SExpr)->bool{ matches!(x, SExpr::Atom(a) if a=="false") }
@@ -608,8 +584,6 @@ fn extract_init_values(module:&ModuleState, init_fun:&FunDef)->HashMap<String,SE
         if let Some((a,b)) = as_eq(&c) {
             if let SExpr::Atom(sa)=&a { if field_sorts.contains_key(sa) { values.entry(sa.clone()).or_insert(b.clone()); continue; } }
             if let SExpr::Atom(sb)=&b { if field_sorts.contains_key(sb) { values.entry(sb.clone()).or_insert(a.clone()); continue; } }
-                        // --- Concat of per-bit Bool fields equals a bit-vector literal ---
-            // (= (concat (ite |bN| #b1 #b0) ... (ite |b0| #b1 #b0)) #bXXXXX)
             if let Some(fields_msb_to_lsb) = concat_of_bit_ites_fields(&a) {
                 if let Some((wlit, lit)) = is_bv_lit_atom(&b) {
                     if wlit == fields_msb_to_lsb.len() {
@@ -646,7 +620,7 @@ fn extract_init_values(module:&ModuleState, init_fun:&FunDef)->HashMap<String,SE
                 }
             }
 
-            // --- Masked case: (= (bvand (concat bit-ites) #bMASK) #bLIT) ---
+            // Masked case: (= (bvand (concat bit-ites) #bMASK) #bLIT)
             if let Some((fields_msb_to_lsb, mask)) = match_bvand_concat_mask(&a) {
                 if let Some((wlit, lit)) = is_bv_lit_atom(&b) {
                     let mbits = &mask[2..];
@@ -703,8 +677,6 @@ fn extract_init_values(module:&ModuleState, init_fun:&FunDef)->HashMap<String,SE
     values
 }
 
-// ---------------- rendering ----------------
-
 fn render_decl_const(name: &str, sort: &Sort) -> String {
     format!("(declare-const {} {})", name, sort.to_string())
 }
@@ -719,8 +691,6 @@ fn render_define_fun(name: &str, params: &[(String, Sort)], ret: &Sort, body: &S
     }
     format!("(define-fun {} ({}) {} {})", name, ps, ret.to_string(), sexpr_to_string(body))
 }
-
-// ---------------- transform ----------------
 
 pub fn transform(text: &str) -> String {
     let ir = load_model_ir(text);
@@ -822,7 +792,6 @@ pub fn transform(text: &str) -> String {
 
     // 3) Per-field next functions
     out.push("; --- Per-field transition functions (call helpers; no inlining) ---".into());
-    // We keep next_* params as ALL fields (simpler ABI). If you want, you can also minimize per-next later.
     let next_params = module.fields.clone();
     for (field_name, field_sort) in &module.fields {
         if let Some(body) = next_bodies.get(field_name) {

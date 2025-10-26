@@ -93,7 +93,7 @@ fn collect_smt_vars(smt2: &str) -> Vec<SMTVariables> {
             getter,
         });
     }
-    //println!("Collected SMT Variables: {:#?}", variables);
+
     variables
 }
 
@@ -103,9 +103,6 @@ fn add_unrolling_constraints(smt2: &str, mod_name: &str, bound: usize, trace_id:
     let mut result = smt2.to_string();
     // Add constraints for unrolling
     
-    //Variable probes
-    // Here is where we would add a filter for which variables to probe
-    // Vector of tuples (probe_name, state_name, var_getter, time_step)
     let mut probe_assertions: Vec<String> = Vec::new();
     for var in &smt_vars {
         if let Some(ref filter) = var_filter {
@@ -133,7 +130,6 @@ fn add_unrolling_constraints(smt2: &str, mod_name: &str, bound: usize, trace_id:
             //probe_assertions.push(clause);
         }
     }
-    //println!("Probe assertions: {:#?}", probe_assertions);
     
     // State unrolling
     //Add contants for each step
