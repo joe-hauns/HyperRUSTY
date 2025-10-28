@@ -1,3 +1,4 @@
+#![allow(suspicious_double_ref_op)]
 use std::collections::HashSet;
 use indexmap::IndexMap;
 use z3::{
