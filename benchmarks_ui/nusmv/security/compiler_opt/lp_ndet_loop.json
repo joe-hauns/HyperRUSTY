@@ -1,0 +1,17 @@
+{
+  "name": "LP - Loop",
+  "inputLanguage": "nusmv",
+  "files": {
+    "nusmvFiles": [
+      "with_loops/lp/LP_source_ndet.smv",
+      "with_loops/lp/LP_target_ndet.smv"
+    ],
+    "formula": "with_loops/lp/LP.hq"
+  },
+  "options": {
+    "useLoopConditions": false,
+    "unrollingBound": 35,
+    "trajectoryBound": 70,
+    "semantics": "hpes"
+  }
+}

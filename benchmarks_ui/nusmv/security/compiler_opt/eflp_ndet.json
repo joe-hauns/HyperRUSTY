@@ -1,0 +1,17 @@
+{
+  "name": "EFLP - Nondet",
+  "inputLanguage": "nusmv",
+  "files": {
+    "nusmvFiles": [
+      "with_ndet/eflp/EFLP_source_ndet.smv",
+      "with_ndet/eflp/EFLP_target_ndet.smv"
+    ],
+    "formula": "with_ndet/eflp/EFLP.hq"
+  },
+  "options": {
+    "useLoopConditions": false,
+    "unrollingBound": 22,
+    "trajectoryBound": 44,
+    "semantics": "hpes"
+  }
+}

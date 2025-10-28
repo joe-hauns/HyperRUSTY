@@ -1,14 +1,14 @@
 {
-  "name": "Compiler opt: loop peeling",
+  "name": "LP - Original",
   "inputLanguage": "nusmv",
   "files": {
-    "nusmvFiles": ["LP_source.smv", "LP_target.smv"],
-    "formula": "LP.hq"
+    "nusmvFiles": ["original/lp/LP_source.smv", "original/lp/LP_target.smv"],
+    "formula": "original/lp/LP.hq"
   },
   "options": {
     "useLoopConditions": false,
-    "unrollingBound": 22,
-    "trajectoryBound": 44,
+    "unrollingBound": 23,
+    "trajectoryBound": 45,
     "semantics": "hpes"
   }
 }
