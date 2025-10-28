@@ -74,7 +74,7 @@
 
 
 # echo "ni incorrect"
-# cargo run --release -- -n benchmarks/3_ni/NI_incorrect.smv benchmarks/3_ni/NI_incorrect.smv -f benchmarks/3_ni/NI_formula.hq -k 50 -s hopt
+cargo run --release -- -n benchmarks/sync/3_ni/NI_incorrect.smv benchmarks/sync/3_ni/NI_incorrect.smv -f benchmarks/sync//3_ni/NI_formula.hq -k 2 -s hopt -q
 
 # time AutoHyper/app/AutoHyper --nusmv benchmarks/3_ni/NI_incorrect.smv benchmarks/AH_formulas/3.hq
 
@@ -375,7 +375,7 @@
 
 # cargo run --release -- -n benchmarks/loop_conditions/robust_path_planning/rp_1_no_sol.smv benchmarks/loop_conditions/robust_path_planning/rp_2.smv -f benchmarks/loop_conditions/robust_path_planning/rp.hq -l
 
- cargo run --release -- -n benchmarks/loop_conditions/simple_loop/simple_loop1.smv benchmarks/loop_conditions/simple_loop/simple_loop2.smv -f benchmarks/loop_conditions/simple_loop/simple_loop.hq -l
+#  cargo run --release -- -n benchmarks/loop_conditions/simple_loop/simple_loop1.smv benchmarks/loop_conditions/simple_loop/simple_loop2.smv -f benchmarks/loop_conditions/simple_loop/simple_loop.hq -l
 
 # cargo run --release -- -n benchmarks/loop_conditions/test_loop/rs1.smv benchmarks/loop_conditions/test_loop/rs2.smv -f benchmarks/loop_conditions/test_loop/rs.hq -l
 

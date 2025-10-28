@@ -7,25 +7,25 @@ VAR
     beverage: 0..2;
     water: 0..3;
 
-    NO_water: boolean;
-    NO_output: boolean;
+    -- NO_water: boolean;
+    -- NO_output: boolean;
 
 
 ASSIGN
-    init(NO_water) := FALSE;
-    next(NO_water) :=
-    case
-        ((action = 1) & (water = 0)): TRUE;
-        TRUE: NO_water;
-    esac;
+    -- init(NO_water) := FALSE;
+    -- next(NO_water) :=
+    -- case
+    --     ((action = 1) & (water = 0)): TRUE;
+    --     TRUE: NO_water;
+    -- esac;
 
 
-    init(NO_output) := FALSE;
-    next(NO_output) :=
-    case
-        ((action != 1) | ((action = 1) & (beverage = 0))) : TRUE;
-        TRUE: NO_output;
-    esac;
+    -- init(NO_output) := FALSE;
+    -- next(NO_output) :=
+    -- case
+    --     ((action != 1) | ((action = 1) & (beverage = 0))) : TRUE;
+    --     TRUE: NO_output;
+    -- esac;
 
 
     init(mutation) := {TRUE, FALSE};
@@ -49,13 +49,13 @@ ASSIGN
             (mutation & (water = 1)) : 2;
             (mutation & (water = 2)) : 3;
             (mutation & (water = 3)) : 3;
-            (!mutation & (water = 0)) : 2;
-            (!mutation & (water = 1)) : 3;
-            (!mutation & (water = 2)) : 3;
-            (!mutation & (water = 3)) : 3;
+            ((!mutation) & (water = 0)) : 2;
+            ((!mutation) & (water = 1)) : 3;
+            -- (!mutation & (water = 2)) : 3;
+            -- (!mutation & (water = 3)) : 3;
             TRUE : water;
         esac;
 
--- DEFINE
-    -- NO_water := ((action = 1) & (water = 0));
-    -- NO_output := ((action != 1) | ((action = 1) & (beverage = 0)));
+DEFINE
+    NO_water := ((action = 1) & (water = 0));
+    NO_output := ((action != 1) | ((action = 1) & (beverage = 0)));
