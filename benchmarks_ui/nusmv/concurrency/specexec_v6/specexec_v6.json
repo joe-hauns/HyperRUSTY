@@ -1,8 +1,8 @@
 {
-  "name": "Speculative Execution v5 (speculative)",
+  "name": "Speculative Execution v6",
   "inputLanguage": "nusmv",
   "files": {
-    "nusmvFiles": ["v5_se.smv"],
+    "nusmvFiles": ["v6_se.smv", "v6_nse.smv"],
     "formula": "se_prop.hq"
   },
   "options": {
