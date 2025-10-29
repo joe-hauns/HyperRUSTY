@@ -1,13 +1,4 @@
--- L0:
--- L1: x = 0
--- L2: k = 0
--- L3: while (k < 3) {
--- L4: if (k == 0) {
--- L5:  x := in_secretput();}
--- L6: else {x := x + x;}
--- L7: k := k + 1;
--- L8: out_public((4 + (x - 4)) % ((k - k) + 3));
--- L9: END
+
  MODULE main
  VAR
     step: 0..9;
@@ -17,6 +8,18 @@
     out_public: 0..3;
 
   ASSIGN
+
+    -- D = 32
+    -- L0:
+    -- L1: x = 0
+    -- L2: k = 0
+    -- L3: while (k < 3) {
+    -- L4: if (k == 0) {
+    -- L5:  x := in_secretput();}
+    -- L6: else {x := x + x;}
+    -- L7: k := k + 1;
+    -- L8: out_publicput(x % k);
+    -- L9: END
   init(step):= 0;
   next(step):=
     case
@@ -38,9 +41,10 @@
   init(int_x) := 0;
   next(int_x) :=
     case
+      -- ((int_x+int_x)>15): 15;
       (int_x > 7): 15;
       (step=5) : in_secret;
-      (step=6) : int_x + int_x;
+      (step=6) : (int_x + int_x);
       TRUE: int_x;
     esac;
 
@@ -55,8 +59,7 @@
   init(out_public) := 0;
   next(out_public) :=
     case
-      -- ((step=8)& !(int_k=0)): (4 + (int_x - 4)) mod ((int_k - int_k) + 3);
-      ((step=8)& !(int_k=0)): int_x mod 3;
+      ((step=8)& !(int_k=0)): (int_x mod int_k);
       TRUE: out_public;
     esac;
 

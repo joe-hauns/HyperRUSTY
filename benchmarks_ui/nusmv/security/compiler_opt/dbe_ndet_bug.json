@@ -1,0 +1,17 @@
+{
+  "name": "DBE - Nondet w/ Bug",
+  "inputLanguage": "nusmv",
+  "files": {
+    "nusmvFiles": [
+      "with_ndet/dbe/DBE_source_ndet.smv",
+      "with_ndet/dbe/DBE_target_wrong_ndet.smv"
+    ],
+    "formula": "with_ndet/dbe/DBE.hq"
+  },
+  "options": {
+    "useLoopConditions": false,
+    "unrollingBound": 13,
+    "trajectoryBound": 26,
+    "semantics": "hpes"
+  }
+}

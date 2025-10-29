@@ -1,9 +1,12 @@
 {
-  "name": "Compiler opt: dead branch elimination",
+  "name": "DBE - Original",
   "inputLanguage": "nusmv",
   "files": {
-    "nusmvFiles": ["DBE_source.smv", "DBE_target.smv"],
-    "formula": "DBE.hq"
+    "nusmvFiles": [
+      "original/dbe/DBE_source.smv",
+      "original/dbe/DBE_target.smv"
+    ],
+    "formula": "original/dbe/DBE.hq"
   },
   "options": {
     "useLoopConditions": false,

@@ -1,5 +1,5 @@
 {
-  "name": "Term-sens-NI",
+  "name": "Nodet TSNI",
   "inputLanguage": "nusmv",
   "files": {
     "nusmvFiles": ["ni_example.smv", "ni_example.smv"],

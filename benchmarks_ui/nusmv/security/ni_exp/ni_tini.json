@@ -1,5 +1,5 @@
 {
-  "name": "Term-insens-NI",
+  "name": "Nodet TINI",
   "inputLanguage": "nusmv",
   "files": {
     "nusmvFiles": ["ni_example.smv", "ni_example.smv"],

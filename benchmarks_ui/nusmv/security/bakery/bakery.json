@@ -1,8 +1,8 @@
 {
-  "name": "Bakery",
+  "name": "Bakery 3",
   "inputLanguage": "nusmv",
   "files": {
-    "nusmvFiles": ["bakery.smv", "bakery.smv"],
+    "nusmvFiles": ["bakery3.smv", "bakery3.smv"],
     "formula": "symmetry.hq"
   },
   "options": {

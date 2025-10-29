@@ -1,9 +1,12 @@
 {
-  "name": "Compiler opt: expression folding",
+  "name": "EFLP - Original",
   "inputLanguage": "nusmv",
   "files": {
-    "nusmvFiles": ["EFLP_source.smv", "EFLP_target.smv"],
-    "formula": "EFLP.hq"
+    "nusmvFiles": [
+      "original/eflp/EFLP_source.smv",
+      "original/eflp/EFLP_target.smv"
+    ],
+    "formula": "original/eflp/EFLP.hq"
   },
   "options": {
     "useLoopConditions": false,
