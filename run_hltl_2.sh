@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-TIMEOUT_SEC=${TIMEOUT_SEC:-10}  # seconds
+TIMEOUT_SEC=${TIMEOUT_SEC:-60}  # seconds
 
 # Detect timeout binary safely (avoid unbound variable errors)
 if command -v gtimeout >/dev/null 2>&1; then
@@ -116,6 +116,12 @@ render_tables() {
 
 
 FOLDER="benchmarks/sync/"
+
+CARGO_BIN=${CARGO_BIN:-target/release/hyperqb}
+if [[ ! -x "$CARGO_BIN" ]]; then
+  echo "Building HyperQB (release)…"
+  cargo build --release
+fi
 # --------------------------
 # ---- Case definitions ----
 # --------------------------
@@ -128,7 +134,7 @@ case_coterm1() {
     1|smt)
       printf "\n[HyperQB SMT] Running %s...\n" "$case_name"
       time_run "$case_name" "SMT" \
-        "cargo run --release -- \
+        "${CARGO_BIN} \
          -n ${FOLDER}7_coterm/coterm1.smv \
          ${FOLDER}7_coterm/coterm1.smv \
          -f ${FOLDER}7_coterm/coterm.hq \
@@ -144,7 +150,7 @@ case_coterm1() {
     3|qbf)
       printf "\n[HyperQB QBF] Running %s...\n" "$case_name"
       time_run "$case_name" "QBF" \
-        "cargo run --release -- \
+        "${CARGO_BIN} \
          -n ${FOLDER}7_coterm/coterm1.smv \
          ${FOLDER}7_coterm/coterm1.smv \
          -f ${FOLDER}7_coterm/coterm.hq \
@@ -162,7 +168,7 @@ case_e_wallet() {
     1|smt)
       printf "\n[HyperQB SMT] Running %s...\n" "$case_name"
       time_run "$case_name" "SMT" \
-        "cargo run --release -- \
+        "${CARGO_BIN} \
          -n ${FOLDER}8_deniability/electronic_wallet.smv \
          ${FOLDER}8_deniability/electronic_wallet.smv \
          ${FOLDER}8_deniability/electronic_wallet.smv \
@@ -180,7 +186,7 @@ case_e_wallet() {
     3|qbf)
       printf "\n[HyperQB QBF] Running %s...\n" "$case_name"
       time_run "$case_name" "QBF" \
-        "cargo run --release -- \
+        "${CARGO_BIN} \
          -n ${FOLDER}8_deniability/electronic_wallet.smv \
          ${FOLDER}8_deniability/electronic_wallet.smv \
          ${FOLDER}8_deniability/electronic_wallet.smv \
@@ -199,7 +205,7 @@ case_buffer_scheduled_classic() {
     1|smt)
       printf "\n[HyperQB SMT] Running %s...\n" "$case_name"
       time_run "$case_name" "SMT" \
-        "cargo run --release -- \
+        "${CARGO_BIN} \
          -n ${FOLDER}9_buffer/scheduled_buffer.smv \
          ${FOLDER}9_buffer/scheduled_buffer.smv \
          -f ${FOLDER}9_buffer/classic_OD.hq \
@@ -216,7 +222,7 @@ case_buffer_scheduled_classic() {
     3|qbf)
       printf "\n[HyperQB QBF] Running %s...\n" "$case_name"
       time_run "$case_name" "QBF" \
-        "cargo run --release -- \
+        "${CARGO_BIN} \
          -n ${FOLDER}9_buffer/scheduled_buffer.smv \
          ${FOLDER}9_buffer/scheduled_buffer.smv \
          -f ${FOLDER}9_buffer/classic_OD.hq \
@@ -233,7 +239,7 @@ case_buffer_scheduled_intrans_od() {
     1|smt)
       printf "\n[HyperQB SMT] Running %s...\n" "$case_name"
       time_run "$case_name" "SMT" \
-        "cargo run --release -- \
+        "${CARGO_BIN} \
          -n ${FOLDER}9_buffer/scheduled_buffer.smv \
          ${FOLDER}9_buffer/scheduled_buffer.smv \
          -f ${FOLDER}9_buffer/intrans_OD.hq \
@@ -250,7 +256,7 @@ case_buffer_scheduled_intrans_od() {
     3|qbf)
       printf "\n[HyperQB QBF] Running %s...\n" "$case_name"
       time_run "$case_name" "QBF" \
-        "cargo run --release -- \
+        "${CARGO_BIN} \
          -n ${FOLDER}9_buffer/scheduled_buffer.smv \
          ${FOLDER}9_buffer/scheduled_buffer.smv \
          -f ${FOLDER}9_buffer/intrans_OD.hq \
@@ -267,7 +273,7 @@ case_buffer_scheduled_intrans_gmni() {
     1|smt)
       printf "\n[HyperQB SMT] Running %s...\n" "$case_name"
       time_run "$case_name" "SMT" \
-        "cargo run --release -- \
+        "${CARGO_BIN} \
          -n ${FOLDER}9_buffer/scheduled_buffer.smv \
          ${FOLDER}9_buffer/scheduled_buffer.smv \
          -f ${FOLDER}9_buffer/intrans_GMNI.hq \
@@ -284,7 +290,7 @@ case_buffer_scheduled_intrans_gmni() {
     3|qbf)
       printf "\n[HyperQB QBF] Running %s...\n" "$case_name"
       time_run "$case_name" "QBF" \
-        "cargo run --release -- \
+        "${CARGO_BIN} \
          -n ${FOLDER}9_buffer/scheduled_buffer.smv \
          ${FOLDER}9_buffer/scheduled_buffer.smv \
          -f ${FOLDER}9_buffer/intrans_GMNI.hq \
@@ -301,7 +307,7 @@ case_buffer_unscheduled_classic() {
     1|smt)
       printf "\n[HyperQB SMT] Running %s...\n" "$case_name"
       time_run "$case_name" "SMT" \
-        "cargo run --release -- \
+        "${CARGO_BIN} \
          -n ${FOLDER}9_buffer/unscheduled_buffer.smv \
          ${FOLDER}9_buffer/unscheduled_buffer.smv \
          -f ${FOLDER}9_buffer/classic_OD.hq \
@@ -318,7 +324,7 @@ case_buffer_unscheduled_classic() {
     3|qbf)
       printf "\n[HyperQB QBF] Running %s...\n" "$case_name"
       time_run "$case_name" "QBF" \
-        "cargo run --release -- \
+        "${CARGO_BIN} \
          -n ${FOLDER}9_buffer/unscheduled_buffer.smv \
          ${FOLDER}9_buffer/unscheduled_buffer.smv \
          -f ${FOLDER}9_buffer/classic_OD.hq \
@@ -336,7 +342,7 @@ case_niexp_tini() {
     1|smt)
       printf "\n[HyperQB SMT] Running %s...\n" "$case_name"
       time_run "$case_name" "SMT" \
-        "cargo run --release -- \
+        "${CARGO_BIN} \
          -n ${FOLDER}10_NIexp/ni_example.smv \
          ${FOLDER}10_NIexp/ni_example.smv \
          -f ${FOLDER}10_NIexp/tini.hq \
@@ -353,7 +359,7 @@ case_niexp_tini() {
     3|qbf)
       printf "\n[HyperQB QBF] Running %s...\n" "$case_name"
       time_run "$case_name" "QBF" \
-        "cargo run --release -- \
+        "${CARGO_BIN} \
          -n ${FOLDER}10_NIexp/ni_example.smv \
          ${FOLDER}10_NIexp/ni_example.smv \
          -f ${FOLDER}10_NIexp/tini.hq \
@@ -370,7 +376,7 @@ case_niexp_tsni() {
     1|smt)
       printf "\n[HyperQB SMT] Running %s...\n" "$case_name"
       time_run "$case_name" "SMT" \
-        "cargo run --release -- \
+        "${CARGO_BIN} \
          -n ${FOLDER}10_NIexp/ni_example.smv \
          ${FOLDER}10_NIexp/ni_example.smv \
          -f ${FOLDER}10_NIexp/tsni.hq \
@@ -387,7 +393,7 @@ case_niexp_tsni() {
     3|qbf)
       printf "\n[HyperQB QBF] Running %s...\n" "$case_name"
       time_run "$case_name" "QBF" \
-        "cargo run --release -- \
+        "${CARGO_BIN} \
          -n ${FOLDER}10_NIexp/ni_example.smv \
          ${FOLDER}10_NIexp/ni_example.smv \
          -f ${FOLDER}10_NIexp/tsni.hq \
@@ -405,7 +411,7 @@ case_ksafety_doubleSquare() {
     1|smt)
       printf "\n[HyperQB SMT] Running %s...\n" "$case_name"
       time_run "$case_name" "SMT" \
-        "cargo run --release -- \
+        "${CARGO_BIN} \
          -n ${FOLDER}11_ksafety/doubleSquare.smv \
          ${FOLDER}11_ksafety/doubleSquare.smv \
          -f ${FOLDER}11_ksafety/doubleSquare.hq \
@@ -422,7 +428,7 @@ case_ksafety_doubleSquare() {
     3|qbf)
       printf "\n[HyperQB QBF] Running %s...\n" "$case_name"
       time_run "$case_name" "QBF" \
-        "cargo run --release -- \
+        "${CARGO_BIN} \
          -n ${FOLDER}11_ksafety/doubleSquare.smv \
          ${FOLDER}11_ksafety/doubleSquare.smv \
          -f ${FOLDER}11_ksafety/doubleSquare.hq \
@@ -440,7 +446,7 @@ case_mapsynth_msynth() {
     1|smt)
       printf "\n[HyperQB SMT] Running %s...\n" "$case_name"
       time_run "$case_name" "SMT" \
-        "cargo run --release -- \
+        "${CARGO_BIN} \
          -n ${FOLDER}12_mapsynth/msynth_MM.smv \
          ${FOLDER}12_mapsynth/msynth_MA.smv \
          ${FOLDER}12_mapsynth/msynth_MB.smv \
@@ -464,7 +470,7 @@ case_mapsynth_msynth() {
     3|qbf)
       printf "\n[HyperQB QBF] Running %s...\n" "$case_name"
       time_run "$case_name" "QBF" \
-        "cargo run --release -- \
+        "${CARGO_BIN} \
          -n ${FOLDER}12_mapsynth/msynth_MM.smv \
          ${FOLDER}12_mapsynth/msynth_MA.smv \
          ${FOLDER}12_mapsynth/msynth_MB.smv \
@@ -484,7 +490,7 @@ case_mapsynth_msynth2() {
     1|smt)
       printf "\n[HyperQB SMT] Running %s...\n" "$case_name"
       time_run "$case_name" "SMT" \
-        "cargo run --release -- \
+        "${CARGO_BIN} \
          -n ${FOLDER}12_mapsynth/msynth2_MM.smv \
          ${FOLDER}12_mapsynth/msynth2_MA.smv \
          ${FOLDER}12_mapsynth/msynth2_MB.smv \
@@ -508,7 +514,7 @@ case_mapsynth_msynth2() {
     3|qbf)
       printf "\n[HyperQB QBF] Running %s...\n" "$case_name"
       time_run "$case_name" "QBF" \
-        "cargo run --release -- \
+        "${CARGO_BIN} \
          -n ${FOLDER}12_mapsynth/msynth2_MM.smv \
          ${FOLDER}12_mapsynth/msynth2_MA.smv \
          ${FOLDER}12_mapsynth/msynth2_MB.smv \
@@ -529,7 +535,7 @@ case_teamltl_team() {
     1|smt)
       printf "\n[HyperQB SMT] Running %s...\n" "$case_name"
       time_run "$case_name" "SMT" \
-        "cargo run --release -- \
+        "${CARGO_BIN} \
          -n ${FOLDER}13_teamltl/team.smv \
          ${FOLDER}13_teamltl/team.smv \
          ${FOLDER}13_teamltl/team.smv \
@@ -547,7 +553,7 @@ case_teamltl_team() {
     3|qbf)
       printf "\n[HyperQB QBF] Running %s...\n" "$case_name"
       time_run "$case_name" "QBF" \
-        "cargo run --release -- \
+        "${CARGO_BIN} \
          -n ${FOLDER}13_teamltl/team.smv \
          ${FOLDER}13_teamltl/team.smv \
          ${FOLDER}13_teamltl/team.smv \
@@ -565,7 +571,7 @@ case_teamltl_team2() {
     1|smt)
       printf "\n[HyperQB SMT] Running %s...\n" "$case_name"
       time_run "$case_name" "SMT" \
-        "cargo run --release -- \
+        "${CARGO_BIN} \
          -n ${FOLDER}13_teamltl/team2.smv \
          ${FOLDER}13_teamltl/team2.smv \
          ${FOLDER}13_teamltl/team2.smv \
@@ -583,7 +589,7 @@ case_teamltl_team2() {
     3|qbf)
       printf "\n[HyperQB QBF] Running %s...\n" "$case_name"
       time_run "$case_name" "QBF" \
-        "cargo run --release -- \
+        "${CARGO_BIN} \
          -n ${FOLDER}13_teamltl/team2.smv \
          ${FOLDER}13_teamltl/team2.smv \
          ${FOLDER}13_teamltl/team2.smv \
@@ -602,7 +608,7 @@ case_ndet_ni_v1() {
     1|smt)
       printf "\n[HyperQB SMT] Running %s...\n" "$case_name"
       time_run "$case_name" "SMT" \
-        "cargo run --release -- \
+        "${CARGO_BIN} \
          -n ${FOLDER}14_ndet/NI_v1.smv \
          ${FOLDER}14_ndet/NI_v1.smv \
          -f ${FOLDER}14_ndet/NI.hq \
@@ -619,7 +625,7 @@ case_ndet_ni_v1() {
     3|qbf)
       printf "\n[HyperQB QBF] Running %s...\n" "$case_name"
       time_run "$case_name" "QBF" \
-        "cargo run --release -- \
+        "${CARGO_BIN} \
          -n ${FOLDER}14_ndet/NI_v1.smv \
          ${FOLDER}14_ndet/NI_v1.smv \
          -f ${FOLDER}14_ndet/NI.hq \
@@ -636,7 +642,7 @@ case_ndet_ni_v2() {
     1|smt)
       printf "\n[HyperQB SMT] Running %s...\n" "$case_name"
       time_run "$case_name" "SMT" \
-        "cargo run --release -- \
+        "${CARGO_BIN} \
          -n ${FOLDER}14_ndet/NI_v2.smv \
          ${FOLDER}14_ndet/NI_v2.smv \
          -f ${FOLDER}14_ndet/NI.hq \
@@ -653,7 +659,7 @@ case_ndet_ni_v2() {
     3|qbf)
       printf "\n[HyperQB QBF] Running %s...\n" "$case_name"
       time_run "$case_name" "QBF" \
-        "cargo run --release -- \
+        "${CARGO_BIN} \
          -n ${FOLDER}14_ndet/NI_v2.smv \
          ${FOLDER}14_ndet/NI_v2.smv \
          -f ${FOLDER}14_ndet/NI.hq \
@@ -670,7 +676,7 @@ case_ndet_ni_v3() {
     1|smt)
       printf "\n[HyperQB SMT] Running %s...\n" "$case_name"
       time_run "$case_name" "SMT" \
-        "cargo run --release -- \
+        "${CARGO_BIN} \
          -n ${FOLDER}14_ndet/NI_v3.smv \
          ${FOLDER}14_ndet/NI_v3.smv \
          -f ${FOLDER}14_ndet/NI.hq \
@@ -687,7 +693,7 @@ case_ndet_ni_v3() {
     3|qbf)
       printf "\n[HyperQB QBF] Running %s...\n" "$case_name"
       time_run "$case_name" "QBF" \
-        "cargo run --release -- \
+        "${CARGO_BIN} \
          -n ${FOLDER}14_ndet/NI_v3.smv \
          ${FOLDER}14_ndet/NI_v3.smv \
          -f ${FOLDER}14_ndet/NI.hq \
@@ -705,7 +711,7 @@ case_bank_v1() {
     1|smt)
       printf "\n[HyperQB SMT] Running %s...\n" "$case_name"
       time_run "$case_name" "SMT" \
-        "cargo run --release -- \
+        "${CARGO_BIN} \
          -n ${FOLDER}15_bank/bank3_complex_V1.smv \
          ${FOLDER}15_bank/bank3_complex_V1.smv \
          ${FOLDER}15_bank/bank3_complex_V1.smv \
@@ -723,7 +729,7 @@ case_bank_v1() {
     3|qbf)
       printf "\n[HyperQB QBF] Running %s...\n" "$case_name"
       time_run "$case_name" "QBF" \
-        "cargo run --release -- \
+        "${CARGO_BIN} \
          -n ${FOLDER}15_bank/bank3_complex_V1.smv \
          ${FOLDER}15_bank/bank3_complex_V1.smv \
          ${FOLDER}15_bank/bank3_complex_V1.smv \
@@ -741,7 +747,7 @@ case_bank_v2() {
     1|smt)
       printf "\n[HyperQB SMT] Running %s...\n" "$case_name"
       time_run "$case_name" "SMT" \
-        "cargo run --release -- \
+        "${CARGO_BIN} \
          -n ${FOLDER}15_bank/bank3_complex_V2.smv \
          ${FOLDER}15_bank/bank3_complex_V2.smv \
          ${FOLDER}15_bank/bank3_complex_V2.smv \
@@ -759,7 +765,7 @@ case_bank_v2() {
     3|qbf)
       printf "\n[HyperQB QBF] Running %s...\n" "$case_name"
       time_run "$case_name" "QBF" \
-        "cargo run --release -- \
+        "${CARGO_BIN} \
          -n ${FOLDER}15_bank/bank3_complex_V2.smv \
          ${FOLDER}15_bank/bank3_complex_V2.smv \
          ${FOLDER}15_bank/bank3_complex_V2.smv \
@@ -777,7 +783,7 @@ case_bank_v3() {
     1|smt)
       printf "\n[HyperQB SMT] Running %s...\n" "$case_name"
       time_run "$case_name" "SMT" \
-        "cargo run --release -- \
+        "${CARGO_BIN} \
          -n ${FOLDER}15_bank/bank3_complex_V3.smv \
          ${FOLDER}15_bank/bank3_complex_V3.smv \
          ${FOLDER}15_bank/bank3_complex_V3.smv \
@@ -795,7 +801,7 @@ case_bank_v3() {
     3|qbf)
       printf "\n[HyperQB QBF] Running %s...\n" "$case_name"
       time_run "$case_name" "QBF" \
-        "cargo run --release -- \
+        "${CARGO_BIN} \
          -n ${FOLDER}15_bank/bank3_complex_V3.smv \
          ${FOLDER}15_bank/bank3_complex_V3.smv \
          ${FOLDER}15_bank/bank3_complex_V3.smv \
@@ -814,7 +820,7 @@ case_constructor() {
     1|smt)
       printf "\n[HyperQB SMT] Running %s...\n" "$case_name"
       time_run "$case_name" "SMT" \
-        "cargo run --release -- \
+        "${CARGO_BIN} \
          -n ${FOLDER}16_constructor/constructor_conc.smv \
          ${FOLDER}16_constructor/constructor_seq.smv \
          -f ${FOLDER}16_constructor/Linearizability.hq \
@@ -832,7 +838,7 @@ case_constructor() {
     3|qbf)
       printf "\n[HyperQB QBF] Running %s...\n" "$case_name"
       time_run "$case_name" "QBF" \
-        "cargo run --release -- \
+        "${CARGO_BIN} \
          -n ${FOLDER}16_constructor/constructor_conc.smv \
          ${FOLDER}16_constructor/constructor_seq.smv \
          -f ${FOLDER}16_constructor/Linearizability.hq \
@@ -851,7 +857,7 @@ case_bidding_safe_1() {
     1|smt)
       printf "\n[HyperQB SMT] Running %s...\n" "$case_name"
       time_run "$case_name" "SMT" \
-        "cargo run --release -- \
+        "${CARGO_BIN} \
          -n ${FOLDER}18_bidding/bid_safe.smv \
          ${FOLDER}18_bidding/bid_safe.smv \
          -f ${FOLDER}18_bidding/bidding.hq \
@@ -868,7 +874,7 @@ case_bidding_safe_1() {
     3|qbf)
       printf "\n[HyperQB QBF] Running %s...\n" "$case_name"
       time_run "$case_name" "QBF" \
-        "cargo run --release -- \
+        "${CARGO_BIN} \
          -n ${FOLDER}18_bidding/bid_safe.smv \
          ${FOLDER}18_bidding/bid_safe.smv \
          -f ${FOLDER}18_bidding/bidding.hq \
@@ -885,7 +891,7 @@ case_bidding_safe_2() {
     1|smt)
       printf "\n[HyperQB SMT] Running %s...\n" "$case_name"
       time_run "$case_name" "SMT" \
-        "cargo run --release -- \
+        "${CARGO_BIN} \
          -n ${FOLDER}18_bidding/bid_safe_2.smv \
          ${FOLDER}18_bidding/bid_safe_2.smv \
          -f ${FOLDER}18_bidding/bidding.hq \
@@ -902,7 +908,7 @@ case_bidding_safe_2() {
     3|qbf)
       printf "\n[HyperQB QBF] Running %s...\n" "$case_name"
       time_run "$case_name" "QBF" \
-        "cargo run --release -- \
+        "${CARGO_BIN} \
          -n ${FOLDER}18_bidding/bid_safe_2.smv \
          ${FOLDER}18_bidding/bid_safe_2.smv \
          -f ${FOLDER}18_bidding/bidding.hq \
@@ -919,7 +925,7 @@ case_bidding_safe_3() {
     1|smt)
       printf "\n[HyperQB SMT] Running %s...\n" "$case_name"
       time_run "$case_name" "SMT" \
-        "cargo run --release -- \
+        "${CARGO_BIN} \
          -n ${FOLDER}18_bidding/bid_safe_4.smv \
          ${FOLDER}18_bidding/bid_safe_4.smv \
          -f ${FOLDER}18_bidding/bidding.hq \
@@ -936,7 +942,7 @@ case_bidding_safe_3() {
     3|qbf)
       printf "\n[HyperQB QBF] Running %s...\n" "$case_name"
       time_run "$case_name" "QBF" \
-        "cargo run --release -- \
+        "${CARGO_BIN} \
          -n ${FOLDER}18_bidding/bid_safe_4.smv \
          ${FOLDER}18_bidding/bid_safe_4.smv \
          -f ${FOLDER}18_bidding/bidding.hq \
@@ -953,7 +959,7 @@ case_bidding_unsafe() {
     1|smt)
       printf "\n[HyperQB SMT] Running %s...\n" "$case_name"
       time_run "$case_name" "SMT" \
-        "cargo run --release -- \
+        "${CARGO_BIN} \
          -n ${FOLDER}18_bidding/bid_unsafe.smv \
          ${FOLDER}18_bidding/bid_unsafe.smv \
          -f ${FOLDER}18_bidding/bidding.hq \
@@ -970,7 +976,7 @@ case_bidding_unsafe() {
     3|qbf)
       printf "\n[HyperQB QBF] Running %s...\n" "$case_name"
       time_run "$case_name" "QBF" \
-        "cargo run --release -- \
+        "${CARGO_BIN} \
          -n ${FOLDER}18_bidding/bid_unsafe.smv \
          ${FOLDER}18_bidding/bid_unsafe.smv \
          -f ${FOLDER}18_bidding/bidding.hq \
@@ -988,7 +994,7 @@ case_iqueue() {
     1|smt)
       printf "\n[HyperQB SMT] Running %s...\n" "$case_name"
       time_run "$case_name" "SMT" \
-        "cargo run --release -- \
+        "${CARGO_BIN} \
          -n ${FOLDER}19_iqueue/iqueue_conc.smv \
          ${FOLDER}19_iqueue/iqueue_seq.smv \
          -f ${FOLDER}19_iqueue/iqueue.hq \
@@ -1006,7 +1012,7 @@ case_iqueue() {
     3|qbf)
       printf "\n[HyperQB QBF] Running %s...\n" "$case_name"
       time_run "$case_name" "QBF" \
-        "cargo run --release -- \
+        "${CARGO_BIN} \
          -n ${FOLDER}19_iqueue/iqueue_conc.smv \
          ${FOLDER}19_iqueue/iqueue_seq.smv \
          -f ${FOLDER}19_iqueue/iqueue.hq \
@@ -1024,7 +1030,7 @@ case_keypad() {
     1|smt)
       printf "\n[HyperQB SMT] Running %s...\n" "$case_name"
       time_run "$case_name" "SMT" \
-        "cargo run --release -- \
+        "${CARGO_BIN} \
          -n ${FOLDER}20_keypad/keypad.smv \
          ${FOLDER}20_keypad/keypad.smv \
          -f ${FOLDER}20_keypad/keypad_2.hq \
@@ -1041,7 +1047,7 @@ case_keypad() {
     3|qbf)
       printf "\n[HyperQB QBF] Running %s...\n" "$case_name"
       time_run "$case_name" "QBF" \
-        "cargo run --release -- \
+        "${CARGO_BIN} \
          -n ${FOLDER}20_keypad/keypad.smv \
          ${FOLDER}20_keypad/keypad.smv \
          -f ${FOLDER}20_keypad/keypad_2.hq \
@@ -1059,7 +1065,7 @@ case_queue_lin() {
     1|smt)
       printf "\n[HyperQB SMT] Running %s...\n" "$case_name"
       time_run "$case_name" "SMT" \
-        "cargo run --release -- \
+        "${CARGO_BIN} \
          -n ${FOLDER}21_queue/concurrent.smv \
          ${FOLDER}21_queue/atomic.smv \
          -f ${FOLDER}21_queue/lin.hq \
@@ -1077,7 +1083,7 @@ case_queue_lin() {
     3|qbf)
       printf "\n[HyperQB QBF] Running %s...\n" "$case_name"
       time_run "$case_name" "QBF" \
-        "cargo run --release -- \
+        "${CARGO_BIN} \
          -n ${FOLDER}21_queue/concurrent.smv \
          ${FOLDER}21_queue/atomic.smv \
          -f ${FOLDER}21_queue/lin.hq \
@@ -1095,7 +1101,7 @@ case_emm_aba() {
     1|smt)
       printf "\n[HyperQB SMT] Running %s...\n" "$case_name"
       time_run "$case_name" "SMT" \
-        "cargo run --release -- \
+        "${CARGO_BIN} \
          -n ${FOLDER}22_emm_aba/emm_aba_conc.smv \
          ${FOLDER}22_emm_aba/emm_aba_seq.smv \
          -f ${FOLDER}22_emm_aba/emm_aba.hq \
@@ -1113,7 +1119,7 @@ case_emm_aba() {
     3|qbf)
       printf "\n[HyperQB QBF] Running %s...\n" "$case_name"
       time_run "$case_name" "QBF" \
-        "cargo run --release -- \
+        "${CARGO_BIN} \
          -n ${FOLDER}22_emm_aba/emm_aba_conc.smv \
          ${FOLDER}22_emm_aba/emm_aba_seq.smv \
          -f ${FOLDER}22_emm_aba/emm_aba.hq \
@@ -1131,7 +1137,7 @@ case_lazy_list() {
     1|smt)
       printf "\n[HyperQB SMT] Running %s...\n" "$case_name"
       time_run "$case_name" "SMT" \
-        "cargo run --release -- \
+        "${CARGO_BIN} \
          -n ${FOLDER}23_lazy_list/lazy_list_conc.smv \
          ${FOLDER}23_lazy_list/lazy_list_seq.smv \
          -f ${FOLDER}23_lazy_list/lazy_list.hq \
@@ -1149,7 +1155,7 @@ case_lazy_list() {
     3|qbf)
       printf "\n[HyperQB QBF] Running %s...\n" "$case_name"
       time_run "$case_name" "QBF" \
-        "cargo run --release -- \
+        "${CARGO_BIN} \
          -n ${FOLDER}23_lazy_list/lazy_list_conc.smv \
          ${FOLDER}23_lazy_list/lazy_list_seq.smv \
          -f ${FOLDER}23_lazy_list/lazy_list.hq \
