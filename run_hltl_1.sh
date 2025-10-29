@@ -131,11 +131,13 @@ case_bakery3() {
     shift
     local extra_flags=("$@")
     local want_witness=0
-    for flag in "${extra_flags[@]}"; do
-        if [[ "$flag" == "give_witness" ]]; then
-            want_witness=1
-        fi
-    done
+    if (( ${#extra_flags[@]} )); then
+        for flag in "${extra_flags[@]}"; do
+            if [[ "$flag" == "give_witness" ]]; then
+                want_witness=1
+            fi
+        done
+    fi
 
     case "$mode" in
         1|smt)
@@ -190,11 +192,13 @@ case_bakery7() {
     shift
     local extra_flags=("$@")
     local want_witness=0
-    for flag in "${extra_flags[@]}"; do
-        if [[ "$flag" == "give_witness" ]]; then
-            want_witness=1
-        fi
-    done
+    if (( ${#extra_flags[@]} )); then
+        for flag in "${extra_flags[@]}"; do
+            if [[ "$flag" == "give_witness" ]]; then
+                want_witness=1
+            fi
+        done
+    fi
 
     case "$mode" in
         1|smt)
@@ -249,11 +253,13 @@ case_bakery9() {
     shift
     local extra_flags=("$@")
     local want_witness=0
-    for flag in "${extra_flags[@]}"; do
-        if [[ "$flag" == "give_witness" ]]; then
-            want_witness=1
-        fi
-    done
+    if (( ${#extra_flags[@]} )); then
+        for flag in "${extra_flags[@]}"; do
+            if [[ "$flag" == "give_witness" ]]; then
+                want_witness=1
+            fi
+        done
+    fi
 
     case "$mode" in
         1|smt)
@@ -308,11 +314,13 @@ case_bakery11() {
     shift
     local extra_flags=("$@")
     local want_witness=0
-    for flag in "${extra_flags[@]}"; do
-        if [[ "$flag" == "give_witness" ]]; then
-            want_witness=1
-        fi
-    done
+    if (( ${#extra_flags[@]} )); then
+        for flag in "${extra_flags[@]}"; do
+            if [[ "$flag" == "give_witness" ]]; then
+                want_witness=1
+            fi
+        done
+    fi
 
     case "$mode" in
         1|smt)
@@ -367,11 +375,13 @@ case_snark1() {
     shift
     local extra_flags=("$@")
     local want_witness=0
-    for flag in "${extra_flags[@]}"; do
-        if [[ "$flag" == "give_witness" ]]; then
-            want_witness=1
-        fi
-    done
+    if (( ${#extra_flags[@]} )); then
+        for flag in "${extra_flags[@]}"; do
+            if [[ "$flag" == "give_witness" ]]; then
+                want_witness=1
+            fi
+        done
+    fi
 
     case "$mode" in
         1|smt)
@@ -467,11 +477,13 @@ case_ni_incorrect() {
     shift
     local extra_flags=("$@")
     local want_witness=0
-    for flag in "${extra_flags[@]}"; do
-        if [[ "$flag" == "give_witness" ]]; then
-            want_witness=1
-        fi
-    done
+    if (( ${#extra_flags[@]} )); then
+        for flag in "${extra_flags[@]}"; do
+            if [[ "$flag" == "give_witness" ]]; then
+                want_witness=1
+            fi
+        done
+    fi
 
     case "$mode" in
         1|smt)
@@ -527,11 +539,13 @@ case_nrp_correct() {
     shift
     local extra_flags=("$@")
     local want_witness=0
-    for flag in "${extra_flags[@]}"; do
-        if [[ "$flag" == "give_witness" ]]; then
-            want_witness=1
-        fi
-    done
+    if (( ${#extra_flags[@]} )); then
+        for flag in "${extra_flags[@]}"; do
+            if [[ "$flag" == "give_witness" ]]; then
+                want_witness=1
+            fi
+        done
+    fi
 
     case "$mode" in
         1|smt)
@@ -821,11 +835,13 @@ case_sp100() {
     shift
     local extra_flags=("$@")
     local want_witness=0
-    for flag in "${extra_flags[@]}"; do
-        if [[ "$flag" == "give_witness" ]]; then
-            want_witness=1
-        fi
-    done
+    if (( ${#extra_flags[@]} )); then
+        for flag in "${extra_flags[@]}"; do
+            if [[ "$flag" == "give_witness" ]]; then
+                want_witness=1
+            fi
+        done
+    fi
 
     case "$mode" in
         1|smt)
@@ -883,11 +899,13 @@ case_sp400() {
     shift
     local extra_flags=("$@")
     local want_witness=0
-    for flag in "${extra_flags[@]}"; do
-        if [[ "$flag" == "give_witness" ]]; then
-            want_witness=1
-        fi
-    done
+    if (( ${#extra_flags[@]} )); then
+        for flag in "${extra_flags[@]}"; do
+            if [[ "$flag" == "give_witness" ]]; then
+                want_witness=1
+            fi
+        done
+    fi
 
     case "$mode" in
         1|smt)
@@ -945,11 +963,13 @@ case_sp1600() {
     shift
     local extra_flags=("$@")
     local want_witness=0
-    for flag in "${extra_flags[@]}"; do
-        if [[ "$flag" == "give_witness" ]]; then
-            want_witness=1
-        fi
-    done
+    if (( ${#extra_flags[@]} )); then
+        for flag in "${extra_flags[@]}"; do
+            if [[ "$flag" == "give_witness" ]]; then
+                want_witness=1
+            fi
+        done
+    fi
 
     case "$mode" in
         1|smt)
@@ -1006,11 +1026,13 @@ case_sp3600() {
     shift
     local extra_flags=("$@")
     local want_witness=0
-    for flag in "${extra_flags[@]}"; do
-        if [[ "$flag" == "give_witness" ]]; then
-            want_witness=1
-        fi
-    done
+    if (( ${#extra_flags[@]} )); then
+        for flag in "${extra_flags[@]}"; do
+            if [[ "$flag" == "give_witness" ]]; then
+                want_witness=1
+            fi
+        done
+    fi
 
     case "$mode" in
         1|smt)
@@ -1067,11 +1089,13 @@ case_mutation() {
     shift
     local extra_flags=("$@")
     local want_witness=0
-    for flag in "${extra_flags[@]}"; do
-        if [[ "$flag" == "give_witness" ]]; then
-            want_witness=1
-        fi
-    done
+    if (( ${#extra_flags[@]} )); then
+        for flag in "${extra_flags[@]}"; do
+            if [[ "$flag" == "give_witness" ]]; then
+                want_witness=1
+            fi
+        done
+    fi
 
     case "$mode" in
         1|smt)
@@ -1161,6 +1185,14 @@ CASES=(
   mutation
 )
 
+LIGHT_CASES=()
+for case_fn in "${CASES[@]}"; do
+  case "$case_fn" in
+    bakery9|bakery11|rb1600|rb3600|sp400|sp1600|sp3600) ;;
+    *) LIGHT_CASES+=("$case_fn");;
+  esac
+done
+
 usage() {
   cat <<EOF
 Usage: $0 [mode]
@@ -1177,6 +1209,7 @@ Extra flags:
 EOF
   exit 1
 }
+
 
 list_cases() {
   printf "Available cases:\n"
@@ -1205,19 +1238,15 @@ run_matrix() {
       exit 1
     fi
     for m in "${modes[@]}"; do
-      "$fn" "$m" "${extra_args[@]}"
+      if (( ${#extra_args[@]} )); then
+        "$fn" "$m" "${extra_args[@]}"
+      else
+        "$fn" "$m"
+      fi
     done
   done
   render_tables
 }
-
-LIGHT_CASES=()
-for case_fn in "${CASES[@]}"; do
-  case "$case_fn" in
-    bakery9|bakery11|rb1600|rb3600|sp400|sp1600|sp3600) ;;
-    *) LIGHT_CASES+=("$case_fn");;
-  esac
-done
 
 run_light_compare_matrix() {
   local modes=()
@@ -1241,7 +1270,11 @@ run_light_compare_matrix() {
       exit 1
     fi
     for m in "${modes[@]}"; do
-      "$fn" "$m" "${extra_args[@]}"
+      if (( ${#extra_args[@]} )); then
+        "$fn" "$m" "${extra_args[@]}"
+      else
+        "$fn" "$m"
+      fi
     done
   done
   render_tables
@@ -1257,7 +1290,11 @@ run_light_mode() {
       echo "(!) Missing case function: $fn"
       exit 1
     fi
-    "$fn" "$mode" "${extra_args[@]}"
+    if (( ${#extra_args[@]} )); then
+      "$fn" "$mode" "${extra_args[@]}"
+    else
+      "$fn" "$mode"
+    fi
   done
   render_tables
 }
@@ -1281,7 +1318,11 @@ run_single_case_matrix() {
   local fn="case_${case_name}"
   if declare -f "$fn" >/dev/null 2>&1; then
     for m in "${modes[@]}"; do
-      "$fn" "$m" "${extra_args[@]}"
+      if (( ${#extra_args[@]} )); then
+        "$fn" "$m" "${extra_args[@]}"
+      else
+        "$fn" "$m"
+      fi
     done
     render_tables
   else
@@ -1291,6 +1332,10 @@ run_single_case_matrix() {
   fi
 }
 
+
+# ------------
+# MAIN DRIVER
+# ------------
 case "${1:-}" in
   -compare)
     shift
