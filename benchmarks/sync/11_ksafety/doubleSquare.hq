@@ -1,2 +1,2 @@
 Forall A . Forall B .
-(F(x[A] = x[B]) -> (G ((halt[A] & halt[B]) -> (y[A] = y[B]))))
+(G(x[A] = x[B]) -> (G ((halt[A] & halt[B]) -> (y[A] = y[B]))))

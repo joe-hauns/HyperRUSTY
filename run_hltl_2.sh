@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-TIMEOUT_SEC=${TIMEOUT_SEC:-10}  # seconds
+TIMEOUT_SEC=${TIMEOUT_SEC:-100}  # seconds
 
 FOLDER="benchmarks/sync/"
 
@@ -129,8 +129,8 @@ render_tables() {
 # --------------------------
 
 #=== Co-termination ===#
-case_coterm1() {
-  local case_name="Co-term1"
+case_coterm() {
+  local case_name="Co-termination"
   local mode="$1"
   case "$mode" in
     1|smt)
@@ -163,7 +163,7 @@ case_coterm1() {
 }
 
 #=== Deniability ===#
-case_e_wallet() {
+case_deniability() {
   local case_name="Deniability"
   local mode="$1"
   case "$mode" in
@@ -183,7 +183,7 @@ case_e_wallet() {
         "AutoHyper/app/AutoHyper \
          --nusmv ${FOLDER}8_deniability/electronic_wallet.smv \
          ${FOLDER}AH_formulas/8.hq \
-         --log --incl-forq"
+         --incl-forq"
       ;;
     3|qbf)
       printf "\n[HyperQB QBF] Running %s...\n" "$case_name"
@@ -195,7 +195,7 @@ case_e_wallet() {
          -f ${FOLDER}8_deniability/den.hq \
          -k 10 -s hpes -q"
       ;;
-    *) echo "Usage: case_e_wallet <1|2|3> or <smt|ah|qbf>"; return 1 ;;
+    *) echo "Usage: case_deniability <1|2|3> or <smt|ah|qbf>"; return 1 ;;
   esac
 }
 
@@ -233,7 +233,7 @@ case_buffer_scheduled_classic() {
       local ah_cmd="AutoHyper/app/AutoHyper \
          --nusmv ${FOLDER}9_buffer/scheduled_buffer.smv \
          ${FOLDER}AH_formulas/9.1.hq \
-         --log --witness"
+         "
       time_run "$case_name" "AH" "$ah_cmd"
       if (( want_witness )); then
         local ah_cmd_witness="$ah_cmd"
@@ -273,7 +273,7 @@ case_buffer_scheduled_intrans_od() {
         "AutoHyper/app/AutoHyper \
          --nusmv ${FOLDER}9_buffer/scheduled_buffer.smv \
          ${FOLDER}AH_formulas/9.2.hq \
-         --log"
+         "
       ;;
     3|qbf)
       printf "\n[HyperQB QBF] Running %s...\n" "$case_name"
@@ -307,7 +307,7 @@ case_buffer_scheduled_intrans_gmni() {
         "AutoHyper/app/AutoHyper \
          --nusmv ${FOLDER}9_buffer/scheduled_buffer.smv \
          ${FOLDER}AH_formulas/9.3.hq \
-         --log"
+         "
       ;;
     3|qbf)
       printf "\n[HyperQB QBF] Running %s...\n" "$case_name"
@@ -355,7 +355,7 @@ case_buffer_unscheduled_classic() {
       local ah_cmd="AutoHyper/app/AutoHyper \
          --nusmv ${FOLDER}9_buffer/unscheduled_buffer.smv \
          ${FOLDER}AH_formulas/9.1.hq \
-         --log --witness"
+         "
       time_run "$case_name" "AH" "$ah_cmd"
       if (( want_witness )); then
         local ah_cmd_witness="$ah_cmd"
@@ -376,7 +376,7 @@ case_buffer_unscheduled_classic() {
   esac
 }
 
-#=== Non-determinism Experience ===#
+#=== Non-determinism Experiment ===#
 case_niexp_tini() {
   local case_name="NIExp_TINI"
   local mode="$1"
@@ -396,7 +396,7 @@ case_niexp_tini() {
         "AutoHyper/app/AutoHyper \
          --nusmv ${FOLDER}10_NIexp/ni_example.smv \
          ${FOLDER}AH_formulas/10.1.hq \
-         --log --incl-forq"
+         --incl-forq"
       ;;
     3|qbf)
       printf "\n[HyperQB QBF] Running %s...\n" "$case_name"
@@ -430,7 +430,7 @@ case_niexp_tsni() {
         "AutoHyper/app/AutoHyper \
          --nusmv ${FOLDER}10_NIexp/ni_example.smv \
          ${FOLDER}AH_formulas/10.2.hq \
-         --log --incl-forq"
+         --incl-forq"
       ;;
     3|qbf)
       printf "\n[HyperQB QBF] Running %s...\n" "$case_name"
@@ -446,7 +446,7 @@ case_niexp_tsni() {
 }
 
 #=== k-safety ===#
-case_ksafety_doubleSquare() {
+case_ksafety() {
   local case_name="k_safety"
   local mode="$1"
   case "$mode" in
@@ -465,7 +465,7 @@ case_ksafety_doubleSquare() {
         "AutoHyper/app/AutoHyper \
          --nusmv ${FOLDER}11_ksafety/doubleSquare.smv \
          ${FOLDER}AH_formulas/11.hq \
-         --log"
+         "
       ;;
     3|qbf)
       printf "\n[HyperQB QBF] Running %s...\n" "$case_name"
@@ -476,12 +476,12 @@ case_ksafety_doubleSquare() {
          -f ${FOLDER}11_ksafety/doubleSquare.hq \
          -k 50 -s hpes -c -q"
       ;;
-    *) echo "Usage: case_ksafety_doubleSquare <1|2|3> or <smt|ah|qbf>"; return 1 ;;
+    *) echo "Usage: case_ksafety <1|2|3> or <smt|ah|qbf>"; return 1 ;;
   esac
 }
 
 #=== Mapping synthesis ===#
-case_mapsynth_msynth() {
+case_mapsynth1() {
   local case_name="MapSynth1"
   local mode="${1:-}"
   shift
@@ -521,7 +521,7 @@ case_mapsynth_msynth() {
          ${FOLDER}12_mapsynth/msynth_MA.smv \
          ${FOLDER}12_mapsynth/msynth_MB.smv \
          ${FOLDER}AH_formulas/12.1.hq \
-         --log"
+        "
       time_run "$case_name" "AH" "$ah_cmd"
       if (( want_witness )); then
         local ah_cmd_witness="$ah_cmd"
@@ -541,11 +541,11 @@ case_mapsynth_msynth() {
          -f ${FOLDER}12_mapsynth/msynth.hq \
          -k 10 -s hpes -q"
       ;;
-    *) echo "Usage: case_mapsynth_msynth <1|2|3> or <smt|ah|qbf>"; return 1 ;;
+    *) echo "Usage: case_mapsynth1 <1|2|3> or <smt|ah|qbf>"; return 1 ;;
   esac
 }
 
-case_mapsynth_msynth2() {
+case_mapsynth2() {
   local case_name="MapSynth2"
   local mode="${1:-}"
   shift
@@ -585,7 +585,7 @@ case_mapsynth_msynth2() {
          ${FOLDER}12_mapsynth/msynth2_MA.smv \
          ${FOLDER}12_mapsynth/msynth2_MB.smv \
          ${FOLDER}AH_formulas/12.2.hq \
-         --log --incl-forq"
+         --incl-forq"
       time_run "$case_name" "AH" "$ah_cmd"
       if (( want_witness )); then
         local ah_cmd_witness="$ah_cmd"
@@ -605,12 +605,12 @@ case_mapsynth_msynth2() {
          -f ${FOLDER}12_mapsynth/msynth2.hq \
          -k 10 -s hpes -q"
       ;;
-    *) echo "Usage: case_mapsynth_msynth2 <1|2|3> or <smt|ah|qbf>"; return 1 ;;
+    *) echo "Usage: case_mapsynth2 <1|2|3> or <smt|ah|qbf>"; return 1 ;;
   esac
 }
 
 #=== TEAM LTL ===#
-case_teamltl_team() {
+case_teamltl_v1() {
   local case_name="TeamLTL_v1"
   local mode="$1"
   case "$mode" in
@@ -630,7 +630,7 @@ case_teamltl_team() {
         "AutoHyper/app/AutoHyper \
          --nusmv ${FOLDER}13_teamltl/team.smv \
          ${FOLDER}AH_formulas/13.1.hq \
-         --log"
+         "
       ;;
     3|qbf)
       printf "\n[HyperQB QBF] Running %s...\n" "$case_name"
@@ -642,11 +642,11 @@ case_teamltl_team() {
          -f ${FOLDER}13_teamltl/team.hq \
          -k 10 -s hpes -q"
       ;;
-    *) echo "Usage: case_teamltl_team <1|2|3> or <smt|ah|qbf>"; return 1 ;;
+    *) echo "Usage: case_teamltl_v1 <1|2|3> or <smt|ah|qbf>"; return 1 ;;
   esac
 }
 
-case_teamltl_team2() {
+case_teamltl_v2() {
   local case_name="TeamLTL_v2"
   local mode="$1"
   case "$mode" in
@@ -666,7 +666,7 @@ case_teamltl_team2() {
         "AutoHyper/app/AutoHyper \
          --nusmv ${FOLDER}13_teamltl/team2.smv \
          ${FOLDER}AH_formulas/13.2.hq \
-         --log"
+         "
       ;;
     3|qbf)
       printf "\n[HyperQB QBF] Running %s...\n" "$case_name"
@@ -678,12 +678,12 @@ case_teamltl_team2() {
          -f ${FOLDER}13_teamltl/team.hq \
          -k 21 -s hpes -q"
       ;;
-    *) echo "Usage: case_teamltl_team2 <1|2|3> or <smt|ah|qbf>"; return 1 ;;
+    *) echo "Usage: case_teamltl_v2 <1|2|3> or <smt|ah|qbf>"; return 1 ;;
   esac
 }
 
 #=== NDET ===#
-case_ndet_ni_v1() {
+case_ndet_v1() {
   local case_name="NDET_v1"
   local mode="${1:-}"
   shift
@@ -716,7 +716,7 @@ case_ndet_ni_v1() {
       local ah_cmd="AutoHyper/app/AutoHyper \
          --nusmv ${FOLDER}14_ndet/NI_v1.smv \
          ${FOLDER}AH_formulas/14.hq \
-         --log --witness --incl-forq"
+         --incl-forq"
       time_run "$case_name" "AH" "$ah_cmd"
       if (( want_witness )); then
         local ah_cmd_witness="$ah_cmd"
@@ -733,11 +733,11 @@ case_ndet_ni_v1() {
          -f ${FOLDER}14_ndet/NI.hq \
          -k 10 -s hpes -q"
       ;;
-    *) echo "Usage: case_ndet_ni_v1 <1|2|3> or <smt|ah|qbf>"; return 1 ;;
+    *) echo "Usage: case_ndet_v1 <1|2|3> or <smt|ah|qbf>"; return 1 ;;
   esac
 }
 
-case_ndet_ni_v2() {
+case_ndet_v2() {
   local case_name="NDET_v2"
   local mode="${1:-}"
   shift
@@ -770,7 +770,7 @@ case_ndet_ni_v2() {
       local ah_cmd="AutoHyper/app/AutoHyper \
          --nusmv ${FOLDER}14_ndet/NI_v2.smv \
          ${FOLDER}AH_formulas/14.hq \
-         --log --witness --incl-forq"
+         --incl-forq"
       time_run "$case_name" "AH" "$ah_cmd"
       if (( want_witness )); then
         local ah_cmd_witness="$ah_cmd"
@@ -787,11 +787,11 @@ case_ndet_ni_v2() {
          -f ${FOLDER}14_ndet/NI.hq \
          -k 10 -s hpes -q"
       ;;
-    *) echo "Usage: case_ndet_ni_v2 <1|2|3> or <smt|ah|qbf>"; return 1 ;;
+    *) echo "Usage: case_ndet_v2 <1|2|3> or <smt|ah|qbf>"; return 1 ;;
   esac
 }
 
-case_ndet_ni_v3() {
+case_ndet_v3() {
   local case_name="NDET_v3"
   local mode="${1:-}"
   shift
@@ -824,7 +824,7 @@ case_ndet_ni_v3() {
       local ah_cmd="AutoHyper/app/AutoHyper \
          --nusmv ${FOLDER}14_ndet/NI_v3.smv \
          ${FOLDER}AH_formulas/14.hq \
-         --log --incl-forq"
+         --incl-forq"
       time_run "$case_name" "AH" "$ah_cmd"
       if (( want_witness )); then
         local ah_cmd_witness="$ah_cmd"
@@ -841,7 +841,7 @@ case_ndet_ni_v3() {
          -f ${FOLDER}14_ndet/NI.hq \
          -k 10 -s hpes -q"
       ;;
-    *) echo "Usage: case_ndet_ni_v3 <1|2|3> or <smt|ah|qbf>"; return 1 ;;
+    *) echo "Usage: case_ndet_v3 <1|2|3> or <smt|ah|qbf>"; return 1 ;;
   esac
 }
 
@@ -867,7 +867,7 @@ case_bank_v1() {
          ${FOLDER}15_bank/bank3_complex_V1.smv \
          ${FOLDER}15_bank/bank3_complex_V1.smv \
          -f ${FOLDER}15_bank/gmni.hq \
-         -k 10 -s hpes -q"
+         -k 10 -s hpes"
       time_run "$case_name" "SMT" "$smt_cmd"
       if (( want_witness )); then
         local smt_cmd_witness="$smt_cmd"
@@ -880,7 +880,7 @@ case_bank_v1() {
       local ah_cmd="AutoHyper/app/AutoHyper \
          --nusmv ${FOLDER}15_bank/bank3_complex_V1.smv \
          ${FOLDER}AH_formulas/15.hq \
-         --log --witness"
+         "
       time_run "$case_name" "AH" "$ah_cmd"
       if (( want_witness )); then
         local ah_cmd_witness="$ah_cmd"
@@ -923,7 +923,7 @@ case_bank_v2() {
          ${FOLDER}15_bank/bank3_complex_V2.smv \
          ${FOLDER}15_bank/bank3_complex_V2.smv \
          -f ${FOLDER}15_bank/gmni.hq \
-         -k 10 -s hpes -q"
+         -k 10 -s hpes"
       time_run "$case_name" "SMT" "$smt_cmd"
       if (( want_witness )); then
         local smt_cmd_witness="$smt_cmd"
@@ -936,7 +936,7 @@ case_bank_v2() {
       local ah_cmd="AutoHyper/app/AutoHyper \
          --nusmv ${FOLDER}15_bank/bank3_complex_V2.smv \
          ${FOLDER}AH_formulas/15.hq \
-         --log --witness"
+         "
       time_run "$case_name" "AH" "$ah_cmd"
       if (( want_witness )); then
         local ah_cmd_witness="$ah_cmd"
@@ -979,7 +979,7 @@ case_bank_v3() {
          ${FOLDER}15_bank/bank3_complex_V3.smv \
          ${FOLDER}15_bank/bank3_complex_V3.smv \
          -f ${FOLDER}15_bank/gmni.hq \
-         -k 10 -s hpes -q"
+         -k 10 -s hpes"
       time_run "$case_name" "SMT" "$smt_cmd"
       if (( want_witness )); then
         local smt_cmd_witness="$smt_cmd"
@@ -992,7 +992,7 @@ case_bank_v3() {
       local ah_cmd="AutoHyper/app/AutoHyper \
          --nusmv ${FOLDER}15_bank/bank3_complex_V3.smv \
          ${FOLDER}AH_formulas/15.hq \
-         --log --witness"
+        "
       time_run "$case_name" "AH" "$ah_cmd"
       if (( want_witness )); then
         local ah_cmd_witness="$ah_cmd"
@@ -1032,10 +1032,10 @@ case_constructor() {
     1|smt)
       printf "\n[HyperQB SMT] Running %s...\n" "$case_name"
       local smt_cmd="${CARGO_BIN} \
-         -n ${FOLDER}16_constructor/constructor_conc.smv \
+         -n ${FOLDER}16_constructor/constructor_atomic.smv \
          ${FOLDER}16_constructor/constructor_seq.smv \
          -f ${FOLDER}16_constructor/Linearizability.hq \
-         -k 10 -s hpes -q"
+         -k 10 -s hpes"
       time_run "$case_name" "SMT" "$smt_cmd"
       if (( want_witness )); then
         local smt_cmd_witness="$smt_cmd"
@@ -1046,10 +1046,10 @@ case_constructor() {
     2|ah)
       printf "\n[AutoHyper]   Running %s...\n" "$case_name"
       local ah_cmd="AutoHyper/app/AutoHyper \
-         --nusmv ${FOLDER}16_constructor/constructor_conc.smv \
+         --nusmv ${FOLDER}16_constructor/constructor_atomic.smv \
          ${FOLDER}16_constructor/constructor_seq.smv \
          ${FOLDER}AH_formulas/16.hq \
-         --log --witness"
+         "
       time_run "$case_name" "AH" "$ah_cmd"
       if (( want_witness )); then
         local ah_cmd_witness="$ah_cmd"
@@ -1061,7 +1061,7 @@ case_constructor() {
       printf "\n[HyperQB QBF] Running %s...\n" "$case_name"
       time_run "$case_name" "QBF" \
         "${CARGO_BIN} \
-         -n ${FOLDER}16_constructor/constructor_conc.smv \
+         -n ${FOLDER}16_constructor/constructor_atomic.smv \
          ${FOLDER}16_constructor/constructor_seq.smv \
          -f ${FOLDER}16_constructor/Linearizability.hq \
          -k 10 -s hpes -q"
@@ -1083,7 +1083,7 @@ case_bidding_safe_1() {
          -n ${FOLDER}18_bidding/bid_safe.smv \
          ${FOLDER}18_bidding/bid_safe.smv \
          -f ${FOLDER}18_bidding/bidding.hq \
-         -k 10 -s hpes -q"
+         -k 10 -s hpes"
       ;;
     2|ah)
       printf "\n[AutoHyper]   Running %s...\n" "$case_name"
@@ -1091,7 +1091,7 @@ case_bidding_safe_1() {
         "AutoHyper/app/AutoHyper \
          --nusmv ${FOLDER}18_bidding/bid_safe.smv \
          ${FOLDER}AH_formulas/18.hq \
-         --log"
+      "
       ;;
     3|qbf)
       printf "\n[HyperQB QBF] Running %s...\n" "$case_name"
@@ -1117,7 +1117,7 @@ case_bidding_safe_2() {
          -n ${FOLDER}18_bidding/bid_safe_2.smv \
          ${FOLDER}18_bidding/bid_safe_2.smv \
          -f ${FOLDER}18_bidding/bidding.hq \
-         -k 10 -s hpes -q"
+         -k 10 -s hpes"
       ;;
     2|ah)
       printf "\n[AutoHyper]   Running %s...\n" "$case_name"
@@ -1125,7 +1125,7 @@ case_bidding_safe_2() {
         "AutoHyper/app/AutoHyper \
          --nusmv ${FOLDER}18_bidding/bid_safe_2.smv \
          ${FOLDER}AH_formulas/18.hq \
-         --log"
+         "
       ;;
     3|qbf)
       printf "\n[HyperQB QBF] Running %s...\n" "$case_name"
@@ -1151,7 +1151,7 @@ case_bidding_safe_3() {
          -n ${FOLDER}18_bidding/bid_safe_4.smv \
          ${FOLDER}18_bidding/bid_safe_4.smv \
          -f ${FOLDER}18_bidding/bidding.hq \
-         -k 10 -s hpes -q"
+         -k 10 -s hpes"
       ;;
     2|ah)
       printf "\n[AutoHyper]   Running %s...\n" "$case_name"
@@ -1159,7 +1159,7 @@ case_bidding_safe_3() {
         "AutoHyper/app/AutoHyper \
          --nusmv ${FOLDER}18_bidding/bid_safe_4.smv \
          ${FOLDER}AH_formulas/18.hq \
-         --log"
+         "
       ;;
     3|qbf)
       printf "\n[HyperQB QBF] Running %s...\n" "$case_name"
@@ -1194,7 +1194,7 @@ case_bidding_unsafe() {
          -n ${FOLDER}18_bidding/bid_unsafe.smv \
          ${FOLDER}18_bidding/bid_unsafe.smv \
          -f ${FOLDER}18_bidding/bidding.hq \
-         -k 10 -s hpes -q"
+         -k 10 -s hpes"
       time_run "$case_name" "SMT" "$smt_cmd"
       if (( want_witness )); then
         local smt_cmd_witness="$smt_cmd"
@@ -1207,7 +1207,7 @@ case_bidding_unsafe() {
       local ah_cmd="AutoHyper/app/AutoHyper \
          --nusmv ${FOLDER}18_bidding/bid_unsafe.smv \
          ${FOLDER}AH_formulas/18.hq \
-         --log --witness"
+         "
       time_run "$case_name" "AH" "$ah_cmd"
       if (( want_witness )); then
         local ah_cmd_witness="$ah_cmd"
@@ -1250,14 +1250,14 @@ case_iqueue() {
          -n ${FOLDER}19_iqueue/iqueue_conc.smv \
          ${FOLDER}19_iqueue/iqueue_seq.smv \
          -f ${FOLDER}19_iqueue/iqueue.hq \
-         -k 10 -s hpes -q"
+         -k 10 -s hpes"
       if (( want_witness )); then
         time_run "$case_name" "SMT_witness" \
           "${CARGO_BIN} \
            -n ${FOLDER}19_iqueue/iqueue_conc.smv \
            ${FOLDER}19_iqueue/iqueue_seq.smv \
            -f ${FOLDER}19_iqueue/iqueue.hq \
-           -k 10 -s hpes -q -c"
+           -k 10 -s hpes -c"
       fi
       ;;
     2|ah)
@@ -1267,14 +1267,14 @@ case_iqueue() {
          --nusmv ${FOLDER}19_iqueue/iqueue_conc.smv \
          ${FOLDER}19_iqueue/iqueue_seq.smv \
          ${FOLDER}AH_formulas/19.hq \
-         --log --witness"
+         "
       if (( want_witness )); then
         time_run "$case_name" "AH_witness" \
           "AutoHyper/app/AutoHyper \
            --nusmv ${FOLDER}19_iqueue/iqueue_conc.smv \
            ${FOLDER}19_iqueue/iqueue_seq.smv \
            ${FOLDER}AH_formulas/19.hq \
-           --log --witness --witness"
+           --witness --witness"
       fi
       ;;
     3|qbf)
@@ -1312,14 +1312,14 @@ case_keypad() {
          -n ${FOLDER}20_keypad/keypad.smv \
          ${FOLDER}20_keypad/keypad.smv \
          -f ${FOLDER}20_keypad/keypad_2.hq \
-         -k 10 -s hpes -q"
+         -k 10 -s hpes"
       if (( want_witness )); then
         time_run "$case_name" "SMT_witness" \
           "${CARGO_BIN} \
            -n ${FOLDER}20_keypad/keypad.smv \
            ${FOLDER}20_keypad/keypad.smv \
            -f ${FOLDER}20_keypad/keypad_2.hq \
-           -k 10 -s hpes -q -c"
+           -k 10 -s hpes -c"
       fi
       ;;
     2|ah)
@@ -1328,13 +1328,13 @@ case_keypad() {
         "AutoHyper/app/AutoHyper \
          --nusmv ${FOLDER}20_keypad/keypad.smv \
          ${FOLDER}AH_formulas/20.hq \
-         --log --witness"
+         "
       if (( want_witness )); then
         time_run "$case_name" "AH_witness" \
           "AutoHyper/app/AutoHyper \
            --nusmv ${FOLDER}20_keypad/keypad.smv \
            ${FOLDER}AH_formulas/20.hq \
-           --log --witness --witness"
+           --witness"
       fi
       ;;
     3|qbf)
@@ -1351,7 +1351,7 @@ case_keypad() {
 }
 
 #=== Queue (LIN) ===#
-case_queue_lin() {
+case_simple_queue() {
   local case_name="SimpleQueue"
   local mode="${1:-}"
   shift
@@ -1389,14 +1389,14 @@ case_queue_lin() {
          --nusmv ${FOLDER}21_queue/concurrent.smv \
          ${FOLDER}21_queue/atomic.smv \
          ${FOLDER}AH_formulas/21.hq \
-         --log"
+         "
       if (( want_witness )); then
         time_run "$case_name" "AH_witness" \
           "AutoHyper/app/AutoHyper \
            --nusmv ${FOLDER}21_queue/concurrent.smv \
            ${FOLDER}21_queue/atomic.smv \
            ${FOLDER}AH_formulas/21.hq \
-           --log --witness"
+           --witness"
       fi
       ;;
     3|qbf)
@@ -1408,7 +1408,7 @@ case_queue_lin() {
          -f ${FOLDER}21_queue/lin.hq \
          -k 10 -s hpes -q"
       ;;
-    *) echo "Usage: case_queue_lin <1|2|3> or <smt|ah|qbf>"; return 1 ;;
+    *) echo "Usage: case_simple_queue <1|2|3> or <smt|ah|qbf>"; return 1 ;;
   esac
 }
 
@@ -1434,14 +1434,14 @@ case_emm_aba() {
          -n ${FOLDER}22_emm_aba/emm_aba_conc.smv \
          ${FOLDER}22_emm_aba/emm_aba_seq.smv \
          -f ${FOLDER}22_emm_aba/emm_aba.hq \
-         -k 6 -s hpes -q"
+         -k 6 -s hpes"
       if (( want_witness )); then
         time_run "$case_name" "SMT_witness" \
           "${CARGO_BIN} \
            -n ${FOLDER}22_emm_aba/emm_aba_conc.smv \
            ${FOLDER}22_emm_aba/emm_aba_seq.smv \
            -f ${FOLDER}22_emm_aba/emm_aba.hq \
-           -k 6 -s hpes -q -c"
+           -k 6 -s hpes -c"
       fi
       ;;
     2|ah)
@@ -1451,14 +1451,14 @@ case_emm_aba() {
          --nusmv ${FOLDER}22_emm_aba/emm_aba_conc.smv \
          ${FOLDER}22_emm_aba/emm_aba_seq.smv \
          ${FOLDER}AH_formulas/22.hq \
-         --log --witness --incl-forq"
+         --incl-forq"
       if (( want_witness )); then
         time_run "$case_name" "AH_witness" \
           "AutoHyper/app/AutoHyper \
            --nusmv ${FOLDER}22_emm_aba/emm_aba_conc.smv \
            ${FOLDER}22_emm_aba/emm_aba_seq.smv \
            ${FOLDER}AH_formulas/22.hq \
-           --log --witness --incl-forq --witness"
+           --incl-forq --witness"
       fi
       ;;
     3|qbf)
@@ -1513,14 +1513,14 @@ case_lazy_list() {
          --nusmv ${FOLDER}23_lazy_list/lazy_list_conc.smv \
          ${FOLDER}23_lazy_list/lazy_list_seq.smv \
          ${FOLDER}AH_formulas/23.hq \
-         --log --incl-forq"
+         --incl-forq"
       if (( want_witness )); then
         time_run "$case_name" "AH_witness" \
           "AutoHyper/app/AutoHyper \
            --nusmv ${FOLDER}23_lazy_list/lazy_list_conc.smv \
            ${FOLDER}23_lazy_list/lazy_list_seq.smv \
            ${FOLDER}AH_formulas/23.hq \
-           --log --incl-forq --witness"
+           --incl-forq --witness"
       fi
       ;;
     3|qbf)
@@ -1543,10 +1543,10 @@ case_lazy_list() {
 # Register the cases available for -compare (use names without the `case_` prefix)
 CASES=(
   # --- Co-termination ---
-  coterm1
+  coterm
 
   # --- Deniability ---
-  e_wallet
+  deniability
 
   # --- Shared buffer ---
   buffer_scheduled_classic
@@ -1559,20 +1559,20 @@ CASES=(
   niexp_tsni
 
   # --- k-safety ---
-  ksafety_doubleSquare
+  ksafety
 
   # --- Mapping synthesis ---
-  mapsynth_msynth
-  mapsynth_msynth2
+  mapsynth1
+  mapsynth2
 
   # --- TEAM LTL ---
-  teamltl_team
-  teamltl_team2
+  teamltl_v1
+  teamltl_v2
 
   # --- NDET ---
-  ndet_ni_v1
-  ndet_ni_v2
-  ndet_ni_v3
+  ndet_v1
+  ndet_v2
+  ndet_v3
 
   # --- Bank ---
   bank_v1
@@ -1595,7 +1595,7 @@ CASES=(
   keypad
 
   # --- Queue (LIN) ---
-  queue_lin
+  simple_queue
 
   # --- EMM_ABA (LIN) ---
   emm_aba
@@ -1625,10 +1625,28 @@ EOF
 LIGHT_CASES=()
 for case_fn in "${CASES[@]}"; do
   case "$case_fn" in
-    mapsynth_msynth2|iqueue|lazy_list) ;;
+    mapsynth2|ndet_v3|iqueue|emm_aba|lazy_list) ;;
     *) LIGHT_CASES+=("$case_fn");;
   esac
 done
+
+usage() {
+  cat <<EOF
+Usage: $0 [mode]
+  -all <mode>             Run all cases with the chosen mode (smt|ah|qbf)
+  -light <mode>           Run lightweight cases with the chosen mode (smt|ah|qbf)
+  -compare all [extras]   Run all cases with all modes (smt/ah/qbf)
+  -compare light [extras] Run lightweight cases with all modes (smt/ah/qbf)
+  -list                   List all available case functions
+  -compare <case> [extras] Run one case with all modes (see -list for case selections)
+  -case <case> <mode> [extras] Run one case with selected mode (smt|ah|qbf)
+
+Extra flags:
+  give_witness            Extend SMT/AH variants with witness runs (when supported)
+EOF
+  exit 1
+}
+
 
 list_cases() {
   printf "Available cases:\n"
@@ -1751,6 +1769,10 @@ run_single_case_matrix() {
   fi
 }
 
+
+# ------------
+# MAIN DRIVER
+# ------------
 case "${1:-}" in
   -compare)
     shift
@@ -1837,7 +1859,11 @@ case "${1:-}" in
     extra_case_args=("$@")
     fn="case_${func}"
     if declare -f "$fn" >/dev/null 2>&1; then
-      "$fn" "$mode" "${extra_case_args[@]}"
+      if (( ${#extra_case_args[@]} )); then
+        "$fn" "$mode" -- "${extra_case_args[@]}"
+      else
+        "$fn" "$mode"
+      fi
       render_tables
     else
       echo "Unknown case: $func"

@@ -1,4 +1,2 @@
-Forall A . Forall B .
-(
-    (PC_line[A] = 0) U (halt[B])   
-)
+Exists A . Forall B .
+F(NUM[A]=2)

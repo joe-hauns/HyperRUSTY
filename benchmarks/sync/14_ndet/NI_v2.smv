@@ -1,10 +1,7 @@
--- (hand-craft)
+-- NDET V2: A simple program that violates non-interference
+-- NuSMv model crafted by the HyperQB team
+
 MODULE main
--- A simple program that violates non-interference
--- 1: LOW=0, HIGH={0....10}
--- 2: if(HIGH>5):
--- 3:   LOW=HIGH
---
 VAR
   HIGH: 0..12;
   LOW: 0..12;
@@ -16,15 +13,31 @@ ASSIGN
   init(PC):= 1; -- program counter starts at 1.
 
   -- Transition Relations
-  next(HIGH) := HIGH;
+  next(HIGH) := 
+    case
+      (HIGH=0): 0;
+      (HIGH=1): 1;
+      (HIGH=2): 2;
+      (HIGH=3): 3;
+      (HIGH=4): 4;
+      (HIGH=5): 5;
+      (HIGH=6): 6;
+      (HIGH=7): 7;
+      (HIGH=8): 8;
+      (HIGH=9): 9;
+      (HIGH=12): 12;
+      TRUE: HIGH;
+    esac;
   next(LOW) :=
     case
-      ((PC=2) & (HIGH>6)): HIGH;
+      ((PC=2) & (9<HIGH)): HIGH;
       TRUE: LOW;
     esac;
   next(PC) :=
     case
+      (PC=1): 2;
+      (PC=2): 3;
       (PC=3): 3;
-      TRUE: PC+1;
+      TRUE: PC;
     esac;
 DEFINE
