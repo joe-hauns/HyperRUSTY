@@ -105,7 +105,7 @@ pub fn gen_qcir<'env, 'ctx>(
                 let guard_ret  = guard_fn(env, env.get_context(), &dummy_state);
                 let update_ret = update_fn(env, env.get_context(), &dummy_state);
 
-                // DEBUG: dynamic nodes
+                // >>>>>>> DEBUG: dynamic nodes
                 // println!(">>> Dyn nodes: ");
                 // println!("Guard:  {:?}", guard_ret);
                 // println!("Update: {:?}\n", update_ret);
@@ -132,7 +132,7 @@ pub fn gen_qcir<'env, 'ctx>(
                         let mut next_expr  = if let Some(e) = next_expr_fast {
                             e // ★ literal true/false or single int constant case
                         } else {
-                            // fallback: convert dynamic → Expression
+                            // fallback: convert dynamic to Expression
                             dyn_to_expr(&var_name, &update_node, true, &max_bit_map)
                         };
 
@@ -154,14 +154,14 @@ pub fn gen_qcir<'env, 'ctx>(
 
                         // Handling the TRUE case
                         if curr_guard == Expression::True {
-                                if let Some(i_ast) = update_node.as_int() {
-                                    if update_node.children().len() == 0 {
-                                        let key: &str = *var_name;
-                                        let bw = *max_bit_map.get(key).expect("missing bitwidth");
-                                        next_expr = build_bitblasted_self_eq(key, bw);
+                            // if let Some(i_ast) = update_node.as_int() {
+                            //     if update_node.children().len() == 0 {
+                            //         let key: &str = *var_name;
+                            //         let bw = *max_bit_map.get(key).expect("missing bitwidth");
+                            //         next_expr = build_bitblasted_self_eq(key, bw);
 
-                                    }   
-                                }
+                            //     }   
+                            // }
 
                             if !covered.is_empty() {
                                 // guard := ¬(∨ covered)
@@ -172,19 +172,20 @@ pub fn gen_qcir<'env, 'ctx>(
                                     Box::new(guard), 
                                     Box::new(next_expr))));
                             } else {
+                                expr_vec.push(Box::new(next_expr.clone()));
                                 // the "TRUE" exhausive case
-                                if is_literal {
-                                    // True ⇒ next_expr  ≡ next_expr
-                                    expr_vec.push(Box::new(next_expr.clone()));
-                                } else {
-                                    // original behavior: just (next_var ↔ next_expr)
-                                    // let next_eq = Expression::Iff(
-                                        // Box::new(next_expr.clone()),
-                                        // Box::new(next_var.clone()));
-                                    expr_vec.push(Box::new(next_expr.clone()));
-
-                                    // expr_vec.push(Box::new(next_eq));
-                                }
+                                // println!(">>> TRUE case is empty");
+                                // if is_literal {
+                                //     // True ⇒ next_expr  ≡ next_expr
+                                //     expr_vec.push(Box::new(next_expr.clone()));
+                                // } else {
+                                //     // original behavior: just (next_var ↔ next_expr)
+                                //     // let next_eq = Expression::Iff(
+                                //         // Box::new(next_expr.clone()),
+                                //         // Box::new(next_var.clone()));
+                                //     expr_vec.push(Box::new(next_expr.clone()));
+                                //     // expr_vec.push(Box::new(next_eq));
+                                // }
                             }
 
                             
@@ -1222,7 +1223,10 @@ pub fn fast_next_expr_from_return<'ctx>(
             if vals.iter().any(|&b| b)     { disj.push(Box::new(next_var.clone())); }
             if vals.iter().any(|&b| !b)    { disj.push(Box::new(Expression::Neg(Box::new(next_var)))); }
             Some(match disj.len() { 
-                0 => Expression::False, 1 => *disj.into_iter().next().unwrap(), _ => Expression::MOr(disj) })
+                0 => Expression::False, 
+                1 => *disj.into_iter().next().unwrap(), 
+                _ => Expression::MOr(disj)      
+            })
         }
 
         // ---- INT domain ----
@@ -1242,7 +1246,10 @@ pub fn fast_next_expr_from_return<'ctx>(
             for &v in &uniq {
                 arms.push(Box::new(build_bitblasted_equality(var_name, v, bw, true)));
             }
-            Some(match arms.len() { 0 => Expression::False, 1 => *arms.into_iter().next().unwrap(), _ => Expression::MOr(arms) })
+            Some(match arms.len() { 
+                0 => Expression::False, 
+                1 => *arms.into_iter().next().unwrap(), 
+                _ => Expression::MOr(arms) })
         }
 
         // ---- DynAst fast paths ----
@@ -1257,12 +1264,17 @@ pub fn fast_next_expr_from_return<'ctx>(
                 let bw = *max_bit_map.get(var_name).expect("missing bitwidth");
                 return Some(build_bitblasted_equality(var_name, val, bw, true));
             }
-            // Bare symbol like low!2
+            // Bare symbol, build equality
             if ast.children().is_empty() {
-                let base = clean_var_name(&ast.decl().name().to_string(), false);
-                let lhs = Expression::Literal(Lit::Atom(format!("{}'", base)));
-                let rhs = Expression::Literal(Lit::Atom(base));
-                return Some(Expression::Iff(Box::new(lhs), Box::new(rhs)));
+                let update = clean_var_name(&ast.decl().name().to_string(), false);
+                let bw = if let Some(width) = max_bit_map.get(&update) {
+                    // *width
+                    return Some(build_bitblasted_var_eq(&update, var_name, *width))
+                } else {
+                    let lhs = Expression::Literal(Lit::Atom(var_name.to_string()));
+                    let rhs = Expression::Literal(Lit::Atom(format!("{}'", update)));
+                    return Some(Expression::Iff(Box::new(lhs), Box::new(rhs)));
+                };
             }
             None
         }
@@ -1767,6 +1779,16 @@ pub fn build_bitblasted_self_eq(var_name: &str, bitwidth: usize) -> Expression {
     for i in (0..bitwidth).rev() {
         let a = bit_atom(var_name, i, false);
         let b = bit_atom(var_name, i, true);
+        lanes.push(Box::new(Expression::Iff(Box::new(a), Box::new(b))));
+    }
+    Expression::MAnd(lanes)
+}
+
+pub fn build_bitblasted_var_eq(var1: &str, var2: &str, bitwidth: usize) -> Expression {
+    let mut lanes = Vec::with_capacity(bitwidth);
+    for i in (0..bitwidth).rev() {
+        let a = bit_atom(var1, i, false);
+        let b = bit_atom(var2, i, true);
         lanes.push(Box::new(Expression::Iff(Box::new(a), Box::new(b))));
     }
     Expression::MAnd(lanes)

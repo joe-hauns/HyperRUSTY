@@ -11,6 +11,7 @@ MODULE main
     -- high: boolean;
     -- low:  boolean;
     PC_line: 0..3;
+    NUM: 0..3;
     -- halt: boolean;
  ASSIGN
     -- Initial Conditions, here are dummy values.
@@ -18,6 +19,8 @@ MODULE main
     -- init(low) := FALSE;
     -- init(halt):= FALSE;
     init(PC_line):= 0; -- but program counter starts at 1.
+    init(NUM) := 0;
+    next(NUM) := {0,1,2,3};
 
     -- Transition Relations
     -- next(high) := 

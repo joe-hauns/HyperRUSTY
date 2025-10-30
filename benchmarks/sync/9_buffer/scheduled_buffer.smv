@@ -16,6 +16,8 @@ VAR
   unclass_read: boolean;
 
   PC: 1..3;
+
+  no_conflict: boolean;
 ASSIGN
   -- Initial Conditions
   init(P1_sec_in):= {0,1,2,3};
@@ -74,20 +76,32 @@ ASSIGN
 
   next(shared_buffer) :=
     case
-      ((PC=2) & (sec_write)): P1_sec_in;
-      ((PC=2) & (unclass_write)): P2_unclass_in;
+      ((PC=2) & (sec_write) & (P1_sec_in=0)): 0;
+      ((PC=2) & (sec_write) & (P1_sec_in=1)): 1;
+      ((PC=2) & (sec_write) & (P1_sec_in=2)): 2;
+      ((PC=2) & (sec_write) & (P1_sec_in=3)): 3;
+      ((PC=2) & (unclass_write) & (P2_unclass_in=0)): 0;
+      ((PC=2) & (unclass_write) & (P2_unclass_in=1)): 1;
+      ((PC=2) & (unclass_write) & (P2_unclass_in=2)): 2;
+      ((PC=2) & (unclass_write) & (P2_unclass_in=3)): 3;
       TRUE: shared_buffer;
     esac;
 
   next(P1_sec_out) :=
     case
-      ((PC=3) & (sec_read)) : shared_buffer;
+      ((PC=3) & (sec_read) & (shared_buffer=0)) : 0;
+      ((PC=3) & (sec_read) & (shared_buffer=1)) : 1;
+      ((PC=3) & (sec_read) & (shared_buffer=2)) : 2;
+      ((PC=3) & (sec_read) & (shared_buffer=3)) : 3;
       TRUE: P1_sec_out;
     esac;
 
   next(P2_unclass_out) :=
     case
-      ((PC=3) & (unclass_read)) : shared_buffer;
+      ((PC=3) & (unclass_read) & (shared_buffer=0)) : 0;
+      ((PC=3) & (unclass_read) & (shared_buffer=1)) : 1;
+      ((PC=3) & (unclass_read) & (shared_buffer=2)) : 2;
+      ((PC=3) & (unclass_read) & (shared_buffer=3)) : 3;  
       TRUE: P2_unclass_out;
     esac;
 
@@ -99,6 +113,12 @@ ASSIGN
       TRUE: PC;
     esac;
 
+  init(no_conflict) := FALSE;
+  next(no_conflict) :=
+    case
+      (!(sec_read & unclass_read)) : TRUE;
+      TRUE: FALSE;
+    esac;
+
 DEFINE
   halt := (PC=3) ;
-  no_conflict := (!(sec_read & unclass_read));

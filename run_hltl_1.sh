@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-TIMEOUT_SEC=${TIMEOUT_SEC:-300}  # seconds
+TIMEOUT_SEC=${TIMEOUT_SEC:-60}  # seconds
 
 CARGO_BIN=${CARGO_BIN:-target/release/HyperRUSTY}
 if [[ ! -x "$CARGO_BIN" ]]; then
@@ -1422,7 +1422,11 @@ case "${1:-}" in
     extra_case_args=("$@")
     fn="case_${func}"
     if declare -f "$fn" >/dev/null 2>&1; then
-      "$fn" "$mode" "${extra_case_args[@]}"
+      if (( ${#extra_case_args[@]} )); then
+        "$fn" "$mode" -- "${extra_case_args[@]}"
+      else
+        "$fn" "$mode"
+      fi
       render_tables
     else
       echo "Unknown case: $func"

@@ -1,4 +1,4 @@
 Forall A . Exists B .
-F~(HIGH[A] = HIGH[B])
+G(~(HIGH[A] = HIGH[B]))
 &
-G(LOW[A] = LOW[B])
+(G(LOW[A] = LOW[B]))

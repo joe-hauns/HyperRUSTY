@@ -17,28 +17,33 @@ VAR
 
 ASSIGN
   init(step) := 0;
-  next(step) := case
+  next(step) := 
+  case
     step < 10 : step + 1;
     TRUE : step;
   esac;
 
-
-  init(Q0) := 0; init(Q1) := 0; init(Q2) := 0;
-  init(Q3) := 0; init(Q4) := 0;
+  init(Q0) := 0; 
+  init(Q1) := 0; 
+  init(Q2) := 0;
+  init(Q3) := 0; 
+  init(Q4) := 0;
   init(back) := 0;
   init(removed) := 0;
   init(T1_state) := 0;
   init(T2_state) := 0;
 
 
-  next(T1_state) := case
-    step = 1 | step = 2 : 1;
-    step = 3 : 2;
-    step = 4 : 3;
+  next(T1_state) := 
+  case
+    ((step = 1) | (step = 2)) : 1;
+    (step = 3) : 2;
+    (step = 4) : 3;
     TRUE : T1_state;
   esac;
 
-  next(T2_state) := case
+  next(T2_state) := 
+  case
     step = 5 | step = 6 : 1;
     step = 7 : 2;
     step = 8 : 3;
@@ -46,7 +51,8 @@ ASSIGN
   esac;
 
 
-  next(back) := case
+  next(back) := 
+  case
     (T1_state = 1 | T2_state = 1) & back < 5 : back + 1;
     (T1_state = 2 | T2_state = 2) & back > 0 : back - 1;
     TRUE : back;
