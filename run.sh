@@ -399,10 +399,10 @@
 #cargo run --release -- -v benchmarks/verilog/LED/build_ee.ys benchmarks/verilog/LED/build_ee.ys -t light -o model.smt2 -f benchmarks/verilog/LED/formula_ee_f.hq -k 101 -s pes
 
 #=== LED AE ===#
-#cargo run --release -- -v benchmarks/verilog/LED/build_ae.ys benchmarks/verilog/LED/build_ae.ys -t led_fsm -o model.smt2 -f benchmarks/verilog/LED/formula_ae.hq -k 10 -s pes
+#cargo run --release -- -v benchmarks/verilog/LED/build_ae.ys benchmarks/verilog/LED/build_ae.ys -t led_fsm -o model.smt2 -f benchmarks/verilog/LED/formula_ae.hq -k 10 -s pes -c
 
 #=== LED EA ===#
-#cargo run --release -- -v benchmarks/verilog/LED/build_ea.ys benchmarks/verilog/LED/build_ea.ys -t led_fsm -o model.smt2 -f benchmarks/verilog/LED/formula_ea.hq -k 101 -s pes
+#cargo run --release -- -v benchmarks/verilog/LED/build_ea.ys benchmarks/verilog/LED/build_ea.ys -t led_fsm -o model.smt2 -f benchmarks/verilog/LED/formula_ea.hq -k 101 -s pes -c
 
 #=== SPI ===#
 # cargo run --release -- -v benchmarks/verilog/SPI/spi_build.ys benchmarks/verilog/SPI/spi_build.ys -t SPISlave -o spi.smt2 -f benchmarks/verilog/SPI/formula.hq -k 8 -s hpes
