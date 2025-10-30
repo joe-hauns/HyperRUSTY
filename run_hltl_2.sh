@@ -5,6 +5,14 @@ TIMEOUT_SEC=${TIMEOUT_SEC:-100}  # seconds
 
 FOLDER="benchmarks/sync/"
 
+# ---- Paths for results/logs ----
+RESULTS_DIR="_outfiles"
+LOG_DIR="${RESULTS_DIR}/logs"
+CSV="${RESULTS_DIR}/table5_runtimes.csv"
+MD="${RESULTS_DIR}/table5_runtimes.md"
+
+
+
 CARGO_BIN=${CARGO_BIN:-target/release/HyperRUSTY}
 if [[ ! -x "$CARGO_BIN" ]]; then
   echo "Building HyperQB (release)…"
@@ -20,11 +28,7 @@ else
   TIMEOUT_BIN=""   # fallback: no timeout available
 fi
 
-# ---- Paths for results/logs ----
-RESULTS_DIR="_outfiles"
-LOG_DIR="${RESULTS_DIR}/logs"
-CSV="${RESULTS_DIR}/table2_runtimes.csv"
-MD="${RESULTS_DIR}/table2_runtimes.md"
+
 
 # Fresh start: recreate logs dir and reset CSV/MD
 mkdir -p "$RESULTS_DIR"
@@ -1608,13 +1612,13 @@ CASES=(
 usage() {
   cat <<EOF
 Usage: $0 [option]
+  -list                   List available case names
   -all <mode> [extras]             Run all cases with the chosen mode (smt|ah|qbf)
   -light <mode> [extras]           Run lightweight cases (excluding MapSynth2, IQueue, LazyList) with the chosen mode
   -compare all [extras]            Run all cases with all modes (smt/ah/qbf)
   -compare light [extras]          Run lightweight cases with all modes
   -compare <case> [extras]         Run one case with all modes (see -list for names)
   -case <case> <mode> [extras]     Run one case with the selected mode (smt|ah|qbf)
-  -list                   List available case names
 
 Case names are specified without the leading 'case_' prefix.
 Extra flags:

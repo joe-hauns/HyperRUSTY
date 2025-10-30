@@ -17,12 +17,6 @@ VAR
 
 ASSIGN
 
-  init(step) := 0;
-  next(step) := case
-    (step < 10) : (step + 1);
-    TRUE : step;
-  esac;
-
   init(Q0) := 0; 
   init(Q1) := 0; 
   init(Q2) := 0;
@@ -32,7 +26,24 @@ ASSIGN
   init(removed) := 0;
   init(T1_state) := 0;
   init(T2_state) := 0;
-
+  
+  init(step) := 0;
+  next(step) := 
+  case
+    -- (step < 10) : (step + 1);
+    (step=0): 1;
+    (step=1): 2;
+    (step=2): 3;
+    (step=3): 4;
+    (step=4): 5;
+    (step=5): 6;
+    (step=6): 7;
+    (step=7): 8;
+    (step=8): 9;
+    (step=9): 10;
+    (step=10): 10;
+    TRUE : step;
+  esac;
 
   next(T1_state) := 
   case
@@ -44,25 +55,25 @@ ASSIGN
 
   next(T2_state) := 
   case
-    step = 1 | step = 5 : 1;
-    step = 3 | step = 7 : 2;
-    step = 9 : 3;
+    ((step = 1) | (step = 5)) : 1;
+    ((step = 3) | (step = 7)) : 2;
+    (step = 9) : 3;
     TRUE : T2_state;
   esac;
 
 
   next(back) := 
   case
-    (T1_state = 1 | T2_state = 1) & (back < 5) : back + 1;
-    (T1_state = 2 | T2_state = 2) & (back > 0) : back - 1;
+    ((T1_state = 1) | (T2_state = 1)) & (back < 5) : back + 1;
+    ((T1_state = 2) | (T2_state = 2)) & (back > 0) : back - 1;
     TRUE : back;
   esac;
 
 
   next(removed) := 
   case
-    ((T1_state = 2) & (T2_state = 2) & (back > 1)) : Q1;
-    ((T1_state = 2) | (T2_state = 2) & (back > 0)) : Q0;
+    ((T1_state = 2) & (T2_state = 2) & (1 < back)) : Q1;
+    (((!(T1_state = 2)) | (!(T2_state = 2))) & (0 < back)) : Q0;
     TRUE : removed;
   esac;
 
@@ -97,7 +108,8 @@ ASSIGN
   esac;
 
 
-  next(Q3) := case
+  next(Q3) := 
+  case
     (T1_state = 2 | T2_state = 2) & back > 4 : Q4;
     (T1_state = 2 | T2_state = 2) & back = 4 : 0;
     back = 3 & T1_state = 1 : 7;
@@ -106,7 +118,8 @@ ASSIGN
   esac;
 
 
-  next(Q4) := case
+  next(Q4) := 
+  case
     (T1_state = 2 | T2_state = 2) : 0;
     back = 4 & T1_state = 1 : 9;
     back = 4 & T2_state = 1 : 1;

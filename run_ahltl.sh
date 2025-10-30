@@ -2,7 +2,7 @@
 #!/bin/bash
 set -euo pipefail
 
-TIMEOUT_SEC=${TIMEOUT_SEC:-10}  # seconds
+TIMEOUT_SEC=${TIMEOUT_SEC:-30}  # seconds
 
 # Detect timeout binary safely (avoid unbound variable errors)
 if command -v gtimeout >/dev/null 2>&1; then
@@ -17,8 +17,14 @@ fi
 FOLDER="benchmarks/async/"
 RESULTS_DIR="_outfiles"
 LOG_DIR="${RESULTS_DIR}/logs"
-CSV="${RESULTS_DIR}/table6_runtimes.csv"
-MD="${RESULTS_DIR}/table6_runtimes.md"
+CSV="${RESULTS_DIR}/table6(ahltl)_runtimes.csv"
+MD="${RESULTS_DIR}/table6(ahltl)_runtimes.md"
+
+CARGO_BIN=${CARGO_BIN:-target/release/HyperRUSTY}
+# if [[ ! -x "$CARGO_BIN" ]]; then
+  echo "Building HyperQB (release)…"
+  cargo build --release
+# fi
 
 # Fresh start: recreate logs dir and reset CSV/MD
 mkdir -p "$RESULTS_DIR"
@@ -139,20 +145,20 @@ case_acdb() {
         1|smt)
             printf "\n[HyperQB SMT] Running %s...\n" "$case_name"
             time_run "$case_name" "SMT" \
-              "cargo run --release -- \
-               -n ${FOLDER}1_acdb/original/acdb_flattened.smv \
-               ${FOLDER}1_acdb/original/acdb_flattened.smv \
-               -f ${FOLDER}1_acdb/original/acdb.hq \
-               -k 6 -m 12 -s hpes"
+              "${CARGO_BIN} \
+               -n ${FOLDER}1_acdb/acdb.smv \
+               ${FOLDER}1_acdb/acdb.smv \
+               -f ${FOLDER}1_acdb/acdb.hq \
+               -k 11 -m 22 -s hpes"
             ;;
         2|qbf)
             printf "\n[HyperQB QBF] Running %s...\n" "$case_name"
             time_run "$case_name" "QBF" \
-              "cargo run --release -- \
-               -n ${FOLDER}1_acdb/original/acdb_flattened.smv \
-               ${FOLDER}1_acdb/original/acdb_flattened.smv \
-               -f ${FOLDER}1_acdb/original/acdb.hq \
-               -k 6 -m 12 -s hpes -q"
+              "${CARGO_BIN} \
+               -n ${FOLDER}1_acdb/acdb.smv \
+               ${FOLDER}1_acdb/acdb.smv \
+               -f ${FOLDER}1_acdb/acdb.hq \
+               -k 11 -m 22 -s hpes -q"
             ;;
         *)
             echo "Usage: case_acdb <1|2> or <smt|qbf>"
@@ -169,19 +175,19 @@ case_acdb_ndet() {
         1|smt)
             printf "\n[HyperQB SMT] Running %s...\n" "$case_name"
             time_run "$case_name" "SMT" \
-              "cargo run --release -- \
-               -n ${FOLDER}1_acdb/ndet/acdb_flattened.smv \
-               ${FOLDER}1_acdb/ndet/acdb_flattened.smv \
-               -f ${FOLDER}1_acdb/ndet/acdb_formula2.hq \
+              "${CARGO_BIN} \
+               -n ${FOLDER}1_acdb/acdb_ndet.smv \
+               ${FOLDER}1_acdb/acdb_ndet.smv \
+               -f ${FOLDER}1_acdb/acdb_ndet.hq \
                -k 8 -m 16 -s hpes"
             ;;
         2|qbf)
             printf "\n[HyperQB QBF] Running %s...\n" "$case_name"
             time_run "$case_name" "QBF" \
-              "cargo run --release -- \
-               -n ${FOLDER}1_acdb/ndet/acdb_flattened.smv \
-               ${FOLDER}1_acdb/ndet/acdb_flattened.smv \
-               -f ${FOLDER}1_acdb/ndet/acdb_formula2.hq \
+              "${CARGO_BIN} \
+               -n ${FOLDER}1_acdb/acdb_ndet.smv \
+               ${FOLDER}1_acdb/acdb_ndet.smv \
+               -f ${FOLDER}1_acdb/acdb_ndet.hq \
                -k 8 -m 16 -s hpes -q"
             ;;
         *)
@@ -199,7 +205,7 @@ case_concleak() {
         1|smt)
             printf "\n[HyperQB SMT] Running %s...\n" "$case_name"
             time_run "$case_name" "SMT" \
-              "cargo run --release -- \
+              "${CARGO_BIN} \
                -n ${FOLDER}2_concleaks/flattened/concleaks_2procs.smv \
                ${FOLDER}2_concleaks/flattened/concleaks_2procs.smv \
                -f ${FOLDER}2_concleaks/flattened/od.hq \
@@ -208,7 +214,7 @@ case_concleak() {
         2|qbf)
             printf "\n[HyperQB QBF] Running %s...\n" "$case_name"
             time_run "$case_name" "QBF" \
-              "cargo run --release -- \
+              "${CARGO_BIN} \
                -n ${FOLDER}2_concleaks/flattened/concleaks_2procs.smv \
                ${FOLDER}2_concleaks/flattened/concleaks_2procs.smv \
                -f ${FOLDER}2_concleaks/flattened/od.hq \
@@ -229,7 +235,7 @@ case_concleak_ndet() {
         1|smt)
             printf "\n[HyperQB SMT] Running %s...\n" "$case_name"
             time_run "$case_name" "SMT" \
-              "cargo run --release -- \
+              "${CARGO_BIN} \
                -n ${FOLDER}2_concleaks/flattened/concleaks_3procs.smv \
                ${FOLDER}2_concleaks/flattened/concleaks_3procs.smv \
                -f ${FOLDER}2_concleaks/flattened/od.hq \
@@ -238,7 +244,7 @@ case_concleak_ndet() {
         2|qbf)
             printf "\n[HyperQB QBF] Running %s...\n" "$case_name"
             time_run "$case_name" "QBF" \
-              "cargo run --release -- \
+              "${CARGO_BIN} \
                -n ${FOLDER}2_concleaks/flattened/concleaks_3procs.smv \
                ${FOLDER}2_concleaks/flattened/concleaks_3procs.smv \
                -f ${FOLDER}2_concleaks/flattened/od.hq \
@@ -252,26 +258,26 @@ case_concleak_ndet() {
 }
 
 case_specexec_v1() {
-    local case_name="SPEC_EXEC_V1"
+    local case_name="specexec_V1"
     local mode="$1"
 
     case "$mode" in
         1|smt)
             printf "\n[HyperQB SMT] Running %s...\n" "$case_name"
             time_run "$case_name" "SMT" \
-              "cargo run --release -- \
-               -n ${FOLDER}3_speculative/flattened/v1_se.smv \
-               ${FOLDER}3_speculative/flattened/v1_nse.smv \
-               -f ${FOLDER}3_speculative/flattened/se_prop.hq \
+              "${CARGO_BIN} \
+               -n ${FOLDER}3_speculative/flattened/v1_nse.smv \
+               ${FOLDER}3_speculative/flattened/v1_se.smv \
+               -f ${FOLDER}3_speculative/flattened/v1.hq \
                -k 6 -m 12 -s hpes"
             ;;
         2|qbf)
             printf "\n[HyperQB QBF] Running %s...\n" "$case_name"
             time_run "$case_name" "QBF" \
-              "cargo run --release -- \
-               -n ${FOLDER}3_speculative/flattened/v1_se.smv \
-               ${FOLDER}3_speculative/flattened/v1_nse.smv \
-               -f ${FOLDER}3_speculative/flattened/se_prop.hq \
+              "${CARGO_BIN} \
+               -n ${FOLDER}3_speculative/flattened/v1_nse.smv \
+               ${FOLDER}3_speculative/flattened/v1_se.smv \
+               -f ${FOLDER}3_speculative/flattened/v1.hq \
                -k 6 -m 12 -s hpes -q"
             ;;
         *)
@@ -282,26 +288,26 @@ case_specexec_v1() {
 }
 
 case_specexec_v2() {
-    local case_name="SPEC_EXEC_V2"
+    local case_name="specexec_V2"
     local mode="$1"
 
     case "$mode" in
         1|smt)
             printf "\n[HyperQB SMT] Running %s...\n" "$case_name"
             time_run "$case_name" "SMT" \
-              "cargo run --release -- \
-               -n ${FOLDER}3_speculative/flattened/v2_se.smv \
-               ${FOLDER}3_speculative/flattened/v2_nse.smv \
-               -f ${FOLDER}3_speculative/flattened/se_prop.hq \
-               -k 6 -m 12 -s hpes"
+              "${CARGO_BIN} \
+               -n ${FOLDER}3_speculative/flattened/v2_nse.smv \
+               ${FOLDER}3_speculative/flattened/v2_se.smv \
+               -f ${FOLDER}3_speculative/flattened/v2.hq \
+               -k 12 -m 24 -s hpes"
             ;;
         2|qbf)
             printf "\n[HyperQB QBF] Running %s...\n" "$case_name"
             time_run "$case_name" "QBF" \
-              "cargo run --release -- \
-               -n ${FOLDER}3_speculative/flattened/v2_se.smv \
-               ${FOLDER}3_speculative/flattened/v2_nse.smv \
-               -f ${FOLDER}3_speculative/flattened/se_prop.hq \
+              "${CARGO_BIN} \
+               -n ${FOLDER}3_speculative/flattened/v2_nse.smv \
+               ${FOLDER}3_speculative/flattened/v2_se.smv \
+               -f ${FOLDER}3_speculative/flattened/v2.hq \
                -k 6 -m 12 -s hpes -q"
             ;;
         *)
@@ -312,26 +318,26 @@ case_specexec_v2() {
 }
 
 case_specexec_v3() {
-    local case_name="SPEC_EXEC_V3"
+    local case_name="specexec_V3"
     local mode="$1"
 
     case "$mode" in
         1|smt)
             printf "\n[HyperQB SMT] Running %s...\n" "$case_name"
             time_run "$case_name" "SMT" \
-              "cargo run --release -- \
-               -n ${FOLDER}3_speculative/flattened/v3_se.smv \
-               ${FOLDER}3_speculative/flattened/v3_nse.smv \
-               -f ${FOLDER}3_speculative/flattened/se_prop.hq \
+              "${CARGO_BIN} \
+               -n ${FOLDER}3_speculative/flattened/v3_nse.smv \
+               ${FOLDER}3_speculative/flattened/v3_se.smv \
+               -f ${FOLDER}3_speculative/flattened/v3.hq \
                -k 6 -m 12 -s hpes"
             ;;
         2|qbf)
             printf "\n[HyperQB QBF] Running %s...\n" "$case_name"
             time_run "$case_name" "QBF" \
-              "cargo run --release -- \
-               -n ${FOLDER}3_speculative/flattened/v3_se.smv \
-               ${FOLDER}3_speculative/flattened/v3_nse.smv \
-               -f ${FOLDER}3_speculative/flattened/se_prop.hq \
+              "${CARGO_BIN} \
+               -n ${FOLDER}3_speculative/flattened/v3_nse.smv \
+               ${FOLDER}3_speculative/flattened/v3_se.smv \
+               -f ${FOLDER}3_speculative/flattened/v3.hq \
                -k 6 -m 12 -s hpes -q"
             ;;
         *)
@@ -342,26 +348,26 @@ case_specexec_v3() {
 }
 
 case_specexec_v4() {
-    local case_name="SPEC_EXEC_V4"
+    local case_name="specexec_V4"
     local mode="$1"
 
     case "$mode" in
         1|smt)
             printf "\n[HyperQB SMT] Running %s...\n" "$case_name"
             time_run "$case_name" "SMT" \
-              "cargo run --release -- \
-               -n ${FOLDER}3_speculative/flattened/v4_se.smv \
-               ${FOLDER}3_speculative/flattened/v4_nse.smv \
-               -f ${FOLDER}3_speculative/flattened/se_prop.hq \
+              "${CARGO_BIN} \
+               -n ${FOLDER}3_speculative/flattened/v4_nse.smv \
+               ${FOLDER}3_speculative/flattened/v4_se.smv \
+               -f ${FOLDER}3_speculative/flattened/v4.hq \
                -k 6 -m 12 -s hpes"
             ;;
         2|qbf)
             printf "\n[HyperQB QBF] Running %s...\n" "$case_name"
             time_run "$case_name" "QBF" \
-              "cargo run --release -- \
-               -n ${FOLDER}3_speculative/flattened/v4_se.smv \
-               ${FOLDER}3_speculative/flattened/v4_nse.smv \
-               -f ${FOLDER}3_speculative/flattened/se_prop.hq \
+              "${CARGO_BIN} \
+               -n ${FOLDER}3_speculative/flattened/v4_nse.smv \
+               ${FOLDER}3_speculative/flattened/v4_se.smv \
+               -f ${FOLDER}3_speculative/flattened/v4.hq \
                -k 6 -m 12 -s hpes -q"
             ;;
         *)
@@ -372,26 +378,26 @@ case_specexec_v4() {
 }
 
 case_specexec_v5() {
-    local case_name="SPEC_EXEC_V5"
+    local case_name="specexec_V5"
     local mode="$1"
 
     case "$mode" in
         1|smt)
             printf "\n[HyperQB SMT] Running %s...\n" "$case_name"
             time_run "$case_name" "SMT" \
-              "cargo run --release -- \
-               -n ${FOLDER}3_speculative/flattened/v5_se.smv \
-               ${FOLDER}3_speculative/flattened/v5_nse.smv \
-               -f ${FOLDER}3_speculative/flattened/se_prop.hq \
+              "${CARGO_BIN} \
+               -n ${FOLDER}3_speculative/flattened/v5_nse.smv \
+               ${FOLDER}3_speculative/flattened/v5_se.smv \
+               -f ${FOLDER}3_speculative/flattened/v5.hq \
                -k 6 -m 12 -s hpes"
             ;;
         2|qbf)
             printf "\n[HyperQB QBF] Running %s...\n" "$case_name"
             time_run "$case_name" "QBF" \
-              "cargo run --release -- \
-               -n ${FOLDER}3_speculative/flattened/v5_se.smv \
-               ${FOLDER}3_speculative/flattened/v5_nse.smv \
-               -f ${FOLDER}3_speculative/flattened/se_prop.hq \
+              "${CARGO_BIN} \
+               -n ${FOLDER}3_speculative/flattened/v5_nse.smv \
+               ${FOLDER}3_speculative/flattened/v5_se.smv \
+               -f ${FOLDER}3_speculative/flattened/v5.hq \
                -k 6 -m 12 -s hpes -q"
             ;;
         *)
@@ -402,26 +408,26 @@ case_specexec_v5() {
 }
 
 case_specexec_v6() {
-    local case_name="SPEC_EXEC_V6"
+    local case_name="specexec_V6"
     local mode="$1"
 
     case "$mode" in
         1|smt)
             printf "\n[HyperQB SMT] Running %s...\n" "$case_name"
             time_run "$case_name" "SMT" \
-              "cargo run --release -- \
-               -n ${FOLDER}3_speculative/flattened/v6_se.smv \
-               ${FOLDER}3_speculative/flattened/v6_nse.smv \
-               -f ${FOLDER}3_speculative/flattened/se_prop.hq \
+              "${CARGO_BIN} \
+               -n ${FOLDER}3_speculative/flattened/v6_nse.smv \
+               ${FOLDER}3_speculative/flattened/v6_se.smv \
+               -f ${FOLDER}3_speculative/flattened/v6.hq \
                -k 6 -m 12 -s hpes"
             ;;
         2|qbf)
             printf "\n[HyperQB QBF] Running %s...\n" "$case_name"
             time_run "$case_name" "QBF" \
-              "cargo run --release -- \
-               -n ${FOLDER}3_speculative/flattened/v6_se.smv \
-               ${FOLDER}3_speculative/flattened/v6_nse.smv \
-               -f ${FOLDER}3_speculative/flattened/se_prop.hq \
+              "${CARGO_BIN} \
+               -n ${FOLDER}3_speculative/flattened/v6_nse.smv \
+               ${FOLDER}3_speculative/flattened/v6_se.smv \
+               -f ${FOLDER}3_speculative/flattened/v6.hq \
                -k 6 -m 12 -s hpes -q"
             ;;
         *)
@@ -432,26 +438,26 @@ case_specexec_v6() {
 }
 
 case_specexec_v7() {
-    local case_name="SPEC_EXEC_V7"
+    local case_name="specexec_V7"
     local mode="$1"
 
     case "$mode" in
         1|smt)
             printf "\n[HyperQB SMT] Running %s...\n" "$case_name"
             time_run "$case_name" "SMT" \
-              "cargo run --release -- \
-               -n ${FOLDER}3_speculative/flattened/v7_se.smv \
-               ${FOLDER}3_speculative/flattened/v7_nse.smv \
-               -f ${FOLDER}3_speculative/flattened/se_prop.hq \
+              "${CARGO_BIN} \
+               -n ${FOLDER}3_speculative/flattened/v7_nse.smv \
+               ${FOLDER}3_speculative/flattened/v7_se.smv \
+               -f ${FOLDER}3_speculative/flattened/v7.hq \
                -k 6 -m 12 -s hpes"
             ;;
         2|qbf)
             printf "\n[HyperQB QBF] Running %s...\n" "$case_name"
             time_run "$case_name" "QBF" \
-              "cargo run --release -- \
-               -n ${FOLDER}3_speculative/flattened/v7_se.smv \
-               ${FOLDER}3_speculative/flattened/v7_nse.smv \
-               -f ${FOLDER}3_speculative/flattened/se_prop.hq \
+              "${CARGO_BIN} \
+               -n ${FOLDER}3_speculative/flattened/v7_nse.smv \
+               ${FOLDER}3_speculative/flattened/v7_se.smv \
+               -f ${FOLDER}3_speculative/flattened/v7.hq \
                -k 6 -m 12 -s hpes -q"
             ;;
         *)
@@ -469,7 +475,7 @@ case_opt_dbe() {
         1|smt)
             printf "\n[HyperQB SMT] Running %s...\n" "$case_name"
             time_run "$case_name" "SMT" \
-              "cargo run --release -- \
+              "${CARGO_BIN} \
                -n ${FOLDER}4_optimization/original/dbe/DBE_source.smv \
                ${FOLDER}4_optimization/original/dbe/DBE_target.smv \
                -f ${FOLDER}4_optimization/original/dbe/DBE.hq \
@@ -478,7 +484,7 @@ case_opt_dbe() {
         2|qbf)
             printf "\n[HyperQB QBF] Running %s...\n" "$case_name"
             time_run "$case_name" "QBF" \
-              "cargo run --release -- \
+              "${CARGO_BIN} \
                -n ${FOLDER}4_optimization/original/dbe/DBE_source.smv \
                ${FOLDER}4_optimization/original/dbe/DBE_target.smv \
                -f ${FOLDER}4_optimization/original/dbe/DBE.hq \
@@ -499,7 +505,7 @@ case_opt_dbe_ndet() {
         1|smt)
             printf "\n[HyperQB SMT] Running %s...\n" "$case_name"
             time_run "$case_name" "SMT" \
-              "cargo run --release -- \
+              "${CARGO_BIN} \
                -n ${FOLDER}4_optimization/with_ndet/dbe/DBE_source_ndet.smv \
                ${FOLDER}4_optimization/with_ndet/dbe/DBE_target_ndet.smv \
                -f ${FOLDER}4_optimization/with_ndet/dbe/DBE.hq \
@@ -508,7 +514,7 @@ case_opt_dbe_ndet() {
         2|qbf)
             printf "\n[HyperQB QBF] Running %s...\n" "$case_name"
             time_run "$case_name" "QBF" \
-              "cargo run --release -- \
+              "${CARGO_BIN} \
                -n ${FOLDER}4_optimization/with_ndet/dbe/DBE_source_ndet.smv \
                ${FOLDER}4_optimization/with_ndet/dbe/DBE_target_ndet.smv \
                -f ${FOLDER}4_optimization/with_ndet/dbe/DBE.hq \
@@ -529,7 +535,7 @@ case_opt_dbe_ndet_buggy() {
         1|smt)
             printf "\n[HyperQB SMT] Running %s...\n" "$case_name"
             time_run "$case_name" "SMT" \
-              "cargo run --release -- \
+              "${CARGO_BIN} \
                -n ${FOLDER}4_optimization/with_ndet/dbe/DBE_source_ndet.smv \
                ${FOLDER}4_optimization/with_ndet/dbe/DBE_target_wrong_ndet.smv \
                -f ${FOLDER}4_optimization/with_ndet/dbe/DBE.hq \
@@ -538,7 +544,7 @@ case_opt_dbe_ndet_buggy() {
         2|qbf)
             printf "\n[HyperQB QBF] Running %s...\n" "$case_name"
             time_run "$case_name" "QBF" \
-              "cargo run --release -- \
+              "${CARGO_BIN} \
                -n ${FOLDER}4_optimization/with_ndet/dbe/DBE_source_ndet.smv \
                ${FOLDER}4_optimization/with_ndet/dbe/DBE_target_wrong_ndet.smv \
                -f ${FOLDER}4_optimization/with_ndet/dbe/DBE.hq \
@@ -559,7 +565,7 @@ case_opt_lp() {
         1|smt)
             printf "\n[HyperQB SMT] Running %s...\n" "$case_name"
             time_run "$case_name" "SMT" \
-              "cargo run --release -- \
+              "${CARGO_BIN} \
                -n ${FOLDER}4_optimization/original/lp/LP_source.smv \
                ${FOLDER}4_optimization/original/lp/LP_target.smv \
                -f ${FOLDER}4_optimization/original/lp/LP.hq \
@@ -568,7 +574,7 @@ case_opt_lp() {
         2|qbf)
             printf "\n[HyperQB QBF] Running %s...\n" "$case_name"
             time_run "$case_name" "QBF" \
-              "cargo run --release -- \
+              "${CARGO_BIN} \
                -n ${FOLDER}4_optimization/original/lp/LP_source.smv \
                ${FOLDER}4_optimization/original/lp/LP_target.smv \
                -f ${FOLDER}4_optimization/original/lp/LP.hq \
@@ -589,7 +595,7 @@ case_opt_lp_ndet() {
         1|smt)
             printf "\n[HyperQB SMT] Running %s...\n" "$case_name"
             time_run "$case_name" "SMT" \
-              "cargo run --release -- \
+              "${CARGO_BIN} \
                -n ${FOLDER}4_optimization/with_ndet/lp/LP_source_ndet.smv \
                ${FOLDER}4_optimization/with_ndet/lp/LP_target_ndet.smv \
                -f ${FOLDER}4_optimization/with_ndet/lp/LP.hq \
@@ -598,7 +604,7 @@ case_opt_lp_ndet() {
         2|qbf)
             printf "\n[HyperQB QBF] Running %s...\n" "$case_name"
             time_run "$case_name" "QBF" \
-              "cargo run --release -- \
+              "${CARGO_BIN} \
                -n ${FOLDER}4_optimization/with_ndet/lp/LP_source_ndet.smv \
                ${FOLDER}4_optimization/with_ndet/lp/LP_target_ndet.smv \
                -f ${FOLDER}4_optimization/with_ndet/lp/LP.hq \
@@ -619,7 +625,7 @@ case_opt_lp_loop() {
         1|smt)
             printf "\n[HyperQB SMT] Running %s...\n" "$case_name"
             time_run "$case_name" "SMT" \
-              "cargo run --release -- \
+              "${CARGO_BIN} \
                -n ${FOLDER}4_optimization/with_loops/lp/LP_source_ndet.smv \
                ${FOLDER}4_optimization/with_loops/lp/LP_target_ndet.smv \
                -f ${FOLDER}4_optimization/with_loops/lp/LP.hq \
@@ -628,7 +634,7 @@ case_opt_lp_loop() {
         2|qbf)
             printf "\n[HyperQB QBF] Running %s...\n" "$case_name"
             time_run "$case_name" "QBF" \
-              "cargo run --release -- \
+              "${CARGO_BIN} \
                -n ${FOLDER}4_optimization/with_loops/lp/LP_source_ndet.smv \
                ${FOLDER}4_optimization/with_loops/lp/LP_target_ndet.smv \
                -f ${FOLDER}4_optimization/with_loops/lp/LP.hq \
@@ -649,7 +655,7 @@ case_opt_lp_buggy() {
         1|smt)
             printf "\n[HyperQB SMT] Running %s...\n" "$case_name"
             time_run "$case_name" "SMT" \
-              "cargo run --release -- \
+              "${CARGO_BIN} \
                -n ${FOLDER}4_optimization/with_loops/lp/LP_source_ndet.smv \
                ${FOLDER}4_optimization/with_loops/lp/LP_target_wrong_ndet.smv \
                -f ${FOLDER}4_optimization/with_loops/lp/LP.hq \
@@ -658,7 +664,7 @@ case_opt_lp_buggy() {
         2|qbf)
             printf "\n[HyperQB QBF] Running %s...\n" "$case_name"
             time_run "$case_name" "QBF" \
-              "cargo run --release -- \
+              "${CARGO_BIN} \
                -n ${FOLDER}4_optimization/with_loops/lp/LP_source_ndet.smv \
                ${FOLDER}4_optimization/with_loops/lp/LP_target_wrong_ndet.smv \
                -f ${FOLDER}4_optimization/with_loops/lp/LP.hq \
@@ -679,7 +685,7 @@ case_opt_eflp() {
         1|smt)
             printf "\n[HyperQB SMT] Running %s...\n" "$case_name"
             time_run "$case_name" "SMT" \
-              "cargo run --release -- \
+              "${CARGO_BIN} \
                -n ${FOLDER}4_optimization/original/eflp/EFLP_source.smv \
                ${FOLDER}4_optimization/original/eflp/EFLP_target.smv \
                -f ${FOLDER}4_optimization/original/eflp/EFLP.hq \
@@ -688,7 +694,7 @@ case_opt_eflp() {
         2|qbf)
             printf "\n[HyperQB QBF] Running %s...\n" "$case_name"
             time_run "$case_name" "QBF" \
-              "cargo run --release -- \
+              "${CARGO_BIN} \
                -n ${FOLDER}4_optimization/original/eflp/EFLP_source.smv \
                ${FOLDER}4_optimization/original/eflp/EFLP_target.smv \
                -f ${FOLDER}4_optimization/original/eflp/EFLP.hq \
@@ -709,7 +715,7 @@ case_opt_eflp_ndet() {
         1|smt)
             printf "\n[HyperQB SMT] Running %s...\n" "$case_name"
             time_run "$case_name" "SMT" \
-              "cargo run --release -- \
+              "${CARGO_BIN} \
                -n ${FOLDER}4_optimization/with_ndet/eflp/EFLP_source_ndet.smv \
                ${FOLDER}4_optimization/with_ndet/eflp/EFLP_target_ndet.smv \
                -f ${FOLDER}4_optimization/with_ndet/eflp/EFLP.hq \
@@ -718,7 +724,7 @@ case_opt_eflp_ndet() {
         2|qbf)
             printf "\n[HyperQB QBF] Running %s...\n" "$case_name"
             time_run "$case_name" "QBF" \
-              "cargo run --release -- \
+              "${CARGO_BIN} \
                -n ${FOLDER}4_optimization/with_ndet/eflp/EFLP_source_ndet.smv \
                ${FOLDER}4_optimization/with_ndet/eflp/EFLP_target_ndet.smv \
                -f ${FOLDER}4_optimization/with_ndet/eflp/EFLP.hq \
@@ -731,35 +737,6 @@ case_opt_eflp_ndet() {
     esac
 }
 
-case_opt_eflp_loop() {
-    local case_name="OPT_EFLP_LOOP"
-    local mode="$1"
-
-    case "$mode" in
-        1|smt)
-            printf "\n[HyperQB SMT] Running %s...\n" "$case_name"
-            time_run "$case_name" "SMT" \
-              "cargo run --release -- \
-               -n ${FOLDER}4_optimization/with_loops/eflp/EFLP_source_ndet.smv \
-               ${FOLDER}4_optimization/with_loops/eflp/EFLP_target_ndet.smv \
-               -f ${FOLDER}4_optimization/with_loops/eflp/EFLP.hq \
-               -k 45 -m 90 -s hpes"
-            ;;
-        2|qbf)
-            printf "\n[HyperQB QBF] Running %s...\n" "$case_name"
-            time_run "$case_name" "QBF" \
-              "cargo run --release -- \
-               -n ${FOLDER}4_optimization/with_loops/eflp/EFLP_source_ndet.smv \
-               ${FOLDER}4_optimization/with_loops/eflp/EFLP_target_ndet.smv \
-               -f ${FOLDER}4_optimization/with_loops/eflp/EFLP.hq \
-               -k 45 -m 90 -s hpes -q"
-            ;;
-        *)
-            echo "Usage: case_opt_eflp_loop <1|2> or <smt|qbf>"
-            return 1
-            ;;
-    esac
-}
 
 case_cache() {
     local case_name="CACHE"
@@ -769,7 +746,7 @@ case_cache() {
         1|smt)
             printf "\n[HyperQB SMT] Running %s...\n" "$case_name"
             time_run "$case_name" "SMT" \
-              "cargo run --release -- \
+              "${CARGO_BIN} \
                -n ${FOLDER}5_cache/cache_flattened.smv \
                ${FOLDER}5_cache/cache_flattened.smv \
                -f ${FOLDER}5_cache/odnd.hq \
@@ -778,7 +755,7 @@ case_cache() {
         2|qbf)
             printf "\n[HyperQB QBF] Running %s...\n" "$case_name"
             time_run "$case_name" "QBF" \
-              "cargo run --release -- \
+              "${CARGO_BIN} \
                -n ${FOLDER}5_cache/cache_flattened.smv \
                ${FOLDER}5_cache/cache_flattened.smv \
                -f ${FOLDER}5_cache/odnd.hq \
@@ -797,40 +774,39 @@ case_cache() {
 
 # Register the cases available for -compare
 CASES=(
-    case_acdb
-    case_acdb_ndet
-    case_concleak
-    case_concleak_ndet
-    case_specexec_v1
-    case_specexec_v2
-    case_specexec_v3
-    case_specexec_v4
-    case_specexec_v5
-    case_specexec_v6
-    case_specexec_v7
-    case_opt_dbe
-    case_opt_dbe_ndet
-    case_opt_dbe_ndet_buggy
-    case_opt_lp
-    case_opt_lp_ndet
-    case_opt_lp_loop
-    case_opt_lp_buggy
-    case_opt_eflp
-    case_opt_eflp_ndet
-    case_opt_eflp_loop
-    case_cache
+    acdb
+    acdb_ndet
+    concleak
+    concleak_ndet
+    specexec_v1
+    specexec_v2
+    specexec_v3
+    specexec_v4
+    specexec_v5
+    specexec_v6
+    specexec_v7
+    opt_dbe
+    opt_dbe_ndet
+    opt_dbe_ndet_buggy
+    opt_lp
+    opt_lp_ndet
+    opt_lp_loop
+    opt_lp_buggy
+    opt_eflp
+    opt_eflp_ndet
+    opt_eflp_loop
+    cache
 )
 
 usage() {
   cat <<EOF
 Usage: $0 [mode]
-  -all                     Run all CASES with smt mode
-  -compare all             Run all CASES with all modes (smt, qbf)
+  -list                    List cases available
+  -all <mode>              Run all cases with the chosen mode (smt|qbf)
+  -light <mode>            Run lightweight cases with the chosen mode (smt|qbf)
+  -compare all             Run all CASES with all modes (smt|qbf)
   -compare <case_name>     Run only the specified case with all modes
-  -smt|-qbf                Run all CASES with the chosen mode
-  -light                   Run a lightweight subset (edit inside)
   -case <case_name> <mode>      Run a single case function with one of the modes (smt|qbf)
-  -list                    List available case functions
 EOF
   exit 1
 }
@@ -843,8 +819,9 @@ list_cases() {
 run_matrix() {
   local modes=("$@")
   for c in "${CASES[@]}"; do
+    local fn="case_${c}"
     for m in "${modes[@]}"; do
-      "$c" "$m"
+      "$fn" "$m"
     done
   done
   render_tables
@@ -853,9 +830,10 @@ run_matrix() {
 run_single_case_matrix() {
   local case_name="$1"; shift
   local modes=("$@")
-  if declare -f "$case_name" >/dev/null 2>&1; then
+  fn="case_${case_name}"
+  if declare -f "$fn" >/dev/null 2>&1; then
     for m in "${modes[@]}"; do
-      "$case_name" "$m"
+      "$fn" "$m"
     done
     render_tables
   else
@@ -880,38 +858,57 @@ case "${1:-}" in
       run_single_case_matrix "$1" smt qbf
     fi
     ;;
-  
-  -all)
-    run_matrix smt
-    ;;
 
-  -smt|-qbf)
-    mode="${1#-}"
-    run_matrix "$mode"
+  -all)
+    shift
+    if [[ -z "${1:-}" ]]; then
+      echo "(!) The '-all' option requires an argument."
+      echo "   Usage: $0 -all [smt|qbf]"
+      exit 1
+    elif [[ "$1" == "smt" ]]; then
+      run_matrix smt
+    else
+      run_matrix qbf
+    fi
+    render_tables
     ;;
 
   -light)
+    shift
+    if [[ -z "${1:-}" ]]; then
+      echo "(!) The '-light' option requires an argument."
+      echo "   Usage: $0 -light [smt|qbf]"
+      exit 1
     local_subset=(
-      case_acdb
-      case_concleak
-      case_specexec_v1
-      case_specexec_v4
+      acdb
+      concleak
+      specexec_v1
+      specexec_v4
     )
-    for c in "${local_subset[@]}"; do
-      "$c" smt
-    done
+    elif [[ "$1" == "smt" ]]; then
+      for c in "${local_subset[@]}"; do
+        local fn="case_${c}"
+        "$fn" smt
+      done
+    else
+      for c in "${local_subset[@]}"; do
+        local fn="case_${c}"
+        "$fn" qbf
+      done
+    fi
     render_tables
     ;;
 
   -case)
     shift
     func="${1:-}"; mode="${2:-}"
+    fn="case_${func}"
     [[ -z "$func" || -z "$mode" ]] && usage
     if declare -f "$func" >/dev/null 2>&1; then
-      "$func" "$mode"
+      "$fu" "$mode"
       render_tables
     else
-      echo "(!) Unknown case function: $func"
+      echo "(!) Unknown case function: $fu"
       list_cases
       exit 1
     fi

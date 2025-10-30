@@ -1,5 +1,7 @@
 
 Forall A . Exists B . E t .  
+G(~(in_HIGH[A][t] = in_HIGH[B][t]))
+&
 G(
     (obs_printA[A][t] = obs_printA[B][t])
     &
