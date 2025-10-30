@@ -17,8 +17,8 @@ fi
 FOLDER="benchmarks/loop_conditions/"
 RESULTS_DIR="_outfiles"
 LOG_DIR="${RESULTS_DIR}/logs"
-CSV="${RESULTS_DIR}/table1_runtimes.csv"
-MD="${RESULTS_DIR}/table1_runtimes.md"
+CSV="${RESULTS_DIR}/table7(loop)_results.csv"
+MD="${RESULTS_DIR}/table7(loop)_results.md"
 
 # Fresh start: recreate logs dir and reset CSV/MD
 mkdir -p "$RESULTS_DIR"

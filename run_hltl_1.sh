@@ -3,6 +3,15 @@ set -euo pipefail
 
 TIMEOUT_SEC=${TIMEOUT_SEC:-60}  # seconds
 
+
+# ---- Paths for results/logs ----
+FOLDER="benchmarks/sync/"
+RESULTS_DIR="_outfiles"
+LOG_DIR="${RESULTS_DIR}/logs"
+CSV="${RESULTS_DIR}/table4(hltl_tacas21)_runtimes.csv"
+MD="${RESULTS_DIR}/table4(hltl_tacas21)_runtimes.md"
+
+
 CARGO_BIN=${CARGO_BIN:-target/release/HyperRUSTY}
 if [[ ! -x "$CARGO_BIN" ]]; then
   echo "Building HyperQB (release)…"
@@ -17,13 +26,6 @@ elif command -v timeout >/dev/null 2>&1; then
 else
   TIMEOUT_BIN=""   # fallback: no timeout available
 fi
-
-# ---- Paths for results/logs ----
-FOLDER="benchmarks/sync/"
-RESULTS_DIR="_outfiles"
-LOG_DIR="${RESULTS_DIR}/logs"
-CSV="${RESULTS_DIR}/table4_runtimes.csv"
-MD="${RESULTS_DIR}/table4_runtimes.md"
 
 
 # Fresh start: recreate logs dir and reset CSV/MD
@@ -1196,11 +1198,11 @@ done
 usage() {
   cat <<EOF
 Usage: $0 [mode]
+  -list                   List all available case functions
   -all <mode>             Run all cases with the chosen mode (smt|ah|qbf)
   -light <mode>           Run lightweight cases with the chosen mode (smt|ah|qbf)
   -compare all [extras]   Run all cases with all modes (smt/ah/qbf)
   -compare light [extras] Run lightweight cases with all modes (smt/ah/qbf)
-  -list                   List all available case functions
   -compare <case> [extras] Run one case with all modes (see -list for case selections)
   -case <case> <mode> [extras] Run one case with selected mode (smt|ah|qbf)
 

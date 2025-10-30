@@ -4,6 +4,7 @@ VAR
     var_Y    : 0..7;
     var_size : 0..4;
 
+    obs_eq: boolean;
     ----------------------------------------------------------------
     -- Flattened proc1: program(0, var_Y, var_size, offset)
     ----------------------------------------------------------------
@@ -56,13 +57,21 @@ ASSIGN
     ----------------------------------------------------------------
     -- Shared globals
     ----------------------------------------------------------------
-    init(offset) := 0;
+    init(offset) := {0,1,2};
     next(offset) := offset;
 
+    init(var_Y) := {0,1,2,3,4,5,6,7};
     next(var_Y) := var_Y;
 
-    init(var_size) := 4;
+    init(var_size) := {0,1,2,3,4};
     next(var_size) := var_size;
+
+    init(obs_eq) := TRUE;
+    next(obs_eq) := 
+        case
+            (!(proc1_var_temp_proc1 = proc2_var_temp_proc1)) : FALSE;
+            TRUE : obs_eq;
+        esac;
 
     ----------------------------------------------------------------
     -- proc1 assignments
@@ -103,8 +112,8 @@ ASSIGN
     init(proc1_var_X) := FALSE;
     next(proc1_var_X) :=
         case
-            (proc1_line=3) : (var_Y < var_size);
-            TRUE : proc1_var_X;
+            ((proc1_line=3)) : TRUE; -- <--- speculate!
+            TRUE : FALSE;
         esac;
 
     init(proc1_var_Z) := 0;
@@ -230,19 +239,29 @@ ASSIGN
         esac;
 
     -- static arrays
-    init(proc2_arrA_pos0) := 0; next(proc2_arrA_pos0) := proc2_arrA_pos0;
-    init(proc2_arrA_pos1) := 1; next(proc2_arrA_pos1) := proc2_arrA_pos1;
-    init(proc2_arrA_pos2) := 2; next(proc2_arrA_pos2) := proc2_arrA_pos2;
-    init(proc2_arrA_pos3) := 3; next(proc2_arrA_pos3) := proc2_arrA_pos3;
-    init(proc2_arrA_pos4) := 4; next(proc2_arrA_pos4) := proc2_arrA_pos4;
+    init(proc2_arrA_pos0) := 0; 
+    next(proc2_arrA_pos0) := proc2_arrA_pos0;
+    init(proc2_arrA_pos1) := 1; 
+    next(proc2_arrA_pos1) := proc2_arrA_pos1;
+    init(proc2_arrA_pos2) := 2; 
+    next(proc2_arrA_pos2) := proc2_arrA_pos2;
+    init(proc2_arrA_pos3) := 3; 
+    next(proc2_arrA_pos3) := proc2_arrA_pos3;
+    init(proc2_arrA_pos4) := 4; 
+    next(proc2_arrA_pos4) := proc2_arrA_pos4;
 
-    init(proc2_arrB_pos0) := 0; next(proc2_arrB_pos0) := proc2_arrB_pos0;
-    init(proc2_arrB_pos1) := 1; next(proc2_arrB_pos1) := proc2_arrB_pos1;
-    init(proc2_arrB_pos2) := 2; next(proc2_arrB_pos2) := proc2_arrB_pos2;
-    init(proc2_arrB_pos3) := 3; next(proc2_arrB_pos3) := proc2_arrB_pos3;
-    init(proc2_arrB_pos4) := 4; next(proc2_arrB_pos4) := proc2_arrB_pos4;
+    init(proc2_arrB_pos0) := 0; 
+    next(proc2_arrB_pos0) := proc2_arrB_pos0;
+    init(proc2_arrB_pos1) := 1; 
+    next(proc2_arrB_pos1) := proc2_arrB_pos1;
+    init(proc2_arrB_pos2) := 2; 
+    next(proc2_arrB_pos2) := proc2_arrB_pos2;
+    init(proc2_arrB_pos3) := 3; 
+    next(proc2_arrB_pos3) := proc2_arrB_pos3;
+    init(proc2_arrB_pos4) := 4; 
+    next(proc2_arrB_pos4) := proc2_arrB_pos4;
 
 
 DEFINE
     -- halting condition
-    halt := ((proc1_line=8) & (proc2_line=8));
+    halt := ((proc1_halt) & (proc2_halt));

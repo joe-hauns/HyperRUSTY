@@ -4,6 +4,7 @@ MODULE main
     var_Y     : 0..7;
     var_size  : 0..4;
     k         : 0..4;
+    obs_eq    : boolean;
 
     -- Inlined program(0, var_Y, var_size, offset, k) as proc1
     proc1_line           : 0..9;
@@ -48,6 +49,12 @@ MODULE main
     proc2_halt           : boolean;
 
   ASSIGN
+    init(obs_eq) := TRUE;
+    next(obs_eq) := 
+        case
+            (!(proc1_var_temp_proc1 = proc2_var_temp_proc1)) : FALSE;
+            TRUE : obs_eq;
+        esac;
     next(offset) := offset;
     next(var_Y)  := var_Y;
     init(var_size) := 4;
