@@ -12,6 +12,12 @@ This artifact provides a **Docker image** (distributed via **Docker Hub**) that 
 **Expected outputs:** Printed in Console and logged in `_outfiles` directory.
 
 ---
+## Hyperlink to the artifact: 
+
+https://zenodo.org/records/17490665
+
+---
+
 
 ## Table of Contents
 
@@ -180,7 +186,7 @@ You should now see a shell prompt **inside** the container, typically like:
 
 ## [OPTION2] Download docker image from Zenodo 
 
-From our Zenodo link (ZENODOLINK!!!), download the `.tar` that contains the docker image, then run:
+From our Zenodo link (https://zenodo.org/records/17490665), download the `.tar` that contains the docker image, then run:
 ```bash
 docker load -i hyperqb2.tar
 ```
