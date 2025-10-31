@@ -17,11 +17,10 @@ This artifact provides a **Docker image** (distributed via **Docker Hub**) that 
 3. [Install Docker](#install-docker)
 4. [Verify Docker Works](#verify-docker-works)
 5. [Obtain the Artifact Image from Docker Hub](#obtain-the-artifact-image-from-docker-hub)
-6. [Load and Tag the Image](#load-and-tag-the-image)
-7. [Create Host Folders for Results](#create-host-folders-for-results)
-8. [Run the Container (Interactive Shell)](#run-the-container-interactive-shell)
-9. [Inside the Container: Reproduce Experiments](#inside-the-container-reproduce-experiments)
-10. [Collecting Outputs](#collecting-outputs)
+6. [Create Host Folders for Results](#create-host-folders-for-results)
+7. [Run the Container (Interactive Shell)](#run-the-container-interactive-shell)
+8. [Inside the Container: Reproduce Experiments](#inside-the-container-reproduce-experiments)
+9. [Collecting Outputs](#collecting-outputs)
 
 ---
 
@@ -135,30 +134,6 @@ docker pull yourorg/hyperqb-docker:latest
 ```
 
 > **File size note:** The tarball can be several GB. Ensure sufficient disk space and a stable network connection.
-
----
-
-## Load and Tag the Image
-
-After downloading, load the image into Docker:
-
-```bash
-docker load -i artifact-image.tar.gz
-```
-
-You should see output similar to:
-
-```
-Loaded image: REPO/IMAGE:TAG
-```
-
-If the output does **not** display a name/tag, list images and **tag** it manually:
-
-```bash
-docker images --digests
-# Suppose IMAGE ID is abcdef123456
-docker tag abcdef123456 REPO/IMAGE:TAG
-```
 
 ---
 
