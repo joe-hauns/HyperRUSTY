@@ -2,11 +2,9 @@
 
 **Artifact ID:** `97`  
 **Paper Title:** `HyperQB 2.0: A Bounded Model Checker for
-Hyperproperties`  
-**Zenodo DOI:** `10.5281/zenodo.<DOI_SUFFIX>`  
-**Zenodo Record:** `https://zenodo.org/records/<RECORD_ID>`
+Hyperproperties`
 
-This artifact provides a **Docker image** (distributed via **Zenodo**) that contains our full experimental environment and the **shell scripts** needed to reproduce the tables reported in the paper. The AEC only needs to (1) install Docker, (2) download our image from Zenodo, (3) load it into Docker, and (4) run the provided scripts inside the container to regenerate the results.
+This artifact provides a **Docker image** (distributed via **Docker Hub**) that contains our full experimental environment and the **shell scripts** needed to reproduce the tables reported in the paper. The AEC only needs to (1) install Docker, (2) pull our image from Docker Hub, (3) load it into Docker, and (4) run the provided scripts inside the container to regenerate the results.
 
 - <mark>**Expected outputs:** CSV/Markdown/LaTeX tables in `./results/tables/` on the host</mark>
 
@@ -18,7 +16,7 @@ This artifact provides a **Docker image** (distributed via **Zenodo**) that cont
 2. [What You Will Download](#what-you-will-download)
 3. [Install Docker](#install-docker)
 4. [Verify Docker Works](#verify-docker-works)
-5. [Obtain the Artifact Image from Zenodo](#obtain-the-artifact-image-from-zenodo)
+5. [Obtain the Artifact Image from Docker Hub](#obtain-the-artifact-image-from-docker-hub)
 6. [Load and Tag the Image](#load-and-tag-the-image)
 7. [Create Host Folders for Results](#create-host-folders-for-results)
 8. [Run the Container (Interactive Shell)](#run-the-container-interactive-shell)
@@ -36,7 +34,7 @@ This artifact provides a **Docker image** (distributed via **Zenodo**) that cont
 - **CPU:** 2+ cores recommended
 - **RAM:** ≥ 8 GB recommended (≥ 16 GB ideal for the largest experiments)
 - **Disk:** ≥ 20 GB free space
-- **Internet:** required once to download the Zenodo artifact
+- **Internet:** required once to pull the artifact from Docker Hub
 - **GPU:** _not required_ (all experiments run on CPU)
 
 > <mark>**x86_64 / amd64 hosts (Intel/AMD PCs, Intel Macs):** If the image is published for `linux/amd64`, it runs **natively**—no flags required. If the image is **`linux/arm64`‑only**, either use our multi‑arch/amd64 build **or** run under emulation with `--platform=linux/arm64`. Docker Desktop includes QEMU emulation by default; on native Linux you may need `binfmt`/`qemu-user-static`. Emulation works but is slower.</mark>
@@ -45,9 +43,7 @@ This artifact provides a **Docker image** (distributed via **Zenodo**) that cont
 
 ## What You Will Download
 
-From the Zenodo record <mark>`https://zenodo.org/records/<RECORD_ID>`</mark>, download the Docker image tarball suitable for your system's architecture:
-
-`<artifact-image-amd64.tar.gz>` _(or)_ `<artifact-image-arm64.tar.gz>`
+From Docker Hub, pull the artifact's Docker image.
 
 Inside the image, you will find:
 
@@ -110,7 +106,11 @@ You should see **“Hello from Docker!”** If this works, Docker is correctly i
 
 ---
 
-## Obtain the Artifact Image from Zenodo
+## Obtain the Artifact Image from Docker Hub
+
+The artifact is distributed as a public Docker image hosted on Docker Hub.
+
+Please ensure you have an active internet connection and Docker is running.
 
 ### macOS / Linux (Terminal)
 
@@ -118,21 +118,20 @@ You should see **“Hello from Docker!”** If this works, Docker is correctly i
 # Create a working directory
 mkdir -p ~/tacas-ae && cd ~/tacas-ae
 
-# Download the tarball (replace file name and URL as shown on Zenodo)
-curl -L -o artifact-image.tar.gz "https://zenodo.org/records/<RECORD_ID>/files/<artifact-image-amd64.tar.gz>?download=1"
+# Pull the latest image from Docker Hub
+docker pull yourorg/hyperqb2.0:latest
 
 ```
 
 ### Windows (PowerShell)
 
 ```powershell
-# Create a working directory
+# Create a working directory (optional)
 New-Item -ItemType Directory -Force -Path "$HOME\tacas-ae" | Out-Null
 Set-Location "$HOME\tacas-ae"
 
-# Download (replace with your Zenodo file URL)
-Invoke-WebRequest -Uri "https://zenodo.org/records/<RECORD_ID>/files/<artifact-image-amd64.tar.gz>?download=1" -OutFile "artifact-image.tar.gz"
-
+# Pull the latest image from Docker Hub
+docker pull yourorg/hyperqb-docker:latest
 ```
 
 > **File size note:** The tarball can be several GB. Ensure sufficient disk space and a stable network connection.
@@ -200,55 +199,131 @@ You should now see a shell prompt **inside** the container, typically like:
 
 ## Inside the Container: Reproduce Experiments
 
-All paths below are **inside** the container.
+### Reproducing Tables 4 & 5 (HLTL)
 
-1. **Sanity check the environment** (optional but recommended):
+`run_hltl_1.sh` (Table 4) and `run_hltl_2.sh` (Table 5) run benchmark suites across multiple verification backends:
 
-   ```bash
-   ./scripts/bootstrap.sh
-   ```
+- **SMT** – Using Z3 as the SMT solver
+- **AH** – Using AutoHyper
+- **QBF** – Using QuAbs as the QBF solver
 
-   This verifies tools, versions, and writable paths (`/results`, `/data`). Any missing optional assets will be fetched or you’ll be prompted with instructions.
+#### Usage
 
-2. **Run all experiments**:
+```bash
+./run_hltl_1.sh [option]
+./run_hltl_2.sh [option]
+```
 
-   ```bash
-   ./scripts/run_all_experiments.sh
-   ```
+#### Main Options
 
-   - This script runs the complete experimental suite used in the paper.
-   - Progress and logs are written to `/results/logs/` and `/results/run.json`.
-   - If your time is limited, see **FAQ: Running a smaller subset**.
+| Option                         |                       Description                       |
+| ------------------------------ | :-----------------------------------------------------: |
+| `-list`                        |           List all available benchmark cases            |
+| `-all <mode>`                  | Run all cases with the chosen mode (`smt`, `ah`, `qbf`) |
+| `-light <mode>`                |      Run a lightweight subset (for quick testing)       |
+| `-compare all [extras]`        |     Compare all case studies across the three modes     |
+| `-compare light [extras]`      |    Compare lightweight cases across the three modes     |
+| `-compare <case> [extras]`     |        Compare a specific case across all modes         |
+| `-case <case> <mode> [extras]` |            Run one case under a single mode             |
 
-3. **Generate final tables** (CSV/Markdown/LaTeX):
+#### Extra Option
 
-   ```bash
-   ./scripts/generate_tables.sh
-   ```
+| Option         | Description                                                  |
+| -------------- | ------------------------------------------------------------ |
+| `give_witness` | Extends SMT/AH runs with witness generation (when supported) |
 
-   - Outputs are written to `/results/tables/`.
-   - Files are named to match the paper (e.g., `table1_summary.csv`, `table2_ablation.md`, `table3_main.tex`).
+To Reproduce **Tables 4 & 5 (HLTL)**, Run:
 
-> **Determinism:** We fix random seeds internally where applicable. If nondeterminism is unavoidable (e.g., external solvers), the scripts aggregate multiple runs and report medians/means with confidence intervals.
+```bash
+./run_hltl_1.sh -compare all
+./run_hltl_2.sh -compare all
+```
+
+### Reproducing Table 5 (AHLTL)
+
+`run_ahltl.sh` runs benchmark suites using either **Z3** (SMT) or **QuAbs** (qbf) as the solver.
+
+#### Usage
+
+```bash
+./run_ahltl.sh [option]
+```
+
+#### Options
+
+| Option                              |                    Description                    |
+| ----------------------------------- | :-----------------------------------------------: |
+| `-list`                             |        List all available benchmark cases         |
+| `-all <mode>`                       | Run all cases with the chosen mode (`smt`, `qbf`) |
+| `-light <mode>`                     |   Run a lightweight subset (for quick testing)    |
+| `-compare all`                      |     Compare all case studies across all modes     |
+| `-compare <case_name>`              |     Compare a specific case across all modes      |
+| `-case <case_name> <mode> [extras]` |  Run a case with one of the modes (`smt`, `qbf`)  |
+
+To Reproduce **Table 5 (AHLTL)**, Run:
+
+```bash
+./run_ahltl.sh -compare all
+```
+
+### Reproducing Table 7 (Loop Condition)
+
+`run_loopcond.sh` runs benchmark suites using the **Z3** (SMT) solver.
+
+#### Usage
+
+```bash
+./run_loopcond.sh [option]
+```
+
+#### Options
+
+| Option              |                  Description                  |
+| ------------------- | :-------------------------------------------: |
+| `-all`              |             Runs all case studies             |
+| `-light`            | Runs a lightweight subset (for quick testing) |
+| `-case <case_name>` |          Runs a specific case study           |
+| `-list`             |       Lists all available case studies        |
+
+To Reproduce **Table 7**, Run:
+
+```bash
+./run_loopcond.sh -all
+```
+
+### Reproducing Table 8 (Verilog)
+
+`run_verilog.sh` runs benchmark suites for Verilog case studies using the **Z3** (SMT) solver.
+
+#### Usage
+
+```bash
+./run_verilog.sh [option]
+```
+
+#### Options
+
+| Option              |                  Description                  |
+| ------------------- | :-------------------------------------------: |
+| `-all`              |             Runs all case studies             |
+| `-light`            | Runs a lightweight subset (for quick testing) |
+| `-case <case_name>` |          Runs a specific case study           |
+| `-list`             |       Lists all available case studies        |
+
+To Reproduce **Table 8**, Run:
+
+```bash
+./run_verilog.sh -all
+```
 
 ---
 
 ## Collecting Outputs
 
-Exit the container (`exit` or `Ctrl-D`). Your results are now available **on the host**:
-
-```
-./results/
-  logs/
-  run.json
-  tables/
-    table1_summary.csv
-    table2_ablation.md
-    table3_main.tex
-```
-
-These files are safe to attach or compare with the paper’s reported tables.
+All outputs are printed to the screen during execution and simultaneously logged in the `_outfiles` directory.
 
 ---
+
+**While preparing the artifact for the Verilog case studies, we discovered that using the `-c` option, even on satisfiable (SAT) results, significantly improves Z3’s solver performance.**
 
 We thank the Artifact Evaluation Committee for their time and feedback.
