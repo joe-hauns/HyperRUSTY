@@ -1409,7 +1409,7 @@ case_simple_queue() {
         "${CARGO_BIN} \
          -n ${FOLDER}21_queue/atomic.smv \
          ${FOLDER}21_queue/concurrent.smv \
-         -f ${FOLDER}21_queue/lin.hq \
+         -f ${FOLDER}21_queue/lin2.hq \
          -k 10 -s hpes -q"
       ;;
     *) echo "Usage: case_simple_queue <1|2|3> or <smt|ah|qbf>"; return 1 ;;
