@@ -22,10 +22,14 @@ https://zenodo.org/records/17490665
 We aim to apply for all 3 badges, following the TACAS 2026 artifact submission guidelines, including: 
 1) **Available**:   HyperQB 2.0 source code and its dependencies are publicly available on Zenodo with a permanent DOI (as a Docker image).
 2) **Functional**:  Our artifact can easily reproduce all key results from the submitted paper (see detailed instructions below).
-3) **Reusable**:    HyperQB 2.0 comes with a complete user manual (HyperQB_Manual.pdf) included in the artifact submission. Pages 7–8 provide detailed documentation of the command-line interface. In addition, we would like to remark that, outside of this artifact, we offer a fully standalone **macOS application** (available for download from GitHub) with an **interactive GUI** (demonstrated on page 5 of the manual). Comprehensive information about the tool’s theoretical background, algorithms, case studies (including model descriptions), and an online version of the GUI is also accessible through our **official website**. Since these components are beyond the TACAS artifact evaluation scope, we provide here only the CLI binary for reviewers to interact with directly. However, HyperQB 2.0 is easy to adapt for future research to benefit the formal methods community.
+3) **Reusable**:    HyperQB 2.0 comes with a complete user manual (HyperQB_Manual.pdf) included in the artifact submission. Pages 7–8 provide detailed documentation of the command-line interface that can be easily adapted for future research. 
+
+HyperQB 2.0 official website: https://hyperqb.github.io/index.html
+
+We would like to remark that, outside of this artifact, we offer a fully standalone **macOS application** (available for download from GitHub) with an **interactive GUI** (demonstrated on page 5 of the manual). Comprehensive information about the tool’s theoretical background, algorithms, case studies (including model descriptions), and an online version of the GUI is also accessible through our **official website**. Since these components are beyond the TACAS artifact evaluation scope, we provide here only the CLI binary for reviewers to interact with directly. However, HyperQB 2.0 is easy to adapt for future research to benefit the formal methods community.
 
 ---
-
+ 
 
 ## Table of Contents
 
