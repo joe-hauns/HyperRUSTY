@@ -1,7 +1,7 @@
 # HyperQB 2.0
 
 **Artifact ID:** `97`  
-**Paper Title:** `HyperQB 2.0: A Bounded Model Checker for Hyperproperties`  
+**Paper Title:** `HyperQB 2.0: A Bounded Model Checker for Hyperproperties` (submission 0087)   
 **Zenodo DOI:** `10.5281/zenodo.17490665`  
 **Zenodo Record:** `https://zenodo.org/records/17490665`
 
@@ -44,7 +44,7 @@ This artifact provides a **Docker image** (distributed via **Docker Hub**) that 
 
 ## What You Will Download
 
-From Docker Hub, pull the artifact's Docker image.
+We present our TACAS artifact's Docker image.
 
 Inside the image, you will find:
 
@@ -107,7 +107,19 @@ You should see **“Hello from Docker!”** If this works, Docker is correctly i
 
 ---
 
-## Obtain the Artifact Image from Docker Hub
+### <mark>(!!!) Important remark when we are building this image</mark>
+
+We are full aware of the internet access constraint for artifact evaluation. As a result we provide two options:
+
+[OPTION 1]: pull our built image from docker hub
+[OPTION 2]: download out built image from Zenodo
+
+We recommend [OPTION 1], however, if direct pull from Docker Hub is not allowed, we also have the image downloadable from the permanent online repository Zenodo. 
+
+
+---
+
+## [OPTION 1]: Obtain the Artifact Image from Docker Hub
 
 The artifact is distributed as a public Docker image hosted on Docker Hub.
 
@@ -166,7 +178,45 @@ You should now see a shell prompt **inside** the container, typically like:
 
 ---
 
-## Inside the Container: Reproduce Experiments
+## [OPTION2] Download docker image from Zenodo 
+
+From our Zenodo link (ZENODOLINK!!!), download the `.tar` that contains the docker image, then run:
+```bash
+docker load -i hyperqb2.tar
+```
+next, check if the image is loaded by running:
+```bash
+docker images
+```
+if the image is loaded correctly, you should be able to see the `hyperqb-docker` entry:
+```
+REPOSITORY            TAG       IMAGE ID       CREATED             SIZE
+hyperqb-docker        latest    41ea36748c37   18 minutes ago      7.87GB
+``` 
+finally, run this image:
+```bash
+docker run -it hyperqb-docker:latest
+```
+you are now in a ready-to-go environment to run HyperQB!
+
+
+---
+
+## Inside the Container, phase 1: Smoke Test
+
+We provide easy-to-use shell scripts for the early light review. We achieve it by setting the `TIMEOUT` on the shell scripts to a small number, where the reviewers can easily go through all the cases quickly. 
+To make sure all tables are reproducible, please execute:
+`./run_hltl_1.sh -compare all`
+`./run_hltl_2.sh -compare all`
+`./run_ahltl -all`
+`./run_loopcond.sh -all`
+`./run_verilog -all`
+
+If no errors is reported, the smoke test is successful!
+
+---
+
+## Inside the Container, phase 2: Reproduce Experiments
 
 ### Reproducing Tables 4 & 5 (HLTL)
 
