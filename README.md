@@ -1,13 +1,13 @@
 # HyperQB 2.0
 
 **Artifact ID:** `97`  
-**Paper Title:** `HyperQB 2.0: A Bounded Model Checker for Hyperproperties` (submission 0087)   
+**Paper Title:** `HyperQB 2.0: A Bounded Model Checker for Hyperproperties` (tool paper submission 0087)   
 **Zenodo DOI:** `10.5281/zenodo.17490665`  
 **Zenodo Record:** `https://zenodo.org/records/17490665`
 
 This artifact provides a **Docker image** (distributed via **Docker Hub**) that contains our full experimental environment and the **shell scripts** needed to reproduce the tables reported in the paper. The AEC only needs to (1) install Docker, (2) pull our image from Docker Hub, (3) load it into Docker, and (4) run the provided scripts inside the container to regenerate the results.
 
-**Our artifact is available on both Zenodo and Docker Hub. For simplicity, the instructions below use the Docker Hub version.**
+**Our artifact is available on both Zenodo and Docker Hub. For simplicity, the instructions below use the Docker Hub version as [OPTION1] (and the Zenodo version as [OPTION2]).**
 
 **Expected outputs:** Printed in Console and logged in `_outfiles` directory.
 
@@ -15,6 +15,14 @@ This artifact provides a **Docker image** (distributed via **Docker Hub**) that 
 ## Hyperlink to the artifact: 
 
 https://zenodo.org/records/17490665
+
+---
+## Badges we are applying for:
+
+We aim to apply for all 3 badges, following the TACAS 2026 artifact submission guidelines, including: 
+1) **Available**:   HyperQB 2.0 source code and its dependencies are publicly available on Zenodo with a permanent DOI (as a Docker image).
+2) **Functional**:  Our artifact can easily reproduce all key results from the submitted paper (see detailed instructions below).
+3) **Reusable**:    HyperQB 2.0 comes with a complete user manual (HyperQB_Manual.pdf) included in the artifact submission. Pages 7–8 provide detailed documentation of the command-line interface. In addition, we would like to remark that, outside of this artifact, we offer a fully standalone **macOS application** (available for download from GitHub) with an **interactive GUI** (demonstrated on page 5 of the manual). Comprehensive information about the tool’s theoretical background, algorithms, case studies (including model descriptions), and an online version of the GUI is also accessible through our **official website**. Since these components are beyond the TACAS artifact evaluation scope, we provide here only the CLI binary for reviewers to interact with directly. However, HyperQB 2.0 is easy to adapt for future research to benefit the formal methods community.
 
 ---
 
@@ -50,12 +58,11 @@ https://zenodo.org/records/17490665
 
 ## What You Will Download
 
-We present our TACAS artifact's Docker image.
-
+We present our artifact as a Docker image.
 Inside the image, you will find:
 
 - All dependencies and toolchains
-- Scripts:
+- Ready-to-run shell scripts:
   - `run_hltl_1.sh` – Reproducing Table 4
   - `run_hltl_2.sh` – Reproducing Table 5 HLTL benchmarks
   - `run_ahltl.sh` – Reproducing Table 5 A-HLTL benchmarks
@@ -113,15 +120,14 @@ You should see **“Hello from Docker!”** If this works, Docker is correctly i
 
 ---
 
-### <mark>(!!!) Important remark when we are building this image</mark>
+### <mark>(!!!) Important note on internet access during artifact setup</mark>
 
-We are full aware of the internet access constraint for artifact evaluation. As a result we provide two options:
+We are fully aware of the internet access restrictions during the TACAS artifact evaluation. Therefore, we provide two alternative options:
 
-[OPTION 1]: pull our built image from docker hub
-[OPTION 2]: download out built image from Zenodo
+[OPTION 1]: Pull the HyperQB image from Docker Hub
+[OPTION 2]: Download the HyperQB image from Zenodo
 
-We recommend [OPTION 1], however, if direct pull from Docker Hub is not allowed, we also have the image downloadable from the permanent online repository Zenodo. 
-
+We recommend using [OPTION 1]. However, if pulling directly from Docker Hub is not possible, the image is also available for download from our permanent online repository on Zenodo. This serves as a flexible alternative in case one of the options does not work on the reviewer’s machine.
 
 ---
 
@@ -161,17 +167,19 @@ docker pull rogaleke/hyperqb2.0:latest
 
 Start the container with sensible defaults. **Copy exactly one** of the following run commands.
 
+Troubleshoot: if any of the following commands failed with `Unable to find image...`, make sure to run `docker images` to check what exactly the name of the repository you pulled. 
+
 ### macOS/Linux (bash/zsh)
 
 ```bash
 # Basic run
-docker run --rm -it hyperqb2.0:latest
+docker run --rm -it rogaleke/hyperqb2.0:latest
 ```
 
 ### Windows (PowerShell)
 
 ```powershell
-docker run --rm -it hyperqb2.0:latest
+docker run --rm -it rogaleke/hyperqb2.0:latest
 ```
 
 > **What this does:**
@@ -179,8 +187,9 @@ docker run --rm -it hyperqb2.0:latest
 > - `--rm` cleans up when you exit.
 > - `-it` gives you an interactive shell.
 
-You should now see a shell prompt **inside** the container, typically like:  
-`root@<container-id>:/workspace#`
+You should now see a shell prompt **inside** the container, typically like: `root@<container-id>:/workspace#`
+
+You are now in a ready-to-go environment to run HyperQB! Yay!
 
 ---
 
@@ -203,26 +212,30 @@ finally, run this image:
 ```bash
 docker run -it hyperqb-docker:latest
 ```
-you are now in a ready-to-go environment to run HyperQB!
+You are now in a ready-to-go environment to run HyperQB! Yay!
 
 
 ---
 
-## Inside the Container, phase 1: Smoke Test
+## Inside the Container, stage 1: Smoke Test
 
-We provide easy-to-use shell scripts for the early light review. We achieve it by setting the `TIMEOUT` on the shell scripts to a small number, where the reviewers can easily go through all the cases quickly. 
-To make sure all tables are reproducible, please execute:
+We provide easy-to-use shell scripts tailored for the early light review. To facilitate quick testing, we set a small `TIMEOUT` value in these scripts, allowing reviewers to run through all cases efficiently.
+
+To ensure that all tables are reproducible and ready for further evaluation, please execute the following command:
 `./run_hltl_1.sh -compare all`
 `./run_hltl_2.sh -compare all`
 `./run_ahltl -all`
 `./run_loopcond.sh -all`
 `./run_verilog -all`
 
-If no errors is reported, the smoke test is successful!
+If no errors are reported, the smoke test is successful!
 
 ---
 
-## Inside the Container, phase 2: Reproduce Experiments
+## Inside the Container, stage 2: Reproduce Experiments
+
+We now describe in detail how to reproduce the results presented in the paper. To ensure correct execution, <mark>please adjust the `TIMEOUT` parameter defined at the top (line 5) of each shell script according to your machine’s setup.<mark/> We leave this value for reviewers to determine based on their computing environment.
+
 
 ### Reproducing Tables 4 & 5 (HLTL)
 
@@ -351,7 +364,7 @@ All outputs are printed to the screen during execution and simultaneously logged
 
 ## Notices
 
-### Notice 1: During the preparation of the artifact, we discovered that the first two cases in the Loop Peeling benchmarks (`LP` and `LP_ndet`) contained a minor bug in the model. After correcting it, the QBF timings differed from those originally reported in the paper.
+### Notice 1: During the preparation of the artifact, we discovered that the first two cases in the Loop Peeling benchmarks (`LP` and `LP_ndet`) contained a minor bug in the model. After correcting it, the QBF timings differed from those originally reported in the paper. Furthermore, the first ELFP entry is UNSAT (which the paper has in this case with a checkmark, which is a typo). 
 
 ### Notice 2: While preparing the artifact for the Verilog case studies, we discovered that using the `-c` option, even on satisfiable (SAT) results, significantly improves Z3's solver performance.
 
