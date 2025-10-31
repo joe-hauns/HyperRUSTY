@@ -2,7 +2,7 @@
 #!/bin/bash
 set -euo pipefail
 
-TIMEOUT_SEC=${TIMEOUT_SEC:-120}  # seconds
+TIMEOUT_SEC=${TIMEOUT_SEC:-60}  # seconds
 
 # Detect timeout binary safely (avoid unbound variable errors)
 if command -v gtimeout >/dev/null 2>&1; then
@@ -21,10 +21,10 @@ CSV="${RESULTS_DIR}/table6(ahltl)_runtimes.csv"
 MD="${RESULTS_DIR}/table6(ahltl)_runtimes.md"
 
 CARGO_BIN=${CARGO_BIN:-target/release/HyperRUSTY}
-# if [[ ! -x "$CARGO_BIN" ]]; then
+if [[ ! -x "$CARGO_BIN" ]]; then
   echo "Building HyperQB (release)…"
   cargo build --release
-# fi
+fi
 
 # Fresh start: recreate logs dir and reset CSV/MD
 mkdir -p "$RESULTS_DIR"
@@ -78,7 +78,7 @@ time_run() {
     rm -f "$tmp"
 
     # Determine status from log (prefer UNSAT if both appear)
-    local status="NA"
+    local status="TIMEOUT"
     if [[ -n "${TIMEOUT_BIN:-}" && $exit_code -eq 124 ]]; then
         echo "[TIMEOUT] $case_name ($variant) exceeded ${TIMEOUT_SEC}s." | tee -a "$log_file"
         real_s="${TIMEOUT_SEC}"

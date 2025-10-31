@@ -66,7 +66,7 @@ time_run() {
     rm -f "$tmp"
 
     # Determine status from log (prefer UNSAT if both appear)
-    local status="NA"
+    local status="TIMEOUT"
     if [[ -n "${TIMEOUT_BIN:-}" && $exit_code -eq 124 ]]; then
         echo "[TIMEOUT] $case_name ($variant) exceeded ${TIMEOUT_SEC}s." | tee -a "$log_file"
         real_s="${TIMEOUT_SEC}"
@@ -205,7 +205,7 @@ case_led_AE() {
 }
 
 case_led_EE_true() {
-    local case_name="LED_EE"
+    local case_name="LED_EE_true"
     local mode="$1"
 
     case "$mode" in
@@ -227,7 +227,7 @@ case_led_EE_true() {
 }
 
 case_led_EE_false() {
-    local case_name="LED_EE"
+    local case_name="LED_EE_false"
     local mode="$1"
 
     case "$mode" in

@@ -49,7 +49,7 @@ time_run() {
     IFS=, read -r real_s _user_s _sys_s _max_rss < "$tmp" || true
     rm -f "$tmp"
 
-    local status="NA"
+    local status="TIMEOUT"
     if [[ -n "${TIMEOUT_BIN:-}" && $exit_code -eq 124 ]]; then
         status="TIMEOUT"
         real_s="${TIMEOUT_SEC}"

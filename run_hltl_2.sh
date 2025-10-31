@@ -78,7 +78,7 @@ time_run() {
     rm -f "$tmp"
 
     # Determine status from log (prefer UNSAT if both appear)
-    local status="NA"
+    local status="TIMEOUT"
     if [[ -n "${TIMEOUT_BIN:-}" && $exit_code -eq 124 ]]; then
         echo "[TIMEOUT] $case_name ($variant) exceeded ${TIMEOUT_SEC}s." | tee -a "$log_file"
         real_s="${TIMEOUT_SEC}"
@@ -350,7 +350,7 @@ case_buffer_unscheduled_classic() {
          -n ${FOLDER}9_buffer/unscheduled_buffer.smv \
          ${FOLDER}9_buffer/unscheduled_buffer.smv \
          -f ${FOLDER}9_buffer/classic_OD.hq \
-         -k 10 -s hpes -c"
+         -k 10 -s hpes"
       time_run "$case_name" "SMT" "$smt_cmd"
       if (( want_witness )); then
         local smt_cmd_witness="$smt_cmd"
