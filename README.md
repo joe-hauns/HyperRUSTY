@@ -86,16 +86,18 @@ cargo run --release -- (-n|-v) <models> -f <formula> -k <int> -s <sem> [options]
 - `-c`: Emit counterexample when the formula is unsatisfied.
 - `-q`: Use the QuAbS QBF solver instead of Z3.
 
-### Example
+### CLI Example
 
 Try the following example, which model check `linearizability (lin.hq)` on `SNARK algorithm (snark1_conc.smv, snark1_seq.smv)`:
 
 ```bash
-cargo run --release -- -n benchmarks/2_snark/snark1_conc.smv benchmarks/2_snark/snark1_seq.smv -f benchmarks/2_snark/lin.hq -k 18 -s hpes -c
+cargo run --release -- -n benchmarks/sync/2_snark/snark1_conc.smv benchmarks/sync/2_snark/snark1_seq.smv -f benchmarks/sync/2_snark/lin.hq -k 18 -s hpes -c
 ```
+which should return `UNSAT` with `counterexample` displayed in your terminal. 
+
+
 
 ## Grammar of HyperLTL Specification
-
 
 Formulas use the following grammar (identifiers: `pid` for paths, `tid` for trajectories):
 
