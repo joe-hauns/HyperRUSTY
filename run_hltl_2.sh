@@ -1042,7 +1042,7 @@ case_constructor() {
       local smt_cmd="${CARGO_BIN} \
          -n ${FOLDER}16_constructor/constructor_atomic.smv \
          ${FOLDER}16_constructor/constructor_seq.smv \
-         -f ${FOLDER}16_constructor/Linearizability.hq \
+         -f ${FOLDER}16_constructor/linearizability.hq \
          -k 10 -s hpes"
       time_run "$case_name" "SMT" "$smt_cmd"
       if (( want_witness )); then
@@ -1071,7 +1071,7 @@ case_constructor() {
         "${CARGO_BIN} \
          -n ${FOLDER}16_constructor/constructor_atomic.smv \
          ${FOLDER}16_constructor/constructor_seq.smv \
-         -f ${FOLDER}16_constructor/Linearizability.hq \
+         -f ${FOLDER}16_constructor/linearizability.hq \
          -k 10 -s hpes -q"
       ;;
     *) echo "Usage: case_constructor <1|2|3> or <smt|ah|qbf>"; return 1 ;;
