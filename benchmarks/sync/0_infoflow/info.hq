@@ -1,2 +1,2 @@
-Exists A . Forall B .
-F(NUM[A]=2)
+Forall A . Forall B .
+G(p2.pc[A]=2)

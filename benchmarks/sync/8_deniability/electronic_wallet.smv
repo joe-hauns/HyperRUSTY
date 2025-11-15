@@ -29,7 +29,8 @@ MODULE main
 
     next(num_itr) :=
       case
-        (PC=4): num_itr;
+        (PC=4) & (num_itr = 11): 11;
+        (PC=4): num_itr + 1;
         TRUE: num_itr;
       esac;
 
@@ -47,4 +48,4 @@ MODULE main
 
 
   DEFINE
-    halt := ( PC = 6);
+    halt := (PC = 6);

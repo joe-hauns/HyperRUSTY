@@ -229,9 +229,9 @@ We provide easy-to-use shell scripts tailored for the early light review. To fac
 To ensure that all tables are reproducible and ready for further evaluation, please execute the following command:
 - `./run_hltl_1.sh -compare all`
 - `./run_hltl_2.sh -compare all`
-- `./run_ahltl -all`
+- `./run_ahltl.sh -compare all`
 - `./run_loopcond.sh -all`
-- `./run_verilog -all`
+- `./run_verilog.sh -all`
 
 If no errors are reported, the smoke test is successful!
 

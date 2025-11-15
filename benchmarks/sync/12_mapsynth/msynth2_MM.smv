@@ -34,4 +34,3 @@ ASSIGN
   next(Es_Rp) := Es_Rp;
   next(Es_Rs) := Es_Rs;
 
-DEFINE

@@ -78,9 +78,9 @@ ASSIGN
   next(top) := 
   case
     p1.pc = 2 & top = p1.old_top : p1.old_next;
-    p1.pc = 2                    : top;
+    -- p1.pc = 2                    : top;
     p2.pc = 1 & top = p2.old_top : p2.old_next;
-    p2.pc = 1                    : top;
+    -- p2.pc = 1                    : top;
     p1.pc = 6 & p1.chosen != 0   : p1.chosen;
     p2.pc = 4 & p2.chosen != 0   : p2.chosen;
     TRUE                         : top;
@@ -134,7 +134,7 @@ ASSIGN
     p1.pc = 2 : 3;       
     p1.pc = 3 : 4;
     (p1.pc = 4) & (p2.pc = 4) : 4;
-    p1.pc = 4 & p2.pc != 4 : 7;       
+    p1.pc = 4 & (p2.pc != 4) : 7;       
     p1.pc = 5 & (p2.pc != 5) : 5;
     p1.pc = 5 & (p2.pc = 5) : 6;     
     p1.pc = 6 : 7;      
@@ -196,7 +196,8 @@ ASSIGN
     p2.pc = 2 : 3;
     p2.pc = 3 : 4;
     p2.pc = 4 : 5;
-    TRUE      : 0;
+    p2.pc = 5 : 6;
+    TRUE      : p2.pc;
   esac;
 
   -- Snapshot for pop (T2)
@@ -240,8 +241,6 @@ ASSIGN
   esac;
 
 
-  next()
-
 DEFINE
   -- Thread 1 operation predicates
   p1.push_invoked := ((p1.pc = 5) | (p1.pc = 6));  -- push_load or push_cas
@@ -261,4 +260,4 @@ DEFINE
 
   -- Success return predicates
   push_return := ((p1.ret_push) | (p2.ret_push));
-  pop_return  := ((p1.ret != 0) | (p2.ret != 0));
+  pop_return  := ((p1.ret > 0)) | ((p2.ret > 0));

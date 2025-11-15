@@ -189,8 +189,8 @@ DEFINE
   p1.pop_invoked  := (p1.op = 1) & (p1.pc = 1);  -- executing pop
 
   -- Thread 2 operation predicates  
-  p2.push_invoked := (p2.op = 0) & (p2.pc = 1 | p2.pc = 2);  -- executing push
-  p2.pop_invoked  := (p2.op = 1) & (p2.pc = 1 | p2.pc = 2);  -- executing pop
+  p2.push_invoked := (p2.op = 0) & ((p2.pc = 1) | (p2.pc = 2));  -- executing push
+  p2.pop_invoked  := (p2.op = 1) & ((p2.pc = 1) | (p2.pc = 2));  -- executing pop
 
   -- Combined operation predicates
   invoked_push := (p1.push_invoked | p2.push_invoked);

@@ -12,6 +12,8 @@ MODULE main
     -- low:  boolean;
     PC_line: 0..3;
     NUM: 0..3;
+
+    p2.pc: 0..6;
     -- halt: boolean;
  ASSIGN
     -- Initial Conditions, here are dummy values.
@@ -22,6 +24,19 @@ MODULE main
     init(NUM) := 0;
     next(NUM) := {0,1,2,3};
 
+    init(p2.pc) := 0;
+    next(p2.pc) :=
+    case
+        p2.pc = 0 : 1;
+        p2.pc = 1 : 2;
+        p2.pc = 2 : 3;  
+        p2.pc = 3 : 4;
+        p2.pc = 4 : 5;
+        p2.pc = 5 : 6;
+        p2.pc = 6 : 6;
+        TRUE : p2.pc;
+    esac;
+    
     -- Transition Relations
     -- next(high) := 
     --   case
