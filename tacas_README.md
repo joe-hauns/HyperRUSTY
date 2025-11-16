@@ -24,7 +24,9 @@ Please see our updates w.r.t this new image in **[OPTION 1]: Obtain the Artifact
 - `./run_loopcond.sh -all`
 - `./run_verilog.sh -all`
 
-With this new *AMD64* image, we believe the issues that Reviewer 1 and 2 encountered will be resolved. We notice that Reviewer 3 is use emulator (podman+qemu) to run our original *ARM64* image; however, we notice that this approach gives significant overhead on our dependencies (i.e., z3 and QuABs). Hence, we also kindly as Reviewer 3 to try the new *AMD64* image for evaluation. 
+With this new *AMD64* image, we believe the issues that Reviewer 1 and 2 encountered will be resolved. 
+
+We notice that Reviewer 3 is use emulator (podman+qemu) to run our original *ARM64* image; however, we notice that this approach gives unpredictable results and overhead our dependencies (i.e., z3 and QuABs). Hence, we kindly as Reviewer 3 to try the new *AMD64* image for evaluation. 
 
 We also thank Reviewer 2 for spotting the typos in README. We have corrected them. 
 
