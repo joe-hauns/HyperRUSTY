@@ -43,10 +43,11 @@ We thank Reviewer 2 for catching the typos in our README. These have now been co
 
 Our artifact includes comparisons with the external model checker `AutoHyper`, which depends on `SPOT`. During testing of the AMD64 image, we found that SPOT occasionally produces errors on certain inputs. These issues originate within SPOT and are outside the scope of our tool. Unfortunately, we do not have sufficient insight into `SPOT`’s internals to debug these errors reliably.
 
-Additionally, due to variations introduced by containerized environments, some dependency solvers (notably `z3` for SMT solving and `QuABS` for QBF solving) may produce slightly different outputs from those reported in the paper, where all solvers were built natively on the host system. We emphasize that these differences stem from solver-level behavior and not from our tool.
+Additionally, due to variations introduced by containerized environments, some dependency solvers (notably `z3` for SMT solving and `QuABS` for QBF solving) may produce slightly different outputs from those reported in the paper, where all solvers were built natively on the host system. We emphasize that these differences stem from solver-level behavior and not from our tool. 
+
+Depending on the hardware and Docker resource limits on the reviewer’s machine, some large instances may also encounter *out-of-memory* termination (i.e., *command terminated by signal 9* messages in the terminal). Such behavior is due to performance and resource limitations of the underlying solvers (e.g., `z3`, `QuABS`) when run inside Docker, and should not be interpreted as a limitation of the HyperQB 2.0 tool itself.
 
 Our primary goal in this artifact submission is to provide a *fully reproducible Docker image* that allows reviewers to run the complete set of experiments described in the paper. We hope the new AMD64 image makes this process smoother and more consistent across all reviewers’ setups.
-
 
 ---
 

@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-TIMEOUT_SEC=${TIMEOUT_SEC:-120}  # Please adjust this timeout value as needed for your environment. Default is 120 second for quick testing; increase as needed for longer runs.
+TIMEOUT_SEC=${TIMEOUT_SEC:-1}  # Please adjust this timeout value as needed for your environment. Default is 120 second for quick testing; increase as needed for longer runs.
 
 
 # Detect timeout binary safely (avoid unbound variable errors)
@@ -83,6 +83,10 @@ time_run() {
         echo "[TIMEOUT] $case_name ($variant) exceeded ${TIMEOUT_SEC}s." | tee -a "$log_file"
         real_s=0.0
         status="TIMEOUT"
+    elif [[ -n "${TIMEOUT_BIN:-}" && $exit_code -eq 137 ]]; then
+        echo "[KILLED]  $case_name ($variant) was killed by SIGKILL (exit 137, likely out-of-memory)." | tee -a "$log_file"
+        real_s=0.0
+        status="MEMOUT"
     else
         # Case-insensitive word match; -w avoids matching "saturated"
         if grep -qiwo 'UNSAT' "$log_file"; then
