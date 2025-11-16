@@ -39,8 +39,6 @@ We appreciate that Reviewer 3 attempted to run the original ARM64 image via emul
 
 We thank Reviewer 2 for catching the typos in our README. These have now been corrected.
 
-⸻
-
 ### Remarks on Dependencies of the Docker Artifact on New Image
 
 Our artifact includes comparisons with the external model checker `AutoHyper`, which depends on `SPOT`. During testing of the AMD64 image, we found that SPOT occasionally produces errors on certain inputs. These issues originate within SPOT and are outside the scope of our tool. Unfortunately, we do not have sufficient insight into `SPOT`’s internals to debug these errors reliably.
