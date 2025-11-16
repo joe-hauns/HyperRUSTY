@@ -341,7 +341,7 @@ We now describe in detail how to reproduce the complete results presented in the
 | -------------- | ------------------------------------------------------------ |
 | `give_witness` | Extends SMT/AH runs with witness generation (when supported) |
 
-To Reproduce **Tables 4 & 5 (HLTL)**, after adjusting `TIMEOUT` to a large enough number, run:
+To Reproduce **Tables 4 & 5 (HLTL)**, after adjusting `TIMEOUT` (specified at the top of each shell script) to a large enough number, run:
 
 ```bash
 ./run_hltl_1.sh -compare all
@@ -370,9 +370,9 @@ To Reproduce **Tables 4 & 5 (HLTL)**, after adjusting `TIMEOUT` to a large enoug
 | `-compare light`                    |     Compare lightweight cases across all modes    |
 | `-compare heavy`                    |     Compare heavy cases across all modes          |
 | `-compare <case_name>`              |     Compare a specific case across all modes      |
-| `-case <case_name> <mode> [extras]` |  Run a case with one of the modes (`smt`, `qbf`)  |
+| `-case <case_name> <mode>         ` |  Run a case with one of the modes (`smt`, `qbf`)  |
 
-To Reproduce **Table 6 (AHLTL)**, Run:
+To Reproduce **Table 6 (AHLTL)**, after adjusting `TIMEOUT` (specified at the top of each shell script) to a large enough number, run:
 
 ```bash
 ./run_ahltl.sh -compare all

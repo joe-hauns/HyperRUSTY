@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-TIMEOUT_SEC=${TIMEOUT_SEC:-1}  # Please adjust this timeout value as needed for your environment. Default is 180 second for quick testing; increase as needed for longer runs.
+TIMEOUT_SEC=${TIMEOUT_SEC:-180}  # Please adjust this timeout value as needed for your environment. Default is 180 second for quick testing; increase as needed for longer runs.
 
 
 # Detect timeout binary safely (avoid unbound variable errors)
@@ -978,7 +978,7 @@ case "${1:-}" in
     compare_target="${1:-}"
     if [[ -z "$compare_target" ]]; then
       echo "(!) The '-compare' option requires an argument."
-      echo "   Usage: $0 -compare [all|light|<case_name>]"
+      echo "   Usage: $0 -compare [all|light|heavy|<case_name>]"
       echo
       list_cases
       exit 1
@@ -1011,7 +1011,6 @@ case "${1:-}" in
     else
       run_matrix qbf
     fi
-    render_tables
     ;;
 
   -light)
@@ -1032,7 +1031,6 @@ case "${1:-}" in
     else
       run_light_mode "$mode"
     fi
-    render_tables
     ;;
 
   -heavy)
@@ -1053,7 +1051,6 @@ case "${1:-}" in
     else
       run_heavy_mode "$mode"
     fi
-    render_tables
     ;;
 
   -case)

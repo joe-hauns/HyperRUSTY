@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-TIMEOUT_SEC=${TIMEOUT_SEC:-1}  # Please adjust this timeout value as needed for your environment. Default is 120 second for quick testing, but you may want to increase it for more complex cases.
+TIMEOUT_SEC=${TIMEOUT_SEC:-120}  # Please adjust this timeout value as needed for your environment. Default is 120 second for quick testing, but you may want to increase it for more complex cases.
 
 
 # ---- Paths for results/logs ----
@@ -1856,7 +1856,7 @@ case "${1:-}" in
     compare_target="${1:-}"
     if [[ -z "$compare_target" ]]; then
       echo "(!) The '-compare' option requires an argument."
-      echo "   Usage: $0 -compare [all|light|<case_name>]"
+      echo "   Usage: $0 -compare [all|light|heavy|<case_name>]"
       echo
       list_cases
       exit 1
