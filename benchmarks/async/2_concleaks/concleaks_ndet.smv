@@ -1,8 +1,8 @@
 MODULE main
   VAR
     -- top-level shared state
-    in_HIGH   : boolean;       -- in_HIGH-value
-    in_LOW    : boolean;       -- in_LOW-value
+    in_HIGH : 0..5;    -- in_HIGH-value
+    LOW     : 0..5;    -- low-value
     var_X     : boolean;       -- X
     var_Y     : boolean;       -- Y
     SCHEDULE  : 0..2;          -- 0:p1 moves, 1:p2 moves, 2:p3 moves
@@ -32,19 +32,15 @@ MODULE main
     next(ID_three) := 2;
 
     -- inputs toggled by proc3
-    init(in_HIGH) := FALSE;
-    next(in_HIGH) :=
-      case
-        (proc3_line = 10) : {TRUE, FALSE};
-        TRUE              : in_HIGH;
-      esac;
-
-    init(in_LOW) := FALSE;
-    next(in_LOW) :=
-      case
-        (proc3_line = 11) : {TRUE, FALSE};
-        TRUE              : in_LOW;
-      esac;
+    init(in_HIGH) := {0,1,2,3,4,5};
+    next(in_HIGH) := in_HIGH; 
+        -- case
+        --     in_HIGH: TRUE;
+        --     TRUE   : FALSE;
+        -- esac;
+        
+    init(LOW) := {0,1,2,3,4,5};
+    next(LOW) := LOW;
 
     -- X updated by proc1
     init(var_X) := FALSE;
@@ -66,16 +62,16 @@ MODULE main
 
     -- round-robin-ish schedule updates after each program finishes 2 loops
     init(SCHEDULE) := {0, 1, 2};
-    next(SCHEDULE) :=
-      case
-        (proc1_loop_count = 2) : {1, 2};
-        (proc2_loop_count = 2) : {0, 2};
-        (proc3_loop_count = 2) : {0, 1};
-        TRUE                   : SCHEDULE;
-      esac;
+    next(SCHEDULE) := {0, 1, 2};
+      -- case
+      --   (proc1_loop_count = 2) : {1, 2};
+      --   (proc2_loop_count = 2) : {0, 2};
+      --   (proc3_loop_count = 2) : {0, 1};
+      --   TRUE                   : SCHEDULE;
+      -- esac;
 
     ----------------------------------------------------------------------------
-    -- Inlined programs(ID_one, SCHEDULE, in_LOW, in_HIGH, var_X, var_Y, initline=1)
+    -- Inlined programs(ID_one, SCHEDULE, LOW, in_HIGH, var_X, var_Y, initline=1)
     ----------------------------------------------------------------------------
     init(proc1_loop_count) := 0;
     next(proc1_loop_count) :=
@@ -89,14 +85,13 @@ MODULE main
     next(proc1_line) :=
       case
         -- scheduler gate: if not this program’s turn, it stutters
-        !(SCHEDULE = ID_one)                                 : proc1_line;
-
+        -- !(SCHEDULE = ID_one)                                 : proc1_line;
         -- program 1 (lines 0..5)
         (proc1_line = 0)                                     : {1};                   -- x=0, y=0
-        (proc1_line = 1 & (in_HIGH = in_LOW))                : {2};                   -- if (h == l)
+        (proc1_line = 1 & (in_HIGH = LOW))                : {2};                   -- if (h == l)
         (proc1_line = 2)                                     : {3};                   -- x=1
         (proc1_line = 3)                                     : {0};                   -- y=1
-        (proc1_line = 1 & !(in_HIGH = in_LOW))               : {4};
+        (proc1_line = 1 & !(in_HIGH = LOW))               : {4};
         (proc1_line = 4)                                     : {5};                   -- y=1
         (proc1_line = 5)                                     : {0};                   -- x=1
 
@@ -108,13 +103,13 @@ MODULE main
         -- program 3 (lines 9..11)
         (proc1_line = 9)                                     : {10};
         (proc1_line = 10)                                    : {11};                  -- in_HIGH := {0,1} at top-level
-        (proc1_line = 11)                                    : {9};                   -- in_LOW  := {0,1}  at top-level
+        (proc1_line = 11)                                    : {9};                   -- LOW  := {0,1}  at top-level
 
         TRUE                                                 : proc1_line;
       esac;
 
     ----------------------------------------------------------------------------
-    -- Inlined programs(ID_two, SCHEDULE, in_LOW, in_HIGH, var_X, var_Y, initline=6)
+    -- Inlined programs(ID_two, SCHEDULE, LOW, in_HIGH, var_X, var_Y, initline=6)
     ----------------------------------------------------------------------------
     init(proc2_loop_count) := 0;
     next(proc2_loop_count) :=
@@ -127,13 +122,12 @@ MODULE main
     init(proc2_line) := 6;
     next(proc2_line) :=
       case
-        !(SCHEDULE = ID_two)                                 : proc2_line;
-
+        -- !(SCHEDULE = ID_two)                                 : proc2_line;
         (proc2_line = 0)                                     : {1};
-        (proc2_line = 1 & (in_HIGH = in_LOW))                : {2};
+        (proc2_line = 1 & (in_HIGH = LOW))                : {2};
         (proc2_line = 2)                                     : {3};
         (proc2_line = 3)                                     : {0};
-        (proc2_line = 1 & !(in_HIGH = in_LOW))               : {4};
+        (proc2_line = 1 & !(in_HIGH = LOW))               : {4};
         (proc2_line = 4)                                     : {5};
         (proc2_line = 5)                                     : {0};
 
@@ -149,7 +143,7 @@ MODULE main
       esac;
 
     ----------------------------------------------------------------------------
-    -- Inlined programs(ID_three, SCHEDULE, in_LOW, in_HIGH, var_X, var_Y, initline=9)
+    -- Inlined programs(ID_three, SCHEDULE, LOW, in_HIGH, var_X, var_Y, initline=9)
     ----------------------------------------------------------------------------
     init(proc3_loop_count) := 0;
     next(proc3_loop_count) :=
@@ -162,13 +156,12 @@ MODULE main
     init(proc3_line) := 9;
     next(proc3_line) :=
       case
-        !(SCHEDULE = ID_three)                               : proc3_line;
-
+        -- !(SCHEDULE = ID_three)                               : proc3_line;
         (proc3_line = 0)                                     : {1};
-        (proc3_line = 1 & (in_HIGH = in_LOW))                : {2};
+        (proc3_line = 1 & (in_HIGH = LOW))                : {2};
         (proc3_line = 2)                                     : {3};
         (proc3_line = 3)                                     : {0};
-        (proc3_line = 1 & !(in_HIGH = in_LOW))               : {4};
+        (proc3_line = 1 & !(in_HIGH = LOW))               : {4};
         (proc3_line = 4)                                     : {5};
         (proc3_line = 5)                                     : {0};
 
