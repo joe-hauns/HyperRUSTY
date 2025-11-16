@@ -328,8 +328,10 @@ We now describe in detail how to reproduce the complete results presented in the
 | `-list`                        |           List all available benchmark cases            |
 | `-all <mode>`                  | Run all cases with the chosen mode (`smt`, `ah`, `qbf`) |
 | `-light <mode>`                |      Run a lightweight subset (for quick testing)       |
+| `-heavy <mode>`                |      Run a heavy subset (for deeper testing)            |
 | `-compare all [extras]`        |     Compare all case studies across the three modes     |
 | `-compare light [extras]`      |    Compare lightweight cases across the three modes     |
+| `-compare heavy [extras]`      |    Compare heavy cases across the three modes           |
 | `-compare <case> [extras]`     |        Compare a specific case across all modes         |
 | `-case <case> <mode> [extras]` |            Run one case under a single mode             |
 
@@ -363,7 +365,10 @@ To Reproduce **Tables 4 & 5 (HLTL)**, after adjusting `TIMEOUT` to a large enoug
 | `-list`                             |        List all available benchmark cases         |
 | `-all <mode>`                       | Run all cases with the chosen mode (`smt`, `qbf`) |
 | `-light <mode>`                     |   Run a lightweight subset (for quick testing)    |
+| `-heavy <mode>`                     |   Run a heavy subset (for deeper testing)         |
 | `-compare all`                      |     Compare all case studies across all modes     |
+| `-compare light`                    |     Compare lightweight cases across all modes    |
+| `-compare heavy`                    |     Compare heavy cases across all modes          |
 | `-compare <case_name>`              |     Compare a specific case across all modes      |
 | `-case <case_name> <mode> [extras]` |  Run a case with one of the modes (`smt`, `qbf`)  |
 

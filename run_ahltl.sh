@@ -1,8 +1,8 @@
-
 #!/bin/bash
 set -euo pipefail
 
-TIMEOUT_SEC=${TIMEOUT_SEC:-180}  # seconds
+TIMEOUT_SEC=${TIMEOUT_SEC:-1}  # Please adjust this timeout value as needed for your environment. Default is 180 second for quick testing; increase as needed for longer runs.
+
 
 # Detect timeout binary safely (avoid unbound variable errors)
 if command -v gtimeout >/dev/null 2>&1; then
@@ -805,11 +805,11 @@ Usage: $0 [mode]
   -list                    List cases available
   -all <mode>              Run all cases with the chosen mode (smt|qbf)
   -light <mode>            Run lightweight cases with the chosen mode (smt|qbf)
+  -heavy <mode>            Run heavy cases with the chosen mode (smt|qbf)
   -compare all             Run all CASES with all modes (smt|qbf)
   -compare light           Run lightweight cases with all modes
   -compare heavy           Run heavy cases with all modes
   -compare <case_name>     Run only the specified case with all modes
-  -heavy <mode>            Run heavy cases with the chosen mode (smt|qbf)
   -case <case_name> <mode>      Run a single case function with one of the modes (smt|qbf)
 EOF
   exit 1

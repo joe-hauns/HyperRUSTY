@@ -1,11 +1,11 @@
 #!/bin/bash
 set -euo pipefail
 
-TIMEOUT_SEC=${TIMEOUT_SEC:-120}  # seconds
+TIMEOUT_SEC=${TIMEOUT_SEC:-1}  # Please adjust this timeout value as needed for your environment. Default is 120 second for quick testing, but you may want to increase it for more complex cases.
 
-FOLDER="benchmarks/sync/"
 
 # ---- Paths for results/logs ----
+FOLDER="benchmarks/sync/"
 RESULTS_DIR="_outfiles"
 LOG_DIR="${RESULTS_DIR}/logs"
 CSV="${RESULTS_DIR}/table5(hltl_new)_runtimes.csv"
