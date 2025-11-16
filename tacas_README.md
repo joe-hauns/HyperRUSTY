@@ -31,9 +31,6 @@ We aim to apply for all 3 badges, following the TACAS 2026 artifact submission g
 
 HyperQB 2.0 official website: https://hyperqb.github.io/index.html
 
-We would like to remark that, outside of this artifact, we offer a fully standalone **macOS application** (available for download from GitHub) with an **interactive GUI** (demonstrated on page 5 of the manual). Comprehensive information about the tool’s theoretical background, algorithms, case studies (including model descriptions), and an online version of the GUI is also accessible through our **official website**. Since these components are beyond the TACAS artifact evaluation scope, we provide here only the CLI binary for reviewers to interact with directly. However, HyperQB 2.0 is easy to adapt for future research to benefit the formal methods community.
-
----
 
 ## Table of Contents
 
@@ -413,7 +410,81 @@ To Reproduce **Table 8**, Run:
 
 All outputs are printed to the screen during execution and simultaneously logged in the `_outfiles` directory.
 
+
 ---
+
+## Reusability 
+
+To check if HyperQB 2.0 compiled without error, execute: 
+```bash
+cargo build --release
+``` 
+The compiled binary can be found in `target/release/hyperqb`.
+
+
+To test if HyperQB (SMT unrolling) can successfully compiled 
+```bash
+cargo run --release -- -n benchmarks/sync/1_bakery/bakery3.smv benchmarks/sync/1_bakery/bakery3.smv -f benchmarks/sync/1_bakery/symmetry3.hq -k 10 -s hpes
+```
+which should return `result: unsat` 
+
+To test if HyperQB (QBF unrolling with `quabs`) can successfully run: 
+
+```bash
+cargo run --release -- -n benchmarks/sync/1_bakery/bakery3.smv benchmarks/sync/1_bakery/bakery3.smv -f benchmarks/sync/1_bakery/symmetry3.hq -k 10 -s hpes
+```
+which should return `UNSAT`
+
+
+### A third example
+
+To test if HyoerQB (with verilog input using `yosys`) can successfully run:
+```bash
+cargo run --release -- -v benchmarks/verilog/divider/divider.ys benchmarks/verilog/divider/divider.ys -t divider -o model.smt2 -f benchmarks/verilog/divider/formula.hq -k 8 -s pes
+```
+which should return `result:unsat`
+
+
+### HyperQB 2.0 CLI Usage
+
+We here provide detailed instruction to reuse HyperQB2.0
+
+### Synopsis
+
+```bash
+cargo run --release -- (-n|-v) <models> -f <formula> -k <int> -s <sem> [options]
+```
+
+### Arguments
+
+**Required**
+- `-n <files>` | `-v <files>`: NuSMV or Verilog model files.
+- `-f <file>`: Hyperproperty formula (`.hq`).
+- `-t <name>`: Top module (Verilog only, defaults to `main`).
+- `-k <int>` | `-l`: Unrolling bound in steps or enable loop conditions.
+- `-s <pes|opt|hpes|hopt>`: Bounded semantics selection.
+
+**Optional**
+- `-m <int>`: Trajectory bound for AH-LTL fragments.
+- `-c`: Emit counterexample when the formula is unsatisfied.
+- `-q`: Use the QuAbS QBF solver instead of Z3.
+
+### CLI Example
+
+Try the following example, which model check `linearizability (lin.hq)` on `SNARK algorithm (snark1_conc.smv, snark1_seq.smv)`:
+
+```bash
+cargo run --release -- -n benchmarks/sync/2_snark/snark1_conc.smv benchmarks/sync/2_snark/snark1_seq.smv -f benchmarks/sync/2_snark/lin.hq -k 18 -s hpes -c
+```
+which should return `UNSAT` with `counterexample` displayed in your terminal. 
+
+
+---
+
+We would like to remark that, outside of this artifact, we offer a fully standalone **macOS application** (available for download from GitHub) with an **interactive GUI** (demonstrated on page 5 of the manual). Comprehensive information about the tool’s theoretical background, algorithms, case studies (including model descriptions), and an online version of the GUI is also accessible through our **official website**. Since these components are beyond the TACAS artifact evaluation scope, we provide here only the CLI binary for reviewers to interact with directly. However, HyperQB 2.0 is easy to adapt for future research to benefit the formal methods community.
+
+---
+
 
 ## Notices
 

@@ -1,7 +1,5 @@
 # HyperQB 2.0
 
-
-
 ## Build HyperQB 2.0 from Source Code
 
 ### Rust
