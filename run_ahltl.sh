@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-TIMEOUT_SEC=${TIMEOUT_SEC:-180}  # Please adjust this timeout value as needed for your environment. Default is 180 second for quick testing; increase as needed for longer runs.
+TIMEOUT_SEC=${TIMEOUT_SEC:-1}  # Please adjust this timeout value as needed for your environment. Default is 180 second for quick testing; increase as needed for longer runs.
 
 
 # Detect timeout binary safely (avoid unbound variable errors)
@@ -79,9 +79,10 @@ time_run() {
 
     # Determine status from log (prefer UNSAT if both appear)
     local status="TIMEOUT"
+    local real_s=0.0
     if [[ -n "${TIMEOUT_BIN:-}" && $exit_code -eq 124 ]]; then
         echo "[TIMEOUT] $case_name ($variant) exceeded ${TIMEOUT_SEC}s." | tee -a "$log_file"
-        real_s="${TIMEOUT_SEC}"
+        real_s=0.0
         status="TIMEOUT"
     else
         # Case-insensitive word match; -w avoids matching "saturated"
