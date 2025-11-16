@@ -8,9 +8,8 @@ FOLDER="benchmarks/sync/"
 # ---- Paths for results/logs ----
 RESULTS_DIR="_outfiles"
 LOG_DIR="${RESULTS_DIR}/logs"
-CSV="${RESULTS_DIR}/table5_runtimes.csv"
-MD="${RESULTS_DIR}/table5_runtimes.md"
-
+CSV="${RESULTS_DIR}/table5(hltl_new)_runtimes.csv"
+MD="${RESULTS_DIR}/table5(hltl_new)_runtimes.md"
 
 
 CARGO_BIN=${CARGO_BIN:-target/release/HyperRUSTY}

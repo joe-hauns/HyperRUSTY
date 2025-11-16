@@ -12,6 +12,23 @@ This artifact provides a **Docker image** (distributed via **Docker Hub**) that 
 **Expected outputs:** Printed in Console and logged in `_outfiles` directory.
 
 ---
+## Important Updates for TACAS Reviewers
+
+We sincerely thank all reviewers for running the SmokeTest and provided feedback on our artifact. We notice that all three reviewers are all using *AMD64* machines, as a result, we have built an *AMD64* image. 
+
+Please see our updates w.r.t this new image in **[OPTION 1]: Obtain the Artifact Image from Docker Hub** and make sure you pull the right image according to your architecture. Then, we kindly as you to run the following commands to verify the setup is successful: 
+
+- `./run_hltl_1.sh -compare all`
+- `./run_hltl_2.sh -compare all`
+- `./run_ahltl.sh -compare all`
+- `./run_loopcond.sh -all`
+- `./run_verilog.sh -all`
+
+With this new *AMD64* image, we believe the issues that Reviewer 1 and 2 encountered will be resolved. We notice that Reviewer 3 is use emulator (podman+qemu) to run our original *ARM64* image; however, we notice that this approach gives significant overhead on our dependencies (i.e., z3 and QuABs). Hence, we also kindly as Reviewer 3 to try the new *AMD64* image for evaluation. 
+
+We also thank Reviewer 2 for spotting the typos in README. We have corrected them. 
+
+---
 
 ## Hyperlink to the artifact:
 
@@ -246,9 +263,10 @@ mkdir -p _outfiles
 # run the image
 docker run --rm -it \
   -v "$(pwd)/_outfiles:/build/HyperRUSTY/_outfiles" \
-  hyperqb-docker:latest \
+  hyperqb-docker:[tag] \
   bash
 ```
+where `[tag]` is the architecture of your system identified earlier (replace with either **ARM64** or **AMD64**).
 
 #### Windows (PowerShell)
 
@@ -259,9 +277,10 @@ mkdir _outfiles
 # Run the image
 docker run --rm -it \
   -v "${PWD}/_outfiles:/build/HyperRusty/_outfiles" \
-  hyperqb-docker:latest \
+  hyperqb-docker:[tag] \
   bash
 ```
+where `[tag]` is the architecture of your system identified earlier (replace with either **ARM64** or **AMD64**).
 
 You are now inside the HyperQB2.0 Docker image.
 
@@ -419,7 +438,7 @@ To check if HyperQB 2.0 compiled without error, execute:
 ```bash
 cargo build --release
 ``` 
-The compiled binary can be found in `target/release/hyperqb`.
+The compiled binary can be found in `target/release/`.
 
 
 To test if HyperQB (SMT unrolling) can successfully compiled 
