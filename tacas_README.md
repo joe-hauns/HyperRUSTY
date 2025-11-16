@@ -460,8 +460,6 @@ cargo run --release -- -n benchmarks/sync/1_bakery/bakery3.smv benchmarks/sync/1
 which should return `UNSAT`
 
 
-### A third example
-
 To test if HyoerQB (with verilog input using `yosys`) can successfully run:
 ```bash
 cargo run --release -- -v benchmarks/verilog/divider/divider.ys benchmarks/verilog/divider/divider.ys -t divider -o model.smt2 -f benchmarks/verilog/divider/formula.hq -k 8 -s pes
