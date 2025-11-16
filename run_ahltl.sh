@@ -2,7 +2,7 @@
 #!/bin/bash
 set -euo pipefail
 
-TIMEOUT_SEC=${TIMEOUT_SEC:-60}  # seconds
+TIMEOUT_SEC=${TIMEOUT_SEC:-240}  # seconds
 
 # Detect timeout binary safely (avoid unbound variable errors)
 if command -v gtimeout >/dev/null 2>&1; then
@@ -206,8 +206,8 @@ case_concleak() {
             printf "\n[HyperQB SMT] Running %s...\n" "$case_name"
             time_run "$case_name" "SMT" \
               "${CARGO_BIN} \
-               -n ${FOLDER}2_concleaks/concleaks_2procs.smv \
-               ${FOLDER}2_concleaks/concleaks_2procs.smv \
+               -n ${FOLDER}2_concleaks/concleaks.smv \
+               ${FOLDER}2_concleaks/concleaks.smv \
                -f ${FOLDER}2_concleaks/od.hq \
                -k 11 -m 22 -s hpes"
             ;;
@@ -215,10 +215,10 @@ case_concleak() {
             printf "\n[HyperQB QBF] Running %s...\n" "$case_name"
             time_run "$case_name" "QBF" \
               "${CARGO_BIN} \
-               -n ${FOLDER}1_acdb/acdb_ndet.smv \
-               ${FOLDER}1_acdb/acdb_ndet.smv \
-               -f ${FOLDER}1_acdb/acdb_ndet.hq \
-               -k 8 -m 16 -s hpes -q"
+               -n ${FOLDER}2_concleaks/concleaks.smv \
+               ${FOLDER}2_concleaks/concleaks.smv \
+               -f ${FOLDER}2_concleaks/od.hq \
+               -k 11 -m 22 -s hpes -q"
             ;;
         *)
             echo "Usage: case_concleak <1|2> or <smt|qbf>"
@@ -236,8 +236,8 @@ case_concleak_ndet() {
             printf "\n[HyperQB SMT] Running %s...\n" "$case_name"
             time_run "$case_name" "SMT" \
               "${CARGO_BIN} \
-               -n ${FOLDER}2_concleaks/concleaks_3procs.smv \
-               ${FOLDER}2_concleaks/concleaks_3procs.smv \
+               -n ${FOLDER}2_concleaks/concleaks_ndet.smv \
+               ${FOLDER}2_concleaks/concleaks_ndet.smv \
                -f ${FOLDER}2_concleaks/od.hq \
                -k 18 -m 36 -s hpes"
             ;;
@@ -245,8 +245,8 @@ case_concleak_ndet() {
             printf "\n[HyperQB QBF] Running %s...\n" "$case_name"
             time_run "$case_name" "QBF" \
               "${CARGO_BIN} \
-               -n ${FOLDER}2_concleaks/concleaks_3procs.smv \
-               ${FOLDER}2_concleaks/concleaks_3procs.smv \
+               -n ${FOLDER}2_concleaks/concleaks_ndet.smv \
+               ${FOLDER}2_concleaks/concleaks_ndet.smv \
                -f ${FOLDER}2_concleaks/od.hq \
                -k 18 -m 36 -s hpes -q"
             ;;
@@ -299,7 +299,7 @@ case_specexec_v2() {
                -n ${FOLDER}3_speculative/flattened/v2_nse.smv \
                ${FOLDER}3_speculative/flattened/v2_se.smv \
                -f ${FOLDER}3_speculative/flattened/v2.hq \
-               -k 12 -m 24 -s hpes"
+               -k 6 -m 12 -s hpes"
             ;;
         2|qbf)
             printf "\n[HyperQB QBF] Running %s...\n" "$case_name"
@@ -569,8 +569,9 @@ case_opt_lp() {
                -n ${FOLDER}4_optimization/original/lp/LP_source.smv \
                ${FOLDER}4_optimization/original/lp/LP_target.smv \
                -f ${FOLDER}4_optimization/original/lp/LP.hq \
-               -k 23 -m 45 -s hpes"
+               -k 22 -m 44 -s hpes"
             ;;
+        # Note: the bound is smaller to accomodate bit-blasting in QBF mode
         2|qbf)
             printf "\n[HyperQB QBF] Running %s...\n" "$case_name"
             time_run "$case_name" "QBF" \
@@ -578,7 +579,7 @@ case_opt_lp() {
                -n ${FOLDER}4_optimization/original/lp/LP_source.smv \
                ${FOLDER}4_optimization/original/lp/LP_target.smv \
                -f ${FOLDER}4_optimization/original/lp/LP.hq \
-               -k 23 -m 45 -s hpes -q"
+               -k 14 -m 28 -s hpes -q"
             ;;
         *)
             echo "Usage: case_opt_lp <1|2> or <smt|qbf>"
@@ -605,10 +606,10 @@ case_opt_lp_ndet() {
             printf "\n[HyperQB QBF] Running %s...\n" "$case_name"
             time_run "$case_name" "QBF" \
               "${CARGO_BIN} \
-               -n ${FOLDER}4_optimization/original/lp/LP_source.smv \
-               ${FOLDER}4_optimization/original/lp/LP_target.smv \
-               -f ${FOLDER}4_optimization/original/lp/LP.hq \
-               -k 23 -m 45 -s hpes -q"
+               -n ${FOLDER}4_optimization/with_ndet/lp/LP_source_ndet.smv \
+               ${FOLDER}4_optimization/with_ndet/lp/LP_target_ndet.smv \
+               -f ${FOLDER}4_optimization/with_ndet/lp/LP.hq \
+               -k 17 -m 34 -s hpes -q"
             ;;
         *)
             echo "Usage: case_opt_lp_ndet <1|2> or <smt|qbf>"
@@ -656,19 +657,20 @@ case_opt_lp_buggy() {
             printf "\n[HyperQB SMT] Running %s...\n" "$case_name"
             time_run "$case_name" "SMT" \
               "${CARGO_BIN} \
-               -n ${FOLDER}4_optimization/with_loops/lp/LP_source_ndet.smv \
-               ${FOLDER}4_optimization/with_loops/lp/LP_target_wrong_ndet.smv \
-               -f ${FOLDER}4_optimization/with_loops/lp/LP.hq \
+               -n ${FOLDER}4_optimization/with_bugs/lp/LP_source_ndet.smv \
+               ${FOLDER}4_optimization/with_bugs/lp/LP_target_wrong_ndet.smv \
+               -f ${FOLDER}4_optimization/with_bugs/lp/LP.hq \
                -k 17 -m 34 -s hpes"
             ;;
+        # Note: the bound is smaller to accomodate bit-blasting in QBF mode
         2|qbf)
             printf "\n[HyperQB QBF] Running %s...\n" "$case_name"
             time_run "$case_name" "QBF" \
               "${CARGO_BIN} \
-               -n ${FOLDER}4_optimization/with_loops/lp/LP_source_ndet.smv \
-               ${FOLDER}4_optimization/with_loops/lp/LP_target_wrong_ndet.smv \
-               -f ${FOLDER}4_optimization/with_loops/lp/LP.hq \
-               -k 17 -m 34 -s hpes -q"
+               -n ${FOLDER}4_optimization/with_bugs/lp/LP_source_ndet.smv \
+               ${FOLDER}4_optimization/with_bugs/lp/LP_target_wrong_ndet.smv \
+               -f ${FOLDER}4_optimization/with_bugs/lp/LP.hq \
+               -k 16 -m 32 -s hpes -q"
             ;;
         *)
             echo "Usage: case_opt_lp_buggy <1|2> or <smt|qbf>"
@@ -681,6 +683,7 @@ case_opt_eflp() {
     local case_name="OPT_EFLP"
     local mode="$1"
 
+    # Note: the bound is larger to accomodate the modification in the model for EFLP
     case "$mode" in
         1|smt)
             printf "\n[HyperQB SMT] Running %s...\n" "$case_name"
@@ -689,7 +692,7 @@ case_opt_eflp() {
                -n ${FOLDER}4_optimization/original/eflp/EFLP_source.smv \
                ${FOLDER}4_optimization/original/eflp/EFLP_target.smv \
                -f ${FOLDER}4_optimization/original/eflp/EFLP.hq \
-               -k 32 -m 64 -s hpes"
+               -k 36 -m 72 -s hpes"
             ;;
         2|qbf)
             printf "\n[HyperQB QBF] Running %s...\n" "$case_name"
@@ -698,7 +701,7 @@ case_opt_eflp() {
                -n ${FOLDER}4_optimization/original/eflp/EFLP_source.smv \
                ${FOLDER}4_optimization/original/eflp/EFLP_target.smv \
                -f ${FOLDER}4_optimization/original/eflp/EFLP.hq \
-               -k 32 -m 64 -s hpes -q"
+               -k 36 -m 72 -s hpes -q"
             ;;
         *)
             echo "Usage: case_opt_eflp <1|2> or <smt|qbf>"
@@ -737,7 +740,6 @@ case_opt_eflp_ndet() {
     esac
 }
 
-
 case_cache() {
     local case_name="CACHE"
     local mode="$1"
@@ -759,7 +761,7 @@ case_cache() {
                -n ${FOLDER}5_cache/cache_flattened.smv \
                ${FOLDER}5_cache/cache_flattened.smv \
                -f ${FOLDER}5_cache/odnd2.hq \
-               -k 6 -m 12 -s hpes -q"
+               -k 13 -m 26 -s hpes -q"
             ;;
         *)
             echo "Usage: case_cache <1|2> or <smt|qbf>"
@@ -804,7 +806,10 @@ Usage: $0 [mode]
   -all <mode>              Run all cases with the chosen mode (smt|qbf)
   -light <mode>            Run lightweight cases with the chosen mode (smt|qbf)
   -compare all             Run all CASES with all modes (smt|qbf)
+  -compare light           Run lightweight cases with all modes
+  -compare heavy           Run heavy cases with all modes
   -compare <case_name>     Run only the specified case with all modes
+  -heavy <mode>            Run heavy cases with the chosen mode (smt|qbf)
   -case <case_name> <mode>      Run a single case function with one of the modes (smt|qbf)
 EOF
   exit 1
@@ -813,10 +818,25 @@ EOF
 LIGHT_CASES=()
 for case_fn in "${CASES[@]}"; do
   case "$case_fn" in
-    opt_lp|opt_lp_ndet|opt_lp_loop|opt_lp_buggy|opt_eflp|opt_eflp_ndet|cache) ;;
+    concleak_ndet|opt_lp|opt_lp_ndet|opt_lp_loop|opt_lp_buggy|opt_eflp|opt_eflp_ndet|cache) ;;
     *) LIGHT_CASES+=("$case_fn");;
   esac
 done
+
+HEAVY_CASES=()
+for case_fn in "${CASES[@]}"; do
+  is_light=0
+  for light_case in "${LIGHT_CASES[@]}"; do
+    if [[ "$case_fn" == "$light_case" ]]; then
+      is_light=1
+      break
+    fi
+  done
+  if (( ! is_light )); then
+    HEAVY_CASES+=("$case_fn")
+  fi
+done
+unset is_light
 
 list_cases() {
   printf "Available cases:\n"
@@ -850,7 +870,37 @@ run_single_case_matrix() {
   fi
 }
 
-
+run_light_compare_matrix() {
+  local modes=()
+  local extra_args=()
+  local parsing_modes=1
+  for arg in "$@"; do
+    if (( parsing_modes )); then
+      if [[ "$arg" == "--" ]]; then
+        parsing_modes=0
+      else
+        modes+=("$arg")
+      fi
+    else
+      extra_args+=("$arg")
+    fi
+  done
+  for c in "${LIGHT_CASES[@]}"; do
+    local fn="case_${c}"
+    if ! declare -f "$fn" >/dev/null 2>&1; then
+      echo "(!) Missing case function: $fn"
+      exit 1
+    fi
+    for m in "${modes[@]}"; do
+      if (( ${#extra_args[@]} )); then
+        "$fn" "$m" "${extra_args[@]}"
+      else
+        "$fn" "$m"
+      fi
+    done
+  done
+  render_tables
+}
 
 run_light_mode() {
   local mode="${1:-}"
@@ -871,20 +921,83 @@ run_light_mode() {
   render_tables
 }
 
+run_heavy_compare_matrix() {
+  local modes=()
+  local extra_args=()
+  local parsing_modes=1
+  for arg in "$@"; do
+    if (( parsing_modes )); then
+      if [[ "$arg" == "--" ]]; then
+        parsing_modes=0
+      else
+        modes+=("$arg")
+      fi
+    else
+      extra_args+=("$arg")
+    fi
+  done
+  for c in "${HEAVY_CASES[@]}"; do
+    local fn="case_${c}"
+    if ! declare -f "$fn" >/dev/null 2>&1; then
+      echo "(!) Missing case function: $fn"
+      exit 1
+    fi
+    for m in "${modes[@]}"; do
+      if (( ${#extra_args[@]} )); then
+        "$fn" "$m" "${extra_args[@]}"
+      else
+        "$fn" "$m"
+      fi
+    done
+  done
+  render_tables
+}
+
+run_heavy_mode() {
+  local mode="${1:-}"
+  shift
+  local extra_args=("$@")
+  for c in "${HEAVY_CASES[@]}"; do
+    local fn="case_${c}"
+    if ! declare -f "$fn" >/dev/null 2>&1; then
+      echo "(!) Missing case function: $fn"
+      exit 1
+    fi
+    if (( ${#extra_args[@]} )); then
+      "$fn" "$mode" "${extra_args[@]}"
+    else
+      "$fn" "$mode"
+    fi
+  done
+  render_tables
+}
+
 case "${1:-}" in
   -compare)
     shift
-    if [[ -z "${1:-}" ]]; then
+    compare_target="${1:-}"
+    if [[ -z "$compare_target" ]]; then
       echo "(!) The '-compare' option requires an argument."
-      echo "   Usage: $0 -compare [all|<case_name>]"
+      echo "   Usage: $0 -compare [all|light|<case_name>]"
       echo
       list_cases
       exit 1
-    elif [[ "$1" == "all" ]]; then
-      run_matrix smt qbf
-    else
-      run_single_case_matrix "$1" smt qbf
     fi
+    shift
+    case "$compare_target" in
+      all)
+          run_matrix smt qbf
+        ;;
+      light)
+          run_light_compare_matrix smt qbf
+        ;;
+      heavy)
+          run_heavy_compare_matrix smt qbf
+        ;;
+      *)
+          run_single_case_matrix "$compare_target" smt qbf
+        ;;
+    esac
     ;;
 
   -all)
@@ -918,6 +1031,27 @@ case "${1:-}" in
       run_light_mode "$mode" "$@"
     else
       run_light_mode "$mode"
+    fi
+    render_tables
+    ;;
+
+  -heavy)
+    shift
+    mode_raw="${1:-}"
+    [[ -z "$mode_raw" ]] && usage
+    mode="$(printf '%s' "$mode_raw" | tr '[:upper:]' '[:lower:]')"
+    case "$mode" in
+      smt|qbf) ;;
+      *)
+        echo "(!) Unknown mode for -heavy: $mode_raw"
+        exit 1
+        ;;
+    esac
+    shift
+    if (( $# )); then
+      run_heavy_mode "$mode" "$@"
+    else
+      run_heavy_mode "$mode"
     fi
     render_tables
     ;;

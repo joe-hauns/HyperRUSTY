@@ -4,7 +4,7 @@
     step: 0..9;
     int_x: 0..15;
     int_k: 0..3;
-    in_secret: 0..3;
+    in_secret: 0..6;
     out_public: 0..3;
 
   ASSIGN
@@ -58,13 +58,13 @@
   init(out_public) := 0;
   next(out_public) :=
     case
-      -- ((step=8)& !(int_k=0)): (4 + (int_x - 4)) mod ((int_k - int_k) + 3);
-      ((step=8)& !(int_k=0)): int_x mod 3;
+      ((step=8)& !(int_k=0)): (4 + (int_x - 4)) mod ((int_k - int_k) + 3);
+      -- ((step=8)& !(int_k=0)): int_x mod 3;
       TRUE: out_public;
     esac;
 
-  init(in_secret) := {0, 1, 2, 3};
+  init(in_secret) := {0, 1, 2, 3, 4, 5, 6};
   next(in_secret) := in_secret;
 
   DEFINE
-  halt := (step=9);
+    halt := (step=9);

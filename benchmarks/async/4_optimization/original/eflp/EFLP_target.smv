@@ -4,7 +4,7 @@
     step: 0..22;
     int_x: 0..9;
     int_k: 0..3;
-    in_secret: 0..3;
+    in_secret: 0..6;
     out_public: 0..3;
     move: boolean;
     temp0: 0..7;
@@ -99,10 +99,10 @@
   next(temp3) :=
     case
       ((step=10) & (temp2>3)): (temp2 - 3);
-      ((step=10) & (temp2<=3)): 0;
+      -- ((step=10) & (temp2<=3)): 0;
       ((step=20) & (temp2>3)): (temp2 - 3);
-      ((step=20) & (temp2<=3)): 0;
-      TRUE: temp3;
+      -- ((step=20) & (temp2<=3)): 0;
+      TRUE: 0;
     esac;
 
   init(int_x) := 0;
@@ -121,24 +121,24 @@
   next(int_k) :=
     case
       (int_k=3): 3;
-      (step=6) : int_k+1;
-      (step=16) : int_k+1;
+      ((step=6)|(step=16)) : int_k+1;
+      -- (step=16) : int_k+1;
       TRUE: int_k;
     esac;
 
   init(out_public) := 0;
   next(out_public) :=
     case
-      -- ((step=11)& !(int_k=0)): temp1 mod temp3;
-      -- ((step=21)& !(int_k=0)): temp1 mod temp3;
+      -- ((step=11)& !(int_k=0)): (temp1 mod temp3);
+      -- ((step=21)& !(int_k=0)): (temp1 mod temp3);
       ((step=11)& !(int_k=0)): int_x mod 3;
       ((step=21)& !(int_k=0)): int_x mod 3;
       TRUE: out_public;
     esac;
 
-  init(in_secret) := {0, 1, 2, 3};
+  init(in_secret) := {0, 1, 2, 3, 4, 5, 6};
   next(in_secret) := in_secret;
 
 
   DEFINE
-  halt := (step=22);
+    halt := (step=21);

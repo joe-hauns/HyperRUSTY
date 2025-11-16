@@ -13,6 +13,12 @@ else
   TIMEOUT_BIN=""   # fallback: no timeout available
 fi
 
+CARGO_BIN=${CARGO_BIN:-target/release/HyperRUSTY}
+if [[ ! -x "$CARGO_BIN" ]]; then
+  echo "Building HyperQB (release)…"
+  cargo build --release
+fi
+
 # ---- Paths for results/logs ----
 FOLDER="benchmarks/verilog/"
 RESULTS_DIR="_outfiles"
@@ -124,7 +130,7 @@ case_fpu2() {
         1|smt)
             printf "\n[HyperQB SMT] Running %s...\n" "$case_name"
             time_run "$case_name" "SMT" \
-              "cargo run --release -- -v \
+              "${CARGO_BIN} -v \
               ${FOLDER}divider/divider.ys \
               ${FOLDER}divider/divider.ys \
                -t divider -o model.smt2 \
@@ -146,7 +152,7 @@ case_spi() {
         1|smt)
             printf "\n[HyperQB SMT] Running %s...\n" "$case_name"
             time_run "$case_name" "SMT" \
-              "cargo run --release -- -v \
+              "${CARGO_BIN} -v \
               ${FOLDER}SPI/spi_build.ys \
               ${FOLDER}SPI/spi_build.ys \
               -t SPISlave -o spi.smt2 \
@@ -168,7 +174,7 @@ case_led_EA() {
         1|smt)
             printf "\n[HyperQB SMT] Running %s...\n" "$case_name"
             time_run "$case_name" "SMT" \
-              "cargo run --release -- -v \
+              "${CARGO_BIN} -v \
               ${FOLDER}LED/build_ea.ys \
               ${FOLDER}LED/build_ea.ys \
               -t led_fsm -o model.smt2 \
@@ -190,7 +196,7 @@ case_led_AE() {
         1|smt)
             printf "\n[HyperQB SMT] Running %s...\n" "$case_name"
             time_run "$case_name" "SMT" \
-              "cargo run --release -- -v \
+              "${CARGO_BIN} -v \
               ${FOLDER}LED/build_ae.ys \
               ${FOLDER}LED/build_ae.ys \
               -t led_fsm -o model.smt2 \
@@ -212,7 +218,7 @@ case_led_EE_true() {
         1|smt)
             printf "\n[HyperQB SMT] Running %s...\n" "$case_name"
             time_run "$case_name" "SMT" \
-              "cargo run --release -- -v \
+              "${CARGO_BIN} -v \
               ${FOLDER}LED/build_ee.ys \
               ${FOLDER}LED/build_ee.ys \
               -t light -o model.smt2 \
@@ -234,7 +240,7 @@ case_led_EE_false() {
         1|smt)
             printf "\n[HyperQB SMT] Running %s...\n" "$case_name"
             time_run "$case_name" "SMT" \
-              "cargo run --release -- -v \
+              "${CARGO_BIN} -v \
               ${FOLDER}LED/build_ee.ys \
               ${FOLDER}LED/build_ee.ys \
               -t light -o model.smt2 \

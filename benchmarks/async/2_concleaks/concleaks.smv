@@ -26,17 +26,17 @@ VAR
 
 ASSIGN
 
-    init(obs_X_is_zer0) := FALSE;
+    init(obs_X_is_zero) := FALSE;
     next(obs_X_is_zero) :=
         case 
-            ((proc2_line = 7) & (!(in_HIGH))): TRUE;
+            ((proc2_line = 8) & (!(in_HIGH))): TRUE;
             TRUE                             : obs_X_is_zero;
         esac;   
 
     init(obs_X_is_one) := FALSE;
     next(obs_X_is_one) :=
         case 
-            ((proc2_line = 7) & (in_HIGH)) : TRUE;
+            ((proc2_line = 8) & (in_HIGH)) : TRUE;
             TRUE                            : obs_X_is_one;
         esac;
     
@@ -44,7 +44,7 @@ ASSIGN
     next(obs_Y_is_zero) :=
         case 
             ((proc2_line = 8) & (!(in_HIGH))) : TRUE;
-            TRUE                              : obs_Y_is_zero;
+            TRUE                              : obs_X_is_zero;
         esac;
     init(obs_Y_is_one) := FALSE;
     next(obs_Y_is_one) :=
@@ -57,26 +57,32 @@ ASSIGN
     -- inputs / other globals (updated references)
     ----------------------------------------------------------------
     init(in_HIGH) := {TRUE,FALSE};
-    next(in_HIGH) := in_HIGH;
+    next(in_HIGH) := 
+        case
+            in_HIGH: TRUE;
+            TRUE   : FALSE;
+        esac;
+        
+    init(LOW) := {TRUE, FALSE};
+    next(LOW) := 
+        case
+            LOW: TRUE;
+            TRUE: FALSE;
+        esac;   
 
-    init(LOW) := FALSE;
-    next(LOW) := LOW;
 
-
-    init(var_X) := FALSE;
+    init(var_X) := {TRUE, FALSE};
     next(var_X) :=
         case
-            (proc1_line = 0)              : {FALSE};
-            ((proc1_line = 2) | (proc1_line = 5)) : {TRUE};
-            TRUE                          : var_X;
+            ((proc1_line = 2) | (proc1_line = 5)) : TRUE;
+            TRUE                          : FALSE;
         esac;
 
-    init(var_Y) := FALSE;
+    init(var_Y) := {TRUE, FALSE};
     next(var_Y) :=
         case
-            (proc1_line = 0)              : {FALSE};
-            ((proc1_line = 3) | (proc1_line = 3)) : {TRUE}; -- (same as your original)
-            TRUE                          : var_Y;
+            ((proc1_line = 3)) : TRUE;
+            TRUE                          : FALSE;
         esac;
 
     init(SCHEDULE) := {0,1};
@@ -101,8 +107,8 @@ ASSIGN
     next(proc1_loop_count) :=
         case
             (proc1_loop_count = 2)                          : 2;
-            ((proc1_line = 0) & (SCHEDULE = 0)) : proc1_loop_count + 1;
-            ((proc1_line = 6) & (SCHEDULE = 0)) : proc1_loop_count + 1;
+            (((proc1_line = 0)|(proc1_line = 6)) & (SCHEDULE = 0)) : proc1_loop_count + 1;
+            -- ((proc1_line = 6) & (SCHEDULE = 0)) : proc1_loop_count + 1;
             TRUE                                             : proc1_loop_count;
         esac;
 
@@ -113,16 +119,15 @@ ASSIGN
             -- program1
             (proc1_line = 0)                         : {1};         -- x=0, y=0
             (proc1_line = 1 & (in_HIGH = LOW))       : {2};         -- if (h == l)
+            (proc1_line = 1 & (!(in_HIGH = LOW)))    : {4};
             (proc1_line = 2)                         : {3};         -- x=1
             (proc1_line = 3)                         : {0};         -- y=1
-            (proc1_line = 1 & (!(in_HIGH = LOW)))    : {4};
             (proc1_line = 4)                         : {5};         -- y=1
             (proc1_line = 5)                         : {0};         -- x=1
             -- program2
             (proc1_line = 6)                         : {7};
             (proc1_line = 7)                         : {8};         -- output x
             (proc1_line = 8)                         : {6};         -- output y
-
             TRUE : proc1_line;
         esac;
 
@@ -145,17 +150,15 @@ ASSIGN
             -- program1
             (proc2_line = 0)                         : {1};         -- x=0, y=0
             (proc2_line = 1 & (in_HIGH = LOW))        : {2};         -- if (h == l)
+            (proc2_line = 1 & (!(in_HIGH = LOW)))    : {4};
             (proc2_line = 2)                         : {3};         -- x=1
             (proc2_line = 3)                         : {0};         -- y=1
-            (proc2_line = 1 & (!(in_HIGH = LOW)))    : {4};
             (proc2_line = 4)                         : {5};         -- y=1
             (proc2_line = 5)                         : {0};         -- x=1
-
             -- program2
             (proc2_line = 6)                         : {7};
             (proc2_line = 7)                         : {8};         -- output x
             (proc2_line = 8)                         : {6};         -- output y
-
             TRUE : proc2_line;
         esac;
 

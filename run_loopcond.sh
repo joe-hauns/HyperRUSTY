@@ -13,6 +13,12 @@ else
   TIMEOUT_BIN=""   # fallback: no timeout available
 fi
 
+CARGO_BIN=${CARGO_BIN:-target/release/HyperRUSTY}
+if [[ ! -x "$CARGO_BIN" ]]; then
+  echo "Building HyperQB (release)…"
+  cargo build --release
+fi
+
 # ---- Paths for results/logs ----
 FOLDER="benchmarks/loop_conditions/"
 RESULTS_DIR="_outfiles"
@@ -127,7 +133,7 @@ case_abp() {
         1|smt)
             printf "\n[HyperQB SMT] Running %s...\n" "$case_name"
             time_run "$case_name" "SMT" \
-              "cargo run --release -- -n \
+              "${CARGO_BIN} -n \
               ${FOLDER}abp/abp_1.smv \
               ${FOLDER}abp/abp_2.smv \
               -f ${FOLDER}abp/abp.hq -l"
@@ -148,7 +154,7 @@ case_abp_buggy() {
         1|smt)
             printf "\n[HyperQB SMT] Running %s...\n" "$case_name"
             time_run "$case_name" "SMT" \
-              "cargo run --release -- -n \
+              "${CARGO_BIN} -n \
               ${FOLDER}abp/abp_1_buggy.smv \
               ${FOLDER}abp/abp_2_buggy.smv \
               -f ${FOLDER}abp/abp.hq -l"
@@ -169,7 +175,7 @@ case_mm() {
         1|smt)
             printf "\n[HyperQB SMT] Running %s...\n" "$case_name"
             time_run "$case_name" "SMT" \
-              "cargo run --release -- -n \
+              "${CARGO_BIN} -n \
               ${FOLDER}mm/mm1.smv \
               ${FOLDER}mm/mm2.smv \
               -f ${FOLDER}mm/mm.hq -l"
@@ -190,7 +196,7 @@ case_mm_buggy() {
         1|smt)
             printf "\n[HyperQB SMT] Running %s...\n" "$case_name"
             time_run "$case_name" "SMT" \
-              "cargo run --release -- -n \
+              "${CARGO_BIN} -n \
               ${FOLDER}mm/mm1_buggy.smv \
               ${FOLDER}mm/mm2_buggy.smv \
               -f ${FOLDER}mm/mm.hq -l"
@@ -211,7 +217,7 @@ case_cbf() {
         1|smt)
             printf "\n[HyperQB SMT] Running %s...\n" "$case_name"
             time_run "$case_name" "SMT" \
-              "cargo run --release -- -n \
+              "${CARGO_BIN} -n \
               ${FOLDER}cbf/cbf1.smv \
               ${FOLDER}cbf/cbf2.smv \
               -f ${FOLDER}cbf/cbf.hq -l"
@@ -232,7 +238,7 @@ case_cbf_buggy() {
         1|smt)
             printf "\n[HyperQB SMT] Running %s...\n" "$case_name"
             time_run "$case_name" "SMT" \
-              "cargo run --release -- -n \
+              "${CARGO_BIN} -n \
               ${FOLDER}cbf/cbf1_buggy.smv \
               ${FOLDER}cbf/cbf2_buggy.smv \
               -f ${FOLDER}cbf/cbf.hq -l"
@@ -253,7 +259,7 @@ case_rp() {
         1|smt)
             printf "\n[HyperQB SMT] Running %s...\n" "$case_name"
             time_run "$case_name" "SMT" \
-              "cargo run --release -- -n \
+              "${CARGO_BIN} -n \
               ${FOLDER}robust_path_planning/rp_1.smv \
               ${FOLDER}robust_path_planning/rp_2.smv \
               -f ${FOLDER}robust_path_planning/rp.hq -l"
@@ -274,7 +280,7 @@ case_rp_nosol() {
         1|smt)
             printf "\n[HyperQB SMT] Running %s...\n" "$case_name"
             time_run "$case_name" "SMT" \
-              "cargo run --release -- -n \
+              "${CARGO_BIN} -n \
               ${FOLDER}robust_path_planning/rp_1_no_sol.smv \
               ${FOLDER}robust_path_planning/rp_2.smv \
               -f ${FOLDER}robust_path_planning/rp.hq -l"
@@ -295,7 +301,7 @@ case_gcw() {
         1|smt)
             printf "\n[HyperQB SMT] Running %s...\n" "$case_name"
             time_run "$case_name" "SMT" \
-              "cargo run --release -- -n \
+              "${CARGO_BIN} -n \
               ${FOLDER}gcw/gcw1.smv \
               ${FOLDER}gcw/gcw2.smv \
               -f ${FOLDER}gcw/gcw.hq -l"
@@ -316,7 +322,7 @@ case_gcw_buggy() {
         1|smt)
             printf "\n[HyperQB SMT] Running %s...\n" "$case_name"
             time_run "$case_name" "SMT" \
-              "cargo run --release -- -n \
+              "${CARGO_BIN} -n \
               ${FOLDER}gcw/gcw1_buggy.smv \
               ${FOLDER}gcw/gcw2_buggy.smv \
               -f ${FOLDER}gcw/gcw.hq -l"

@@ -1,8 +1,9 @@
 Forall A . Exists B . E t .  
-G(~(in_HIGH[A][t] = in_HIGH[B][t]) 
+G(
+    ~(in_HIGH[A][t] = in_HIGH[B][t]) 
 )
 &
-G( 
+G(  
     (obs_X_is_zero[A][t] = obs_X_is_zero[B][t]) 
     &       
     (obs_X_is_one[A][t] = obs_X_is_one[B][t]) 
@@ -11,5 +12,7 @@ G(
     &
     (obs_Y_is_one[A][t] = obs_Y_is_one[B][t]) 
     &
-    (var_X[A][t] = var_X[A][t]) 
+    (var_X[A][t] = var_X[A][t])
+    &
+    (var_Y[A][t] = var_Y[A][t])
 ) 
