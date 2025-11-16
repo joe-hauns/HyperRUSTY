@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-TIMEOUT_SEC=${TIMEOUT_SEC:-1}  # Please adjust this timeout value as needed for your environment. Default is 180 second for quick testing; increase as needed for longer runs.
+TIMEOUT_SEC=${TIMEOUT_SEC:-120}  # Please adjust this timeout value as needed for your environment. Default is 120 second for quick testing; increase as needed for longer runs.
 
 
 # Detect timeout binary safely (avoid unbound variable errors)
