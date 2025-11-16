@@ -14,21 +14,41 @@ This artifact provides a **Docker image** (distributed via **Docker Hub**) that 
 ---
 ## Important Updates for TACAS Reviewers
 
-We sincerely thank all reviewers for running the SmokeTest and provided feedback on our artifact. We notice that all three reviewers are all using *AMD64* machines, as a result, we have built an *AMD64* image. 
+We sincerely thank all reviewers for taking the time to run the SmokeTest and provide detailed feedback on our artifact. Your comments have helped us significantly improve the accessibility of the artifact.
 
-Please see our updates w.r.t this new image in **[OPTION 1]: Obtain the Artifact Image from Docker Hub** and make sure you pull the right image according to your architecture. Then, we kindly as you to run the following commands to verify the setup is successful: 
+### New AMD64 Artifact Image
 
+We noticed that all three reviewers are running the artifact on AMD64 machines. In response, we have prepared and released a dedicated AMD64 Docker image to ensure smooth evaluation across all reviewers’ environments.
+
+Please refer to **[OPTION 1: Obtain the Artifact Image from Docker Hub]** in the updated README, and ensure that you pull the image corresponding to your host architecture (AMD64).
+
+After pulling the updated image, we kindly ask reviewers to run the following commands to verify the setup:
 - `./run_hltl_1.sh -compare all`
 - `./run_hltl_2.sh -compare all`
 - `./run_ahltl.sh -compare all`
 - `./run_loopcond.sh -all`
 - `./run_verilog.sh -all`
 
-With this new *AMD64* image, we believe the issues that Reviewer 1 and 2 encountered will be resolved. 
+With the new AMD64 image, we expect that the issues reported by Reviewer 1 and Reviewer 2 will be fully resolved.
 
-We notice that Reviewer 3 is use emulator (podman+qemu) to run our original *ARM64* image; however, we notice that this approach gives unpredictable results and overhead our dependencies (i.e., z3 and QuABs). Hence, we kindly as Reviewer 3 to try the new *AMD64* image for evaluation. 
+### Notes for Reviewer 3
 
-We also thank Reviewer 2 for spotting the typos in README. We have corrected them. 
+We appreciate that Reviewer 3 attempted to run the original ARM64 image via emulation (podman + qemu). However, we have observed that this approach may lead to unstable or inconsistent behavior in some dependencies (e.g., z3 and QuABS). To avoid such overhead and variability, we kindly ask Reviewer 3 to evaluate the artifact using the new AMD64 image instead.
+
+### Corrections to README
+
+We thank Reviewer 2 for catching the typos in our README. These have now been corrected.
+
+⸻
+
+### Remarks on Dependencies of the Docker Artifact on New Image
+
+Our artifact includes comparisons with the external model checker `AutoHyper`, which depends on `SPOT`. During testing of the AMD64 image, we found that SPOT occasionally produces errors on certain inputs. These issues originate within SPOT and are outside the scope of our tool. Unfortunately, we do not have sufficient insight into `SPOT`’s internals to debug these errors reliably.
+
+Additionally, due to variations introduced by containerized environments, some dependency solvers (notably `z3` for SMT solving and `QuABS` for QBF solving) may produce slightly different outputs from those reported in the paper, where all solvers were built natively on the host system. We emphasize that these differences stem from solver-level behavior and not from our tool.
+
+Our primary goal in this artifact submission is to provide a *fully reproducible Docker image* that allows reviewers to run the complete set of experiments described in the paper. We hope the new AMD64 image makes this process smoother and more consistent across all reviewers’ setups.
+
 
 ---
 

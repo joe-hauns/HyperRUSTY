@@ -79,7 +79,6 @@ time_run() {
 
     # Determine status from log (prefer UNSAT if both appear)
     local status="TIMEOUT"
-    local real_s=0.0
     if [[ -n "${TIMEOUT_BIN:-}" && $exit_code -eq 124 ]]; then
         echo "[TIMEOUT] $case_name ($variant) exceeded ${TIMEOUT_SEC}s." | tee -a "$log_file"
         real_s=0.0
