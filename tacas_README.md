@@ -109,7 +109,7 @@ Inside the image, you will find:
 - Ready-to-run shell scripts:
   - `run_hltl_1.sh` – Reproducing Table 4
   - `run_hltl_2.sh` – Reproducing Table 5 HLTL benchmarks
-  - `run_ahltl.sh` – Reproducing Table 5 A-HLTL benchmarks
+  - `run_ahltl.sh` – Reproducing Table 6 A-HLTL benchmarks
   - `run_loopcond.sh` – Reproducing Table 7
   - `run_verilog.sh` – Reproducing Table 8
 
