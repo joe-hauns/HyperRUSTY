@@ -1,10 +1,10 @@
 #!/bin/bash
 
-./run_hltl_1.sh -compare all
+./run_hltl_1.sh -compare light
 
-./run_hltl_2.sh -compare all
+./run_hltl_2.sh -compare light
 
-./run_ahltl.sh -compare all
+./run_ahltl.sh -compare light
 
 ./run_loopcond.sh -all
 

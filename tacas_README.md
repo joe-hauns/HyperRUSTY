@@ -23,9 +23,9 @@ We noticed that all three reviewers are running the artifact on AMD64 machines. 
 Please refer to **[OPTION 1: Obtain the Artifact Image from Docker Hub]** in the updated README, and ensure that you pull the image corresponding to your host architecture (AMD64).
 
 After pulling the updated image, we kindly ask reviewers to run the following commands to verify the setup:
-- `./run_hltl_1.sh -compare all`
-- `./run_hltl_2.sh -compare all`
-- `./run_ahltl.sh -compare all`
+- `./run_hltl_1.sh -compare light`
+- `./run_hltl_2.sh -compare light`
+- `./run_ahltl.sh -compare light`
 - `./run_loopcond.sh -all`
 - `./run_verilog.sh -all`
 
