@@ -234,7 +234,7 @@ mkdir _outfiles
 
 # Run the image
 docker run --rm -it `
-  -v "${PWD}/_outfiles:/build/HyperRusty/_outfiles" `
+  -v "${PWD}/_outfiles:/build/HyperRUSTY/_outfiles" `
   rogaleke/hyperqb2.0:[tag] `
   bash
 ```
@@ -297,7 +297,7 @@ mkdir _outfiles
 
 # Run the image
 docker run --rm -it `
-  -v "${PWD}/_outfiles:/build/HyperRusty/_outfiles" `
+  -v "${PWD}/_outfiles:/build/HyperRUSTY/_outfiles" `
   hyperqb-docker:latest `
   bash
 ```
