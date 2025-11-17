@@ -12,6 +12,7 @@ This artifact provides a **Docker image** (distributed via **Docker Hub**) that 
 **Expected outputs:** Printed in Console and logged in `_outfiles` directory.
 
 ---
+
 ## Important Updates for TACAS Reviewers
 
 We sincerely thank all reviewers for taking the time to run the SmokeTest and provide detailed feedback on our artifact. Your comments have helped us significantly improve the accessibility of the artifact.
@@ -23,6 +24,7 @@ We noticed that all three reviewers are running the artifact on AMD64 machines. 
 Please refer to **[OPTION 1: Obtain the Artifact Image from Docker Hub]** in the updated README, and ensure that you pull the image corresponding to your host architecture (AMD64).
 
 After pulling the updated image, we kindly ask reviewers to run the following commands to verify the setup:
+
 - `./run_hltl_1.sh -compare light`
 - `./run_hltl_2.sh -compare light`
 - `./run_ahltl.sh -compare light`
@@ -43,11 +45,11 @@ We thank Reviewer 2 for catching the typos in our README. These have now been co
 
 Our artifact includes comparisons with the external model checker `AutoHyper`, which depends on `SPOT`. During testing of the AMD64 image, we found that SPOT occasionally produces errors on certain inputs. These issues originate within SPOT and are outside the scope of our tool. Unfortunately, we do not have sufficient insight into `SPOT`’s internals to debug these errors reliably.
 
-Additionally, due to variations introduced by containerized environments, some dependency solvers (notably `z3` for SMT solving and `QuABS` for QBF solving) may produce slightly different outputs from those reported in the paper, where all solvers were built natively on the host system. We emphasize that these differences stem from solver-level behavior and not from our tool. 
+Additionally, due to variations introduced by containerized environments, some dependency solvers (notably `z3` for SMT solving and `QuABS` for QBF solving) may produce slightly different outputs from those reported in the paper, where all solvers were built natively on the host system. We emphasize that these differences stem from solver-level behavior and not from our tool.
 
-Depending on the hardware and Docker resource limits on the reviewer’s machine, some large instances may also encounter *out-of-memory* termination (i.e., *command terminated by signal 9* messages in the terminal), and we flag those cases as `MEMOUT` when displaying the results. Such behavior is due to performance and resource limitations of the underlying solvers (e.g., `QuABS`) when run inside Docker, and should not be interpreted as a limitation of the HyperQB 2.0 tool itself.
+Depending on the hardware and Docker resource limits on the reviewer’s machine, some large instances may also encounter _out-of-memory_ termination (i.e., _command terminated by signal 9_ messages in the terminal), and we flag those cases as `MEMOUT` when displaying the results. Such behavior is due to performance and resource limitations of the underlying solvers (e.g., `QuABS`) when run inside Docker, and should not be interpreted as a limitation of the HyperQB 2.0 tool itself.
 
-Our primary goal in this artifact submission is to provide a *fully reproducible Docker image* that allows reviewers to run the complete set of experiments described in the paper. We hope the new AMD64 image makes this process smoother and more consistent across all reviewers’ setups.
+Our primary goal in this artifact submission is to provide a _fully reproducible Docker image_ that allows reviewers to run the complete set of experiments described in the paper. We hope the new AMD64 image makes this process smoother and more consistent across all reviewers’ setups.
 
 ---
 
@@ -68,7 +70,6 @@ We aim to apply for all 3 badges, following the TACAS 2026 artifact submission g
 3. **Reusable**: HyperQB 2.0 comes with a complete user manual (HyperQB_Manual.pdf) included in the artifact submission. Pages 7–8 provide detailed documentation of the command-line interface that can be easily adapted for future research.
 
 HyperQB 2.0 official website: https://hyperqb.github.io/index.html
-
 
 ## Table of Contents
 
@@ -223,7 +224,7 @@ docker run --rm -it \
   bash
 ```
 
-where `[tag]` is the architecture of your system identified earlier (replace with either **ARM64** or **AMD64**).
+where `[tag]` is the architecture of your system identified earlier (replace with either **arm64** or **amd64**).
 
 #### Windows (PowerShell)
 
@@ -232,13 +233,13 @@ where `[tag]` is the architecture of your system identified earlier (replace wit
 mkdir _outfiles
 
 # Run the image
-docker run --rm -it \
-  -v "${PWD}/_outfiles:/build/HyperRusty/_outfiles" \
-  rogaleke/hyperqb2.0:[tag] \
+docker run --rm -it `
+  -v "${PWD}/_outfiles:/build/HyperRusty/_outfiles" `
+  rogaleke/hyperqb2.0:[tag] `
   bash
 ```
 
-where `[tag]` is the architecture of your system identified earlier (replace with either **ARM64** or **AMD64**).
+where `[tag]` is the architecture of your system identified earlier (replace with either **arm64** or **amd64**).
 
 You are now inside the HyperQB2.0 Docker image.
 
@@ -284,10 +285,9 @@ mkdir -p _outfiles
 # run the image
 docker run --rm -it \
   -v "$(pwd)/_outfiles:/build/HyperRUSTY/_outfiles" \
-  hyperqb-docker:[tag] \
+  hyperqb-docker:latest \
   bash
 ```
-where `[tag]` is the architecture of your system identified earlier (replace with either **ARM64** or **AMD64**).
 
 #### Windows (PowerShell)
 
@@ -296,12 +296,11 @@ where `[tag]` is the architecture of your system identified earlier (replace wit
 mkdir _outfiles
 
 # Run the image
-docker run --rm -it \
-  -v "${PWD}/_outfiles:/build/HyperRusty/_outfiles" \
-  hyperqb-docker:[tag] \
+docker run --rm -it `
+  -v "${PWD}/_outfiles:/build/HyperRusty/_outfiles" `
+  hyperqb-docker:latest `
   bash
 ```
-where `[tag]` is the architecture of your system identified earlier (replace with either **ARM64** or **AMD64**).
 
 You are now inside the HyperQB2.0 Docker image.
 
@@ -349,10 +348,10 @@ We now describe in detail how to reproduce the complete results presented in the
 | `-list`                        |           List all available benchmark cases            |
 | `-all <mode>`                  | Run all cases with the chosen mode (`smt`, `ah`, `qbf`) |
 | `-light <mode>`                |      Run a lightweight subset (for quick testing)       |
-| `-heavy <mode>`                |      Run a heavy subset (for deeper testing)            |
+| `-heavy <mode>`                |         Run a heavy subset (for deeper testing)         |
 | `-compare all [extras]`        |     Compare all case studies across the three modes     |
 | `-compare light [extras]`      |    Compare lightweight cases across the three modes     |
-| `-compare heavy [extras]`      |    Compare heavy cases across the three modes           |
+| `-compare heavy [extras]`      |       Compare heavy cases across the three modes        |
 | `-compare <case> [extras]`     |        Compare a specific case across all modes         |
 | `-case <case> <mode> [extras]` |            Run one case under a single mode             |
 
@@ -386,10 +385,10 @@ To Reproduce **Tables 4 & 5 (HLTL)**, after adjusting `TIMEOUT` (specified at th
 | `-list`                             |        List all available benchmark cases         |
 | `-all <mode>`                       | Run all cases with the chosen mode (`smt`, `qbf`) |
 | `-light <mode>`                     |   Run a lightweight subset (for quick testing)    |
-| `-heavy <mode>`                     |   Run a heavy subset (for deeper testing)         |
+| `-heavy <mode>`                     |      Run a heavy subset (for deeper testing)      |
 | `-compare all`                      |     Compare all case studies across all modes     |
-| `-compare light`                    |     Compare lightweight cases across all modes    |
-| `-compare heavy`                    |     Compare heavy cases across all modes          |
+| `-compare light`                    |    Compare lightweight cases across all modes     |
+| `-compare heavy`                    |       Compare heavy cases across all modes        |
 | `-compare <case_name>`              |     Compare a specific case across all modes      |
 | `-case <case_name> <mode>         ` |  Run a case with one of the modes (`smt`, `qbf`)  |
 
@@ -455,38 +454,41 @@ To Reproduce **Table 8**, Run:
 
 All outputs are printed to the screen during execution and simultaneously logged in the `_outfiles` directory.
 
-
 ---
 
-## Reusability 
+## Reusability
 
-To check if HyperQB 2.0 compiled without error, execute: 
+To check if HyperQB 2.0 compiled without error, execute:
+
 ```bash
 cargo build --release
-``` 
+```
+
 The compiled binary can be found in `target/release/`.
 
-
-To test if HyperQB (SMT unrolling) can successfully compiled 
-```bash
-cargo run --release -- -n benchmarks/sync/1_bakery/bakery3.smv benchmarks/sync/1_bakery/bakery3.smv -f benchmarks/sync/1_bakery/symmetry3.hq -k 10 -s hpes
-```
-which should return `result: unsat` 
-
-To test if HyperQB (QBF unrolling with `quabs`) can successfully run: 
+To test if HyperQB (SMT unrolling) can successfully compiled
 
 ```bash
 cargo run --release -- -n benchmarks/sync/1_bakery/bakery3.smv benchmarks/sync/1_bakery/bakery3.smv -f benchmarks/sync/1_bakery/symmetry3.hq -k 10 -s hpes
 ```
+
+which should return `result: unsat`
+
+To test if HyperQB (QBF unrolling with `quabs`) can successfully run:
+
+```bash
+cargo run --release -- -n benchmarks/sync/1_bakery/bakery3.smv benchmarks/sync/1_bakery/bakery3.smv -f benchmarks/sync/1_bakery/symmetry3.hq -k 10 -s hpes
+```
+
 which should return `UNSAT`
 
-
 To test if HyoerQB (with verilog input using `yosys`) can successfully run:
+
 ```bash
 cargo run --release -- -v benchmarks/verilog/divider/divider.ys benchmarks/verilog/divider/divider.ys -t divider -o model.smt2 -f benchmarks/verilog/divider/formula.hq -k 8 -s pes
 ```
-which should return `result:unsat`
 
+which should return `result:unsat`
 
 ### HyperQB 2.0 CLI Usage
 
@@ -501,6 +503,7 @@ cargo run --release -- (-n|-v) <models> -f <formula> -k <int> -s <sem> [options]
 ### Arguments
 
 **Required**
+
 - `-n <files>` | `-v <files>`: NuSMV or Verilog model files.
 - `-f <file>`: Hyperproperty formula (`.hq`).
 - `-t <name>`: Top module (Verilog only, defaults to `main`).
@@ -508,6 +511,7 @@ cargo run --release -- (-n|-v) <models> -f <formula> -k <int> -s <sem> [options]
 - `-s <pes|opt|hpes|hopt>`: Bounded semantics selection.
 
 **Optional**
+
 - `-m <int>`: Trajectory bound for AH-LTL fragments.
 - `-c`: Emit counterexample when the formula is unsatisfied.
 - `-q`: Use the QuAbS QBF solver instead of Z3.
@@ -519,15 +523,14 @@ Try the following example, which model check `linearizability (lin.hq)` on `SNAR
 ```bash
 cargo run --release -- -n benchmarks/sync/2_snark/snark1_conc.smv benchmarks/sync/2_snark/snark1_seq.smv -f benchmarks/sync/2_snark/lin.hq -k 18 -s hpes -c
 ```
-which should return `UNSAT` with `counterexample` displayed in your terminal. 
 
+which should return `UNSAT` with `counterexample` displayed in your terminal.
 
 ---
 
 We would like to remark that, outside of this artifact, we offer a fully standalone **macOS application** (available for download from GitHub) with an **interactive GUI** (demonstrated on page 5 of the manual). Comprehensive information about the tool’s theoretical background, algorithms, case studies (including model descriptions), and an online version of the GUI is also accessible through our **official website**. Since these components are beyond the TACAS artifact evaluation scope, we provide here only the CLI binary for reviewers to interact with directly. However, HyperQB 2.0 is easy to adapt for future research to benefit the formal methods community.
 
 ---
-
 
 ## Notices
 
