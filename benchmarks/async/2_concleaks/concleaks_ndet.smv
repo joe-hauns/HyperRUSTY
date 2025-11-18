@@ -47,7 +47,7 @@ MODULE main
     next(var_X) :=
       case
         (proc1_line = 0)               : {FALSE};
-        (proc1_line = 2 | proc1_line = 5) : {TRUE};
+        ((proc1_line = 2 | proc1_line = 5) & ((in_HIGH = 1))) : {TRUE};
         TRUE                           : var_X;
       esac;
 
@@ -56,7 +56,7 @@ MODULE main
     next(var_Y) :=
       case
         (proc1_line = 0)               : {FALSE};
-        (proc1_line = 3 | proc1_line = 4) : {TRUE};
+        ((proc1_line = 3 | proc1_line = 4) &  (in_HIGH = 1)) : {TRUE};
         TRUE                           : var_Y;
       esac;
 
@@ -88,10 +88,10 @@ MODULE main
         -- !(SCHEDULE = ID_one)                                 : proc1_line;
         -- program 1 (lines 0..5)
         (proc1_line = 0)                                     : {1};                   -- x=0, y=0
-        (proc1_line = 1 & (in_HIGH = LOW))                : {2};                   -- if (h == l)
+        (proc1_line = 1 & (in_HIGH = LOW))                : {2};   
+        (proc1_line = 1 & !(in_HIGH = LOW))               : {4};                -- if (h == l)
         (proc1_line = 2)                                     : {3};                   -- x=1
         (proc1_line = 3)                                     : {0};                   -- y=1
-        (proc1_line = 1 & !(in_HIGH = LOW))               : {4};
         (proc1_line = 4)                                     : {5};                   -- y=1
         (proc1_line = 5)                                     : {0};                   -- x=1
 
@@ -125,9 +125,9 @@ MODULE main
         -- !(SCHEDULE = ID_two)                                 : proc2_line;
         (proc2_line = 0)                                     : {1};
         (proc2_line = 1 & (in_HIGH = LOW))                : {2};
+        (proc2_line = 1 & !(in_HIGH = LOW))               : {4};
         (proc2_line = 2)                                     : {3};
         (proc2_line = 3)                                     : {0};
-        (proc2_line = 1 & !(in_HIGH = LOW))               : {4};
         (proc2_line = 4)                                     : {5};
         (proc2_line = 5)                                     : {0};
 
@@ -159,9 +159,9 @@ MODULE main
         -- !(SCHEDULE = ID_three)                               : proc3_line;
         (proc3_line = 0)                                     : {1};
         (proc3_line = 1 & (in_HIGH = LOW))                : {2};
+        (proc3_line = 1 & !(in_HIGH = LOW))               : {4};
         (proc3_line = 2)                                     : {3};
         (proc3_line = 3)                                     : {0};
-        (proc3_line = 1 & !(in_HIGH = LOW))               : {4};
         (proc3_line = 4)                                     : {5};
         (proc3_line = 5)                                     : {0};
 
@@ -178,10 +178,10 @@ MODULE main
 
   DEFINE
     -- observables (now refer to inlined proc2 state)
-    obs_X_is_zero := ((proc2_line = 7) & (var_X = FALSE));
-    obs_X_is_one  := ((proc2_line = 7) & (var_X = TRUE));
-    obs_Y_is_zero := ((proc2_line = 8) & (var_Y = FALSE));
-    obs_Y_is_one  := ((proc2_line = 8) & (var_Y = TRUE));
+    obs_X_is_zero := ((proc2_line = 7) & (var_X));
+    obs_X_is_one  := ((proc2_line = 7) & !(var_X));
+    obs_Y_is_zero := ((proc2_line = 8) & (var_Y));
+    obs_Y_is_one  := ((proc2_line = 8) & !(var_Y));
 
     -- global halt: each inlined program finished two loops
     halt := ((proc1_loop_count = 2) & (proc2_loop_count = 2) & (proc3_loop_count = 2));
