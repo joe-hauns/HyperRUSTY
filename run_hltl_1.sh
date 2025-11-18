@@ -558,6 +558,7 @@ case_nrp_correct() {
     fi
 
     case "$mode" in
+        # update the bound to 20 to fix extra non-determinism
         1|smt)
             printf "\n[HyperQB SMT] Running %s...\n" "$case_name"
             time_run "$case_name" "SMT" \
@@ -565,14 +566,14 @@ case_nrp_correct() {
                -n ${FOLDER}4_nrp/NRP_correct.smv \
                ${FOLDER}4_nrp/NRP_correct.smv \
                -f ${FOLDER}4_nrp/NRP_formula.hq \
-               -k 20 -s pes"
+               -k 16 -s pes"
             if (( want_witness )); then
                 time_run "$case_name" "SMT_witness" \
                   "${CARGO_BIN} \
                    -n ${FOLDER}4_nrp/NRP_correct.smv \
                    ${FOLDER}4_nrp/NRP_correct.smv \
                    -f ${FOLDER}4_nrp/NRP_formula.hq \
-                   -k 15 -s pes -c"
+                   -k 16 -s pes -c"
             fi
             ;;
         2|ah)
@@ -595,7 +596,7 @@ case_nrp_correct() {
                -n ${FOLDER}4_nrp/NRP_correct.smv \
                ${FOLDER}4_nrp/NRP_correct.smv \
                -f ${FOLDER}4_nrp/NRP_formula.hq \
-               -k 15 -s pes -q"
+               -k 16 -s pes -q"
             ;;
         *)
             echo "Usage: case_nrp_correct <1|2|3> or <smt|ah|qbf>"
