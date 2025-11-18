@@ -109,7 +109,7 @@ Inside the image, you will find:
 - Ready-to-run shell scripts:
   - `run_hltl_1.sh` – Reproducing Table 4
   - `run_hltl_2.sh` – Reproducing Table 5 HLTL benchmarks
-  - `run_ahltl.sh` – Reproducing Table 5 A-HLTL benchmarks
+  - `run_ahltl.sh` – Reproducing Table 6 A-HLTL benchmarks
   - `run_loopcond.sh` – Reproducing Table 7
   - `run_verilog.sh` – Reproducing Table 8
 
@@ -243,7 +243,7 @@ You are now inside the HyperQB2.0 Docker image.
 
 **Notice**: This image is only for **ARM64** architecture. If you have an **AMD64** system, please follow [Option 1](#option1) above.
 
-From our Zenodo link (https://zenodo.org/records/17490665), download the `.tar` that contains the Docker image, then run:
+From our [Zenodo record](https://zenodo.org/records/17490665), download the `.tar` containing the Docker image. Then, navigate to the directory where it was downloaded and run:
 
 ```bash
 docker load -i hyperqb2.tar
@@ -259,8 +259,10 @@ If the image is loaded correctly, you should be able to see the `hyperqb-docker`
 
 ```
 REPOSITORY            TAG       IMAGE ID       CREATED             SIZE
-hyperqb-docker        latest    41ea36748c37   18 minutes ago      7.87GB
+hyperqb-docker        latest    41ea36748c37   2 weeks ago         10.7GB
 ```
+
+(`IMAGE ID` and `CREATED` could vary depending on your settings)
 
 Finally, to run this image, follow the instructions below.
 
