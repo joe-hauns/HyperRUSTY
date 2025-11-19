@@ -260,7 +260,7 @@ next, check if the image is loaded by running:
 docker images
 ```
 
-If the image is loaded correctly, you should be able to see the `hyperqb-docker` entry:
+If the image is loaded correctly, you should be able to see the `rogaleke/hyperqb2.0` entry:
 
 ```
 REPOSITORY             TAG       IMAGE ID       CREATED             SIZE
