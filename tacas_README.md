@@ -5,6 +5,8 @@
 **Zenodo DOI:** `10.5281/zenodo.17490665`  
 **Zenodo Record:** `https://zenodo.org/records/17490665`
 
+**Notice**: Although this artifact is provided as a Docker image for convenience, all experiments and reported results in the paper were obtained using local runs with natively installed dependencies. As a result, you may observe differences in execution time or memory usage when running the Dockerized version, depending on your hardware, operating system, and Docker configuration.
+
 This artifact provides a **Docker image** (distributed via **Docker Hub** and **Zenodo**) that contains the complete experimental environment along with the **shell scripts** required to reproduce all tables reported in the paper. To regenerate the results, the AEC only needs to: (1) install Docker, (2) pull our image from Docker Hub, (3) start the container, and (4) run the provided scripts inside it.
 
 **For consistency with the Docker environment, we recommend using the Docker Hub image described in [Option 1](#option1) as the primary method.**
@@ -45,17 +47,14 @@ We thank Reviewer 2 for catching the typos in our README. These have now been co
 
 ### Remarks on Dependencies of the Docker Artifact on New Image
 
-1. __SPOT errors from AutoHyper:__
-Our artifact includes comparisons with the external model checker `AutoHyper`, which depends on `SPOT`. During testing of the AMD64 image, we found that SPOT occasionally produces errors on certain inputs. These issues originate within SPOT and are outside the scope of our tool. Unfortunately, we do not have sufficient insight into `SPOT`’s internals to debug these errors reliably.
+1. **SPOT errors from AutoHyper:**
+   Our artifact includes comparisons with the external model checker `AutoHyper`, which depends on `SPOT`. During testing of the AMD64 image, we found that SPOT occasionally produces errors on certain inputs. These issues originate within SPOT and are outside the scope of our tool. Unfortunately, we do not have sufficient insight into `SPOT`’s internals to debug these errors reliably.
 
-2. __Minor Performance Discrepancies Due to Z3 and QuAbS:__
-Additionally, due to variations introduced by containerized environments, some dependency solvers (notably `z3` for SMT solving and `QuAbS` for QBF solving) may produce slightly different outputs from those reported in the paper, where all solvers were built natively on the host system. We emphasize that these differences stem from solver-level behavior and not from our tool. 
+2. **Minor Performance Discrepancies Due to Z3 and QuAbS:**
+   Additionally, due to variations introduced by containerized environments, some dependency solvers (notably `z3` for SMT solving and `QuAbS` for QBF solving) may produce slightly different outputs from those reported in the paper, where all solvers were built natively on the host system. We emphasize that these differences stem from solver-level behavior and not from our tool.
 
-
-1. __Out-of-memory from QuAbS:__
-Depending on the hardware and Docker resource limits on the reviewer’s machine, some large instances may also encounter _out-of-memory_ termination (i.e., _command terminated by signal 9_ messages in the terminal), and we flag those cases as `MEMOUT` when displaying the results. Such behavior is due to performance and resource limitations of the underlying solvers (e.g., `QuAbS`) when run inside Docker, and should not be interpreted as a limitation of the HyperQB 2.0 tool itself.
-
-
+3. **Out-of-memory from QuAbS:**
+   Depending on the hardware and Docker resource limits on the reviewer’s machine, some large instances may also encounter _out-of-memory_ termination (i.e., _command terminated by signal 9_ messages in the terminal), and we flag those cases as `MEMOUT` when displaying the results. Such behavior is due to performance and resource limitations of the underlying solvers (e.g., `QuAbS`) when run inside Docker, and should not be interpreted as a limitation of the HyperQB 2.0 tool itself.
 
 Our primary goal in this artifact submission is to provide a _fully reproducible Docker image_ that allows reviewers to run the complete set of experiments described in the paper. We hope the new AMD64 image makes this process smoother and more consistent across all reviewers’ setups.
 

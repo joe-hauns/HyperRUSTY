@@ -6,4 +6,6 @@ We would also like to kindly ask the reviewers to pay particular attention to th
 
 We would be very grateful if the committee could invite the reviewers to rerun the SmokeTests with the updated image to ensure that no remaining technical issues affect the final evaluation.
 
+**Notice**: Although this artifact is provided as a Docker image for convenience, all experiments and reported results in the paper were obtained using local runs with natively installed dependencies. As a result, you may observe differences in execution time or memory usage when running the Dockerized version, depending on your hardware, operating system, and Docker configuration.
+
 Thank you very much for your time and support.
