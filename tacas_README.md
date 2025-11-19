@@ -3,7 +3,7 @@
 **Artifact ID:** `97`  
 **Paper Title:** `HyperQB 2.0: A Bounded Model Checker for Hyperproperties` (tool paper submission 0087)  
 **Zenodo DOI:** `10.5281/zenodo.17654609`  
-**Zenodo Record:** `[https://zenodo.org/records/17490665](https://zenodo.org/records/17654609)`
+**Zenodo Record:** [https://zenodo.org/records/17490665](https://zenodo.org/records/17654609)
 
 **Notice**: Although this artifact is provided as a Docker image for convenience, all experiments and reported results in the paper were obtained using local runs with natively installed dependencies. As a result, you may observe differences in execution time or memory usage when running the Dockerized version, depending on your hardware, operating system, and Docker configuration.
 
