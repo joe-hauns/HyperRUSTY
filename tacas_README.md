@@ -248,7 +248,7 @@ You are now inside the HyperQB2.0 Docker image.
 
 **Notice**: This image is only for **ARM64** architecture. If you have an **AMD64** system, please follow [Option 1](#option1) above.
 
-From our [Zenodo record](https://zenodo.org/records/17490665), download the `.tar` containing the Docker image. Then, navigate to the directory where it was downloaded and run:
+From our [Zenodo record](https://zenodo.org/records/17654609), download the `.tar` containing the Docker image. Then, navigate to the directory where it was downloaded and run:
 
 ```bash
 docker load -i hyperqb2.tar
