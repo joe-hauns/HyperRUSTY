@@ -263,11 +263,11 @@ docker images
 If the image is loaded correctly, you should be able to see the `hyperqb-docker` entry:
 
 ```
-REPOSITORY            TAG       IMAGE ID       CREATED             SIZE
-hyperqb-docker        latest    41ea36748c37   2 weeks ago         10.7GB
+REPOSITORY             TAG       IMAGE ID       CREATED             SIZE
+rogaleke/hyperqb2.0    arm64     1a170594cf8b   24 hours ago        10.4GB
 ```
 
-(`IMAGE ID` and `CREATED` could vary depending on your settings)
+(`CREATED` could vary depending on when you pull the image)
 
 Finally, to run this image, follow the instructions below.
 
@@ -284,7 +284,7 @@ mkdir -p _outfiles
 # run the image
 docker run --rm -it \
   -v "$(pwd)/_outfiles:/build/HyperRUSTY/_outfiles" \
-  hyperqb-docker:latest \
+  rogaleke/hyperqb2.0:arm64 \
   bash
 ```
 
@@ -297,7 +297,7 @@ mkdir _outfiles
 # Run the image
 docker run --rm -it `
   -v "${PWD}/_outfiles:/build/HyperRUSTY/_outfiles" `
-  hyperqb-docker:latest `
+  rogaleke/hyperqb2.0:arm64 `
   bash
 ```
 
