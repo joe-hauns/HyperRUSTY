@@ -13,7 +13,7 @@ use std::collections::{HashMap, VecDeque};
 #[macro_use]
 pub mod macros;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum VarType {
     Bool {
         init: Option<Vec<bool>>,
@@ -55,7 +55,7 @@ pub struct BFSExplicit<'ctx> {
     pub adjacency: Vec<Vec<bool>>,        // adjacency[u][v] == true
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Variable {
     pub sort: VarType,
 }
