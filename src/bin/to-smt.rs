@@ -51,10 +51,10 @@ fn main() -> anyhow::Result<()> {
     let args = Args::parse();
     args.validate()?;
 
-    let mut cfg = z3::Config::new();
+    let cfg = z3::Config::new();
     let ctx = z3::Context::new(&cfg);
 
-    let mut envs: Vec<SMVEnv> = 
+    let envs: Vec<SMVEnv> = 
         std::iter::chain(
             args.nusmv.iter()
                 .map(|n|{
@@ -96,27 +96,6 @@ fn main() -> anyhow::Result<()> {
 }
 
 
-// fn term_to_smt<'c>(ctx: &'c z3::Context, term: Box<AstNode>) -> z3::ast::Bool {
-//     use z3::ast::*;
-//     match self {
-//         AstNode::HAQuantifier { identifier, form } => todo!(),
-//         AstNode::HEQuantifier { identifier, form } => todo!(),
-//         AstNode::AAQuantifier { identifier, form } => todo!(),
-//         AstNode::AEQuantifier { identifier, form } => todo!(),
-//         AstNode::BinOp { operator, lhs, rhs } => match operator {
-//             BinOperator::Equality => lhs.to_smt(ctx)._eq(rhs.to_smt(ctx)),
-//             BinOperator::Conjunction => lhs.to_smt(ctx).as_bool().unwrap() & rhs.to_smt(ctx).as_bool().unwrap(),
-//             BinOperator::Implication => todo!(),
-//             BinOperator::Until => todo!(),
-//             BinOperator::Release => todo!(),
-//         },
-//         AstNode::UnOp { operator, operand } => todo!(),
-//         AstNode::HIndexedProp { proposition, path_identifier } => todo!(),
-//         AstNode::AIndexedProp { proposition, path_identifier, traj_identifier } => todo!(),
-//         AstNode::Constant { value } => todo!(),
-//     }
-// }
-
 
 struct SmtTranslationContext<'c, 'd> {
     z3: &'c z3::Context,
@@ -152,7 +131,7 @@ impl<'c, 'd> SmtTranslationContext<'c, 'd> {
                 let sort = match &var.sort {
                     VarType::Bool { init: _ } => z3::Sort::bool(self.z3),
                     VarType::Int { init: _, lower: _, upper: _ } => z3::Sort::int(self.z3),
-                    VarType::BVector { width: _, lower: _, upper: _, init: _ } => todo!(),
+                    VarType::BVector { width, lower: _, upper: _, init: _ } => z3::Sort::bitvector(self.z3, *width),
                 };
                 z3::FuncDecl::new(self.z3, proposition, &[&self.path_sort, &z3::Sort::int(self.z3)], &sort)
             });
@@ -206,20 +185,27 @@ impl<'c, 'd> SmtTranslationContext<'c, 'd> {
         let to_smt_vec = |r: ReturnType<'c>| match r {
             ReturnType::Bool(items) => items.iter().map(|b| z3::ast::Dynamic::from(z3::ast::Bool::from_bool(z3, *b))).collect(),
             ReturnType::Int(items) => items.iter().map(|i| z3::ast::Dynamic::from(z3::ast::Int::from_i64(z3, *i))).collect(),
-            ReturnType::BVector(items) => todo!(),
+            ReturnType::BVector(items) => items.iter().map(|(i, sz)| z3::ast::Dynamic::from(z3::ast::BV::from_i64(z3, *i, *sz))).collect(),
             ReturnType::DynAst(dynamic) => vec![dynamic],
         };
 
-        use z3::ast::{Bool,Dynamic,Int};
+        use z3::ast::{Bool,Dynamic,Int,BV};
 
 
         let int = |i| Int::from_i64(z3, i);
+        let bv = |i, sz| BV::from_i64(z3, i, sz);
         let bol = |i| Bool::from_bool(z3, i);
 
         for (var, Variable { sort }) in &smv_env.variables {
+
+            let initial_values = |values: Vec<Dynamic<'c>>| disj(values.into_iter().map(|x| self.proposition(var, trace, &int(0))._eq(&x)).collect());
             
-            let init: Option<Vec<Dynamic>> = match sort {
-                VarType::Bool { init } => init.as_ref().map(|vals| vals.iter().map(|b| Dynamic::from(bol(*b))).collect()),
+            match sort {
+                VarType::Bool { init } => {
+                    if let Some(vals) = init {
+                      assertions.push(initial_values(vals.iter().map(|b| Dynamic::from(bol(*b))).collect()));
+                    }
+                }
                 VarType::Int { init, lower, upper } => {
                     if let Some(lower) = lower {
                         assertions.push(self.proposition(var, trace, z0).as_int().unwrap().ge(&int(*lower)));
@@ -227,13 +213,23 @@ impl<'c, 'd> SmtTranslationContext<'c, 'd> {
                     if let Some(upper) = upper {
                         assertions.push(self.proposition(var, trace, z0).as_int().unwrap().le(&int(*upper)));
                     }
-                    init.as_ref().map(|vals| vals.iter().map(|v| Dynamic::from(Int::from_i64(z3, *v))).collect())
+                    if let Some(vals) = init {
+                      assertions.push(initial_values(vals.iter().map(|v| Dynamic::from(int(*v))).collect()));
+                    }
                 },
-                VarType::BVector { width, lower, upper, init } => todo!(),
+                VarType::BVector { width, lower, upper, init } => {
+                    if let Some(lower) = lower {
+                        assertions.push(self.proposition(var, trace, z0).as_bv().unwrap().bvsge(&bv(*lower, *width)));
+                    }
+                    if let Some(upper) = upper {
+                        assertions.push(self.proposition(var, trace, z0).as_bv().unwrap().bvsle(&bv(*upper, *width)));
+                    }
+                    if let Some(vals) = init {
+                      assertions.push(initial_values(vals.iter().map(|v| Dynamic::from(bv(*v, *width))).collect()));
+                    }
+
+                },
             };
-            if let Some(init) = init {
-                assertions.push(disj(init.into_iter().map(|x| self.proposition(var, trace, &int(0))._eq(&x)).collect()));
-            }
         }
 
         for (pred, def) in &smv_env.predicates {
@@ -287,7 +283,6 @@ fn formula_to_smt<'c, 'd>(ctx: &SmtTranslationContext<'c, 'd>, term: &'d AstNode
         AstNode::HEQuantifier { identifier, form } => todo!(),
         AstNode::AAQuantifier { identifier, form } => todo!(),
         AstNode::AEQuantifier { identifier, form } => todo!(),
-        // AstNode::BinOp { operator, lhs, rhs } => todo!(),
         AstNode::BinOp { operator, lhs, rhs } => match operator {
             BinOperator::Equality => Dynamic::from(dr(lhs, z)._eq(&dr(rhs, z))),
             BinOperator::Conjunction => Dynamic::from(br(lhs, z) & br(rhs, z)),
@@ -376,7 +371,7 @@ fn to_smt<'c, 'd>(z3: &'c z3::Context, envs: &'d Vec<SMVEnv<'c>>, formula: &'d p
     }
 
     println!("
-(set-logic AUFLIA)
+(set-logic all)
 
 (assert (not {full_smt}))
 
