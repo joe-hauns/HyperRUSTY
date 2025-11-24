@@ -24,14 +24,23 @@ pub enum UnaryOperator {
     Next,
 }
 
+#[derive(PartialEq, Eq, Debug, Clone, Hash)]
+pub enum TraceType {
+    Arbitrary,
+    UserType(String),
+    IntroducedType(usize),
+}
+
 #[derive(PartialEq, Debug, Clone)]
 pub enum AstNode {
     HAQuantifier {
         identifier: String,
+        trace_type: TraceType,
         form: Box<AstNode>,
     },
     HEQuantifier {
         identifier: String,
+        trace_type: TraceType,
         form: Box<AstNode>,
     },
     AAQuantifier {
@@ -81,7 +90,12 @@ fn build_ast_from_path(pair: pest::iterators::Pair<Rule>) -> AstNode {
 
     // Extract the identifier name and the body of the formula
     let identifier = pairs.next().unwrap();
-    let body = pairs.next().unwrap();
+    let body_or_type = pairs.next().unwrap();
+    let (trace_type, body) = if let Some(body) = pairs.next() {
+        (TraceType::UserType(body_or_type.as_str().to_string()), body)
+    } else {
+        (TraceType::Arbitrary, body_or_type)
+    };
     
     // What type of formula is the body? Get its corresponding AST
     let body_pair = body.into_inner().next().unwrap();
@@ -96,10 +110,12 @@ fn build_ast_from_path(pair: pest::iterators::Pair<Rule>) -> AstNode {
     match &pair.as_str()[..1] {
         "F" => AstNode::HAQuantifier {
                 identifier: String::from(identifier.as_str()),
+                trace_type,
                 form: Box::new(body_ast),
             },
         _ => AstNode::HEQuantifier {
                 identifier: String::from(identifier.as_str()),
+                trace_type,
                 form: Box::new(body_ast),
             }
     }

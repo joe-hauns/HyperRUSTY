@@ -185,7 +185,7 @@ fn generate_ahltl_encoding<'env, 'ctx>(envs: &'env Vec<SMVEnv<'ctx>>, formula: &
 
 pub fn complete_ahltl_encoding<'ctx>(ctx: &'ctx Context, formula: &AstNode, inner: Bool<'ctx>, traj: HashMap<&'ctx str, Vec<&Bool<'ctx>>>, states: &Vec<Vec<EnvState<'ctx>>>, mapping: &HashMap<&str, usize>) -> Bool<'ctx> {
     match formula {
-        AstNode::HAQuantifier {identifier, form} => {
+        AstNode::HAQuantifier {identifier, form, trace_type: _} => {
             let idx = mapping[identifier as &str];
             let selected_path = &states[idx];
             let vars: Vec<Dynamic<'ctx>> = selected_path
@@ -200,7 +200,7 @@ pub fn complete_ahltl_encoding<'ctx>(ctx: &'ctx Context, formula: &AstNode, inne
                 &complete_ahltl_encoding(ctx, form, inner, traj, states, mapping)
             )
         }
-        AstNode::HEQuantifier {identifier, form} => {
+        AstNode::HEQuantifier {identifier, form, trace_type: _} => {
             let idx = mapping[identifier as &str];
             let selected_path = &states[idx];
             let vars: Vec<Dynamic<'ctx>> = selected_path
@@ -260,7 +260,7 @@ pub fn complete_ahltl_encoding<'ctx>(ctx: &'ctx Context, formula: &AstNode, inne
 
 fn generate_quantified_encoding<'ctx>(ctx: &'ctx Context, formula: &AstNode, paths: &Vec<Vec<EnvState<'ctx>>>, path_encodings: &Vec<Bool<'ctx>>, mapping: &HashMap<&str, usize>, inner: Bool<'ctx>) -> Bool<'ctx> {
     match formula {
-        AstNode::HAQuantifier {form, identifier} => {
+        AstNode::HAQuantifier {form, identifier, trace_type: _} => {
             let idx = mapping.get(identifier as &str).unwrap();
             let selected_path = &paths[*idx];
             let vars: Vec<Dynamic<'ctx>> = selected_path
@@ -277,7 +277,7 @@ fn generate_quantified_encoding<'ctx>(ctx: &'ctx Context, formula: &AstNode, pat
                 &generate_quantified_encoding(ctx, form, paths, path_encodings, mapping, inner)
             )
         }
-        AstNode::HEQuantifier {form, identifier} => {
+        AstNode::HEQuantifier {form, identifier, trace_type: _} => {
             let idx = mapping.get(identifier as &str).unwrap();
             let selected_path = &paths[*idx];
             let vars: Vec<Dynamic<'ctx>> = selected_path

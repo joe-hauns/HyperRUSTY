@@ -1,6 +1,6 @@
 WHITESPACE = _{ " " | "\t" | "\r\n" | "\n" }
 
-path_formula = { ("Forall" | "Exists") ~ ident ~ "." ~ form_rec }
+path_formula = { ("Forall" | "Exists") ~ ident ~ (":" ~ ident)? ~ "." ~ form_rec }
 form_rec = { path_formula | traj_formula | inner_hltl }
 traj_formula = { ("A" | "E") ~ ident ~ "." ~ ahltl_form_rec }
 ahltl_form_rec = { traj_formula | inner_altl }

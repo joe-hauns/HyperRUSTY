@@ -14,13 +14,21 @@ use std::fs;
 #[command(version, about, long_about = None)]
 struct Args {
 
-    /// NuSMV input file
+    /// positional NuSMV input file
     #[arg(short, long)]
     nusmv: Vec<String>,
 
-    /// Yosys input file
+    /// positional Yosys input file
     #[arg(short, long)]
     verilog: Vec<PathBuf>,
+
+    /// named NuSMV input file
+    #[arg(long)]
+    trace_file: Vec<String>,
+
+    /// named NuSMV input file
+    #[arg(long)]
+    trace_name: Vec<String>,
 
     /// Yosys input file
     #[arg(short = 'o', long)]
@@ -50,14 +58,12 @@ fn main() -> anyhow::Result<()> {
     env_logger::init();
     let args = Args::parse();
     args.validate()?;
+    let Args { nusmv, verilog, trace_file, trace_name, yosys_output, top, formula } = args;
 
     let cfg = z3::Config::new();
     let ctx = z3::Context::new(&cfg);
 
-    let envs: Vec<SMVEnv> = 
-        std::iter::chain(
-            args.nusmv.iter()
-                .map(|n|{
+    let parse_nusmv = |n: &str|-> anyhow::Result<_> {
                     info!("parsing {n}");
                     Ok(parser_nusmv::parse_smv(
                         &ctx,
@@ -68,29 +74,43 @@ fn main() -> anyhow::Result<()> {
                         "model",
                         "ir",
                         ))
-                }),
-            args.verilog.iter()
+    };
+    let mut envs = 
+        std::iter::chain(
+            nusmv.iter()
+                .map(|n| parse_nusmv(n)),
+            verilog.iter()
                 .map(|v| -> anyhow::Result<_>{
                     info!("parsing {}", v.display());
                     let r = hqb_verilog::build_smvenv_from_verilog(
                                     v,
-                                    &args.top, 
-                                    args.yosys_output.as_ref().unwrap(),
+                                    &top, 
+                                    yosys_output.as_ref().unwrap(),
                                     &ctx);
                     Ok(r?)
                                 
                 })
-            ).collect::<anyhow::Result<Vec<_>>>()?;
+            )
+            .enumerate()
+            .map(|(i,x)| Ok((TraceType::IntroducedType(i), x?)))
+            .collect::<anyhow::Result<HashMap<_,_>>>()?;
 
-    let formula = fs::read_to_string(&args.formula)
+    if trace_name.len() != trace_file.len() {
+        bail!("number of --trace-type must be equal to number of --trace-name arguments")
+    }
+
+    for (n, f) in trace_name.iter().zip(trace_file.iter()) {
+        envs.insert(TraceType::UserType(n.to_string()), parse_nusmv(f)?);
+    }
+
+    let formula = fs::read_to_string(&formula)
         .context("Failed to read the formula")?;
-
 
     let formula = parser::parse(&formula)
         .context("Failed parsing the formula")?;
 
 
-    to_smt(&ctx, &envs, &formula)?;
+    to_smt(&ctx, &envs, formula)?;
  
     Ok(())
 }
@@ -99,14 +119,14 @@ fn main() -> anyhow::Result<()> {
 
 struct SmtTranslationContext<'c, 'd> {
     z3: &'c z3::Context,
-    envs: HashMap<&'d str, &'d SMVEnv<'c>>,
+    envs: &'d HashMap<TraceType, SMVEnv<'c>>,
     path_sort: z3::Sort<'c>,
     propositions: RefCell<HashMap<&'d str, z3::FuncDecl<'c>>>,
     predicates: RefCell<HashMap<&'d str, z3::FuncDecl<'c>>>,
 }
 
 impl<'c, 'd> SmtTranslationContext<'c, 'd> {
-    fn from(z3: &'c z3::Context, envs: HashMap<&'d str, &'d SMVEnv<'c>>) -> anyhow::Result<Self> {
+    fn from(z3: &'c z3::Context, envs: &'d HashMap<TraceType, SMVEnv<'c>>) -> anyhow::Result<Self> {
         Ok(Self {
             z3, 
             envs,
@@ -120,14 +140,20 @@ impl<'c, 'd> SmtTranslationContext<'c, 'd> {
         z3::ast::Dynamic::new_const(self.z3, var, &self.path_sort)
     }
 
-    fn proposition(&self, proposition: &'d str, path: &str, z: &z3::ast::Int<'c>)  -> z3::ast::Dynamic<'c> {
+    fn proposition(&self, proposition: &'d str, trace_var: &z3::ast::Dynamic<'c>, z: &z3::ast::Int<'c>)  -> z3::ast::Dynamic<'c> {
         let mut props = self.propositions.borrow_mut();
         let decl = props.entry(proposition)
             .or_insert_with(||{
-                let var = &self.envs[path].variables[proposition];
-                for (en, e) in &self.envs {
-                    assert_eq!(&e.variables[proposition], var);
+                let mut vars = self.envs.iter()
+                    .flat_map(|(_, e)| e.variables.get(proposition));
+                let var = vars.next().unwrap();
+                for v in vars {
+                    assert_eq!(v, var);
                 }
+                // let var = &self.envs[&TraceType::UserType(path.to_string())].variables[proposition];
+                // for (en, e) in self.envs {
+                //     assert_eq!(&e.variables[proposition], var);
+                // }
                 let sort = match &var.sort {
                     VarType::Bool { init: _ } => z3::Sort::bool(self.z3),
                     VarType::Int { init: _, lower: _, upper: _ } => z3::Sort::int(self.z3),
@@ -136,11 +162,11 @@ impl<'c, 'd> SmtTranslationContext<'c, 'd> {
                 z3::FuncDecl::new(self.z3, proposition, &[&self.path_sort, &z3::Sort::int(self.z3)], &sort)
             });
 
-        decl.apply(&[&self.path_var(path), z])
+        decl.apply(&[trace_var, z])
     }
 
 
-    fn predicate(&self, p: &'d str, path: &str, z: &z3::ast::Int<'c>)  -> z3::ast::Dynamic<'c> {
+    fn predicate(&self, p: &'d str, path: &z3::ast::Dynamic<'c>, z: &z3::ast::Int<'c>)  -> z3::ast::Dynamic<'c> {
         let mut preds = self.predicates.borrow_mut();
         let decl = preds.entry(p)
             .or_insert_with(||{
@@ -148,21 +174,25 @@ impl<'c, 'd> SmtTranslationContext<'c, 'd> {
                 z3::FuncDecl::new(self.z3, p, &[&self.path_sort, &z3::Sort::int(self.z3)], &sort)
             });
 
-        decl.apply(&[&self.path_var(path), z])
+        decl.apply(&[path, z])
     }
 
-    fn trace_definition(&self, trace: &'d str) -> z3::ast::Bool<'c> {
+    fn trace_definition(&self, trace_var: &z3::ast::Dynamic<'c>, trace_type: &'d TraceType) -> Option<z3::ast::Bool<'c>> {
+        match trace_type {
+            TraceType::Arbitrary => return None,
+            trace => trace
+        };
+        let smv_env = &self.envs[&trace_type];
         let z3 = self.z3;
 
         let z0 = &z3::ast::Int::fresh_const(z3, "z");
         let z1 = &(z0 + z3::ast::Int::from_i64(z3, 1));
 
 
-        let smv_env = &self.envs[trace];
         use z3::ast::Ast;
 
         let smv_env_state = |z| smv_env.variables.iter()
-            .map(|(v, _)| (*v, self.proposition(*v, trace, z)))
+            .map(|(v, _)| (*v, self.proposition(*v, &trace_var, z)))
             .collect();
 
         let mut assertions = vec![];
@@ -198,8 +228,8 @@ impl<'c, 'd> SmtTranslationContext<'c, 'd> {
 
         for (var, Variable { sort }) in &smv_env.variables {
 
-            let initial_values = |values: Vec<Dynamic<'c>>| disj(values.into_iter().map(|x| self.proposition(var, trace, &int(0))._eq(&x)).collect());
-            
+            let initial_values = |values: Vec<Dynamic<'c>>| disj(values.into_iter().map(|x| self.proposition(var, &trace_var, &int(0))._eq(&x)).collect());
+
             match sort {
                 VarType::Bool { init } => {
                     if let Some(vals) = init {
@@ -208,10 +238,10 @@ impl<'c, 'd> SmtTranslationContext<'c, 'd> {
                 }
                 VarType::Int { init, lower, upper } => {
                     if let Some(lower) = lower {
-                        assertions.push(self.proposition(var, trace, z0).as_int().unwrap().ge(&int(*lower)));
+                        assertions.push(self.proposition(var, &trace_var, z0).as_int().unwrap().ge(&int(*lower)));
                     }
                     if let Some(upper) = upper {
-                        assertions.push(self.proposition(var, trace, z0).as_int().unwrap().le(&int(*upper)));
+                        assertions.push(self.proposition(var, &trace_var, z0).as_int().unwrap().le(&int(*upper)));
                     }
                     if let Some(vals) = init {
                       assertions.push(initial_values(vals.iter().map(|v| Dynamic::from(int(*v))).collect()));
@@ -219,10 +249,10 @@ impl<'c, 'd> SmtTranslationContext<'c, 'd> {
                 },
                 VarType::BVector { width, lower, upper, init } => {
                     if let Some(lower) = lower {
-                        assertions.push(self.proposition(var, trace, z0).as_bv().unwrap().bvsge(&bv(*lower, *width)));
+                        assertions.push(self.proposition(var, &trace_var, z0).as_bv().unwrap().bvsge(&bv(*lower, *width)));
                     }
                     if let Some(upper) = upper {
-                        assertions.push(self.proposition(var, trace, z0).as_bv().unwrap().bvsle(&bv(*upper, *width)));
+                        assertions.push(self.proposition(var, &trace_var, z0).as_bv().unwrap().bvsle(&bv(*upper, *width)));
                     }
                     if let Some(vals) = init {
                       assertions.push(initial_values(vals.iter().map(|v| Dynamic::from(bv(*v, *width))).collect()));
@@ -233,7 +263,7 @@ impl<'c, 'd> SmtTranslationContext<'c, 'd> {
         }
 
         for (pred, def) in &smv_env.predicates {
-            assertions.push(self.predicate(pred, trace, z0)._eq(&Dynamic::from(def(smv_env, z3, &env_state0))));
+            assertions.push(self.predicate(pred, &trace_var, z0)._eq(&Dynamic::from(def(smv_env, z3, &env_state0))));
         }
 
         for (var, deltas) in &smv_env.transitions {
@@ -245,7 +275,7 @@ impl<'c, 'd> SmtTranslationContext<'c, 'd> {
                 let condition = disj(condition_options);
                 let value_options = to_smt_vec(transition(smv_env, z3, &env_state0));
                 let value_assignment = disj(value_options.into_iter()
-                    .map(|value| self.proposition(var, trace, z1)._eq(&value))
+                    .map(|value| self.proposition(var, &trace_var, z1)._eq(&value))
                     .collect::<Vec<_>>());
 
                 let mut full_condition = condition.clone();
@@ -259,7 +289,7 @@ impl<'c, 'd> SmtTranslationContext<'c, 'd> {
             }
         }
 
-        z3::ast::forall_const(z3, &[z0], &[], &z3::ast::Bool::and(z3, &assertions))
+        Some(z3::ast::forall_const(z3, &[z0], &[], &z3::ast::Bool::and(z3, &assertions)))
     }
 
 }
@@ -278,9 +308,19 @@ fn formula_to_smt<'c, 'd>(ctx: &SmtTranslationContext<'c, 'd>, term: &'d AstNode
     };
     let exists = |v, f| z3::ast::exists_const(z3, &[v], &[], &f);
     let forall = |v, f| z3::ast::forall_const(z3, &[v], &[], &f);
+    let make_quantifier = |q, trace, trace_type, form: &'d AstNode| {
+        let trace = ctx.path_var(trace);
+        let def = ctx.trace_definition(&trace, trace_type);
+        match (q, def) {
+            (Quantifier::Forall, None) => z3::ast::forall_const(z3, &[&trace], &[], &br(&form, z)),
+            (Quantifier::Exists, None) => z3::ast::exists_const(z3, &[&trace], &[], &br(&form, z)),
+            (Quantifier::Forall, Some(def)) => z3::ast::forall_const(z3, &[&trace], &[], &def.implies(&br(&form, z))),
+            (Quantifier::Exists, Some(def)) => z3::ast::exists_const(z3, &[&trace], &[], &(def & br(&form, z))),
+        }
+    };
     match term {
-        AstNode::HAQuantifier { identifier, form } => todo!(),
-        AstNode::HEQuantifier { identifier, form } => todo!(),
+        AstNode::HAQuantifier { identifier, form , trace_type} => make_quantifier(Quantifier::Forall, identifier, trace_type, &**form).into(), 
+        AstNode::HEQuantifier { identifier, form , trace_type} => make_quantifier(Quantifier::Exists, identifier, trace_type, &**form).into(), 
         AstNode::AAQuantifier { identifier, form } => todo!(),
         AstNode::AEQuantifier { identifier, form } => todo!(),
         AstNode::BinOp { operator, lhs, rhs } => match operator {
@@ -315,7 +355,7 @@ fn formula_to_smt<'c, 'd>(ctx: &SmtTranslationContext<'c, 'd>, term: &'d AstNode
             }
             UnaryOperator::Next => { dr(phi, &(z + Int::from_i64(z3, 1))) },
         },
-        AstNode::HIndexedProp { proposition, path_identifier } => ctx.proposition(&proposition, &path_identifier, z),
+        AstNode::HIndexedProp { proposition, path_identifier } => ctx.proposition(&proposition, &ctx.path_var(path_identifier), z),
         AstNode::AIndexedProp { proposition, path_identifier, traj_identifier } => todo!(),
         AstNode::Constant { value } => Dynamic::from(Int::from_str(z3, value).expect(&format!("expected int value, got {value}"))),
     }
@@ -326,54 +366,53 @@ enum Quantifier {
     Exists,
 }
 
-fn strip_quantifiers(mut formula: &parser::AstNode) -> (Vec<(Quantifier, &str)>, &parser::AstNode) {
-    let mut out = Vec::new();
-    loop {
-        match formula {
-            AstNode::HAQuantifier { identifier, form } => {
-                out.push((Quantifier::Forall, identifier.as_str()));
-                formula = &*form;
+fn map_quantifiers(formula: parser::AstNode, next_introduced_quantifier_type: &mut usize) -> parser::AstNode {
+    macro_rules! case_HQuantifier {
+        ($HQuantifier:tt, $ident:ident, $form:ident, $trace_type:ident) => {
+            {
+                let trace_type = match $trace_type {
+                    TraceType::Arbitrary => {
+                        let i = *next_introduced_quantifier_type;
+                        *next_introduced_quantifier_type += 1;
+                        TraceType::IntroducedType(i)
+                    }
+                    TraceType::UserType(ty) => TraceType::UserType(ty),
+                    TraceType::IntroducedType(_) => unreachable!(),
+                };
+                AstNode::$HQuantifier { identifier: $ident, trace_type, form: Box::new(map_quantifiers(*$form, next_introduced_quantifier_type)) }
             }
-            AstNode::HEQuantifier { identifier, form } => {
-                out.push((Quantifier::Exists, identifier.as_str()));
-                formula = &*form;
-            }
-            AstNode::AAQuantifier { identifier, form } => todo!(),
-            AstNode::AEQuantifier { identifier, form } => todo!(),
-            _ => return (out, formula)
         };
+    }
+    match formula {
+         AstNode::HEQuantifier { identifier, form, trace_type } => case_HQuantifier!(HEQuantifier, identifier, form, trace_type),
+         AstNode::HAQuantifier { identifier, form, trace_type } => case_HQuantifier!(HAQuantifier, identifier, form, trace_type),
+        AstNode::AAQuantifier { identifier, form } => todo!(),
+        AstNode::AEQuantifier { identifier, form } => todo!(),
+        _ => formula,
     }
 }
 
-fn to_smt<'c, 'd>(z3: &'c z3::Context, envs: &'d Vec<SMVEnv<'c>>, formula: &'d parser::AstNode) -> anyhow::Result<()> {
+fn to_smt<'c, 'd>(z3: &'c z3::Context, envs: &'d HashMap<TraceType, SMVEnv<'c>>, formula: parser::AstNode) -> anyhow::Result<()> {
 
-    let (qs, formula) = strip_quantifiers(formula);
-    if qs.len() != envs.len() {
+    let mut next_introduced_quantifier_type = 0;
+    dbg!(next_introduced_quantifier_type);
+    let formula = map_quantifiers(formula, &mut next_introduced_quantifier_type);
+    if next_introduced_quantifier_type != envs.iter()
+        .map(|(ty, _)| match ty {
+            TraceType::IntroducedType(_) => 1,
+            _ => 0,
+       }).sum() {
         bail!("quantifiers prefix of formula does not match the number of smv environments given")
     }
 
-    let ctx = SmtTranslationContext::from(z3, 
-        qs.iter().map(|(_q, trace)| *trace)
-            .zip(envs.iter())
-            .collect())?;
+    let ctx = SmtTranslationContext::from(z3, envs)?;
 
-    let smt_without_qs = formula_to_smt(&ctx, formula, &z3::ast::Int::from_i64(ctx.z3, 0)).as_bool().expect("HyperLTL formula must be of type bool");
-
-
-    let mut full_smt = smt_without_qs;
-    for (q, trace) in qs.iter().rev() {
-        let def = ctx.trace_definition(trace);
-        let trace = ctx.path_var(trace);
-        full_smt = match q {
-            Quantifier::Forall => z3::ast::forall_const(z3, &[&trace], &[], &def.implies(&full_smt)),
-            Quantifier::Exists => z3::ast::exists_const(z3, &[&trace], &[], &(def & full_smt)),
-        };
-    }
+    let smt = formula_to_smt(&ctx, &formula, &z3::ast::Int::from_i64(ctx.z3, 0)).as_bool().expect("HyperLTL formula must be of type bool");
 
     println!("
 (set-logic all)
 
-(assert (not {full_smt}))
+(assert (not {smt}))
 
 (check-sat)
     ");

@@ -17,8 +17,8 @@ pub enum Semantics {
 pub fn create_path_mapping(formula: &AstNode, k: usize) -> HashMap<&str, usize> {
     let mut mapping = HashMap::<&str, usize>::new();
     match formula {
-        AstNode::HAQuantifier{identifier, form} |
-        AstNode::HEQuantifier{identifier, form} => {
+        AstNode::HAQuantifier{identifier, form, trace_type: _ } |
+        AstNode::HEQuantifier{identifier, form, trace_type: _ } => {
             // Recursively map inner quantifiers.
             mapping.extend(create_path_mapping(form, k + 1));
             // Update mapping
@@ -32,8 +32,8 @@ pub fn create_path_mapping(formula: &AstNode, k: usize) -> HashMap<&str, usize> 
 
     pub fn inner_ltl(formula: &AstNode) -> &AstNode {
         match formula {
-            AstNode::HAQuantifier{identifier: _, form} |
-            AstNode::HEQuantifier{identifier: _, form} |
+            AstNode::HAQuantifier{identifier: _, form, trace_type: _ } |
+            AstNode::HEQuantifier{identifier: _, form, trace_type: _} |
             AstNode::AAQuantifier{identifier: _, form} |
             AstNode::AEQuantifier{identifier: _, form} => {
                 inner_ltl(form)
@@ -44,8 +44,8 @@ pub fn create_path_mapping(formula: &AstNode, k: usize) -> HashMap<&str, usize> 
 
 pub fn is_hltl(formula: &AstNode) -> bool {
     match formula {
-        AstNode::HAQuantifier{identifier: _, form} |
-        AstNode::HEQuantifier{identifier: _, form} => is_hltl(form),
+        AstNode::HAQuantifier{identifier: _, form, trace_type: _} |
+        AstNode::HEQuantifier{identifier: _, form, trace_type: _} => is_hltl(form),
         AstNode::AAQuantifier{identifier: _, form: _} |
         AstNode::AEQuantifier{identifier: _, form: _} => false,
         _ => true
@@ -66,7 +66,7 @@ fn get_propositions_for_paths(formula: &AstNode, map: &mut HashMap<&str, Vec<Str
         AstNode::UnOp {operator: _, operand} => {
             get_propositions_for_paths(operand, map);
         },
-        AstNode::HIndexedProp {proposition, path_identifier} |
+        AstNode::HIndexedProp {proposition, path_identifier } |
         AstNode::AIndexedProp {proposition, path_identifier, ..} => {
             map.get_mut(path_identifier as &str).unwrap().push(proposition.to_string());
         },
@@ -91,8 +91,8 @@ pub fn get_propositions_by_path(formula: &AstNode) -> HashMap<&str, Vec<String>>
 
 pub fn get_path_identifiers(formula: &AstNode) -> Vec<&str> {
     match formula {
-        AstNode::HAQuantifier{identifier, form} |
-        AstNode::HEQuantifier{identifier, form} => {
+        AstNode::HAQuantifier{identifier, form, trace_type: _} |
+        AstNode::HEQuantifier{identifier, form, trace_type: _} => {
             // Recursively find inner paths.
             let mut path_list = get_path_identifiers(form);
             // The result is reversed, so we reverse it again
@@ -124,8 +124,8 @@ pub fn get_traj_identifiers(formula: &AstNode) -> Vec<&str> {
             // Return the result
             traj_list
         }
-        AstNode::HAQuantifier{identifier:_, form} |
-        AstNode::HEQuantifier{identifier:_, form} => get_traj_identifiers(form),
+        AstNode::HAQuantifier{identifier:_, form, trace_type: _} |
+        AstNode::HEQuantifier{identifier:_, form, trace_type: _} => get_traj_identifiers(form),
         _ => Vec::<&str>::new()
     }
 }
@@ -145,8 +145,8 @@ pub fn get_exists_trajs(formula: &AstNode) -> Vec<&str> {
             // Return the result
             exists_list
         }
-        AstNode::HAQuantifier{identifier:_, form} |
-        AstNode::HEQuantifier{identifier:_, form} |
+        AstNode::HAQuantifier{identifier:_, form, trace_type: _} |
+        AstNode::HEQuantifier{identifier:_, form, trace_type: _} |
         AstNode::AAQuantifier{identifier:_, form} => get_exists_trajs(form),
         _ => Vec::<&str>::new()
     }
@@ -167,8 +167,8 @@ pub fn get_forall_trajs(formula: &AstNode) -> Vec<&str> {
             // Return the result
             forall_list
         }
-        AstNode::HAQuantifier{identifier:_, form} |
-        AstNode::HEQuantifier{identifier:_, form} |
+        AstNode::HAQuantifier{identifier:_, form, trace_type: _} |
+        AstNode::HEQuantifier{identifier:_, form, trace_type: _} |
         AstNode::AEQuantifier{identifier:_, form} => get_forall_trajs(form),
         _ => Vec::<&str>::new()
     }
@@ -178,8 +178,8 @@ pub fn get_forall_trajs(formula: &AstNode) -> Vec<&str> {
 pub fn is_e(formula: &AstNode) -> bool {
     match formula {
         AstNode::AAQuantifier{identifier:_, form:_} => false,
-        AstNode::HAQuantifier{identifier:_, form} |
-        AstNode::HEQuantifier{identifier:_, form} |
+        AstNode::HAQuantifier{identifier:_, form, trace_type: _} |
+        AstNode::HEQuantifier{identifier:_, form, trace_type: _} |
         AstNode::AEQuantifier{identifier:_, form} => is_e(form),
         _ => true
     }
@@ -189,8 +189,8 @@ pub fn is_e(formula: &AstNode) -> bool {
 pub fn is_a(formula: &AstNode) -> bool {
     match formula {
         AstNode::AEQuantifier{identifier:_, form:_} => false,
-        AstNode::HAQuantifier{identifier:_, form} |
-        AstNode::HEQuantifier{identifier:_, form} |
+        AstNode::HAQuantifier{identifier:_, form, trace_type: _} |
+        AstNode::HEQuantifier{identifier:_, form, trace_type: _} |
         AstNode::AAQuantifier{identifier:_, form} => is_a(form),
         _ => true
     }
@@ -214,8 +214,8 @@ fn check_ae_rec(formula: &AstNode) -> bool {
                 _ => check_ae_rec(form),
             }
         },
-        AstNode::HAQuantifier{identifier:_, form} |
-        AstNode::HEQuantifier{identifier:_, form} |
+        AstNode::HAQuantifier{identifier:_, form, trace_type: _} |
+        AstNode::HEQuantifier{identifier:_, form, trace_type: _} |
         AstNode::AAQuantifier{identifier:_, form} => check_ae_rec(form),
         _ => true
     }
@@ -239,8 +239,8 @@ fn check_ea_rec(formula: &AstNode) -> bool {
                 _ => check_ea_rec(form),
             }
         },
-        AstNode::HAQuantifier{identifier:_, form} |
-        AstNode::HEQuantifier{identifier:_, form} |
+        AstNode::HAQuantifier{identifier:_, form, trace_type: _} |
+        AstNode::HEQuantifier{identifier:_, form, trace_type: _} |
         AstNode::AEQuantifier{identifier:_, form} => check_ea_rec(form),
         _ => true
     }
@@ -249,15 +249,17 @@ fn check_ea_rec(formula: &AstNode) -> bool {
 // Negates the given formula
 pub fn negate_formula(formula: &AstNode) -> AstNode {
     match formula {
-        AstNode::HAQuantifier{identifier, form} => {
+        AstNode::HAQuantifier{identifier, form, trace_type} => {
             AstNode::HEQuantifier {
                 identifier: identifier.clone(),
+                trace_type: trace_type.clone(),
                 form: Box::new(negate_formula(form)),
             }
         },
-        AstNode::HEQuantifier{identifier, form} => {
+        AstNode::HEQuantifier{identifier, form, trace_type} => {
             AstNode::HAQuantifier {
                 identifier: identifier.clone(),
+                trace_type: trace_type.clone(),
                 form: Box::new(negate_formula(form)),
             }
         },
