@@ -148,24 +148,24 @@ fn main() -> anyhow::Result<()> {
 fn write_smt_file<'c,'d>(stdout: &mut impl std::io::Write, ctx: &SmtTranslationContext<'c, 'd>, smt: z3::ast::Bool<'c>) -> anyhow::Result<()> {
 
 
-    // let mut bit_vectors = false;
-    // for (_, e) in ctx.envs {
-    //     for (_,v) in &e.variables {
-    //         match v.sort {
-    //             VarType::Bool { .. } => (),
-    //             VarType::Int { .. } => (),
-    //             VarType::BVector { .. } => {
-    //                 bit_vectors = true;
-    //             }
-    //         }
-    //     }
-    // }
-    //
-    // if bit_vectors {
-    //     writeln!(stdout, "(set-logic all)")?;
-    // } else {
-    //     writeln!(stdout, "(set-logic all)")?;
-    // }
+    let mut bit_vectors = false;
+    for (_, e) in ctx.envs {
+        for (_,v) in &e.variables {
+            match v.sort {
+                VarType::Bool { .. } => (),
+                VarType::Int { .. } => (),
+                VarType::BVector { .. } => {
+                    bit_vectors = true;
+                }
+            }
+        }
+    }
+
+    if bit_vectors {
+        writeln!(stdout, "(set-logic UFBVLIA)")?;
+    } else {
+        writeln!(stdout, "(set-logic UFLIA)")?;
+    }
 
     writeln!(stdout, "(declare-sort {} 0)", ctx.trace_sort)?;
 
