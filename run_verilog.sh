@@ -47,7 +47,7 @@ time_run() {
 
     if [[ "$EXPORT_SMT" = 1 ]] 
     then
-      ./export-smt2.sh run_verilog $case_name $*
+      ./export-smt2.sh verilog $case_name $*
       return
     fi
     local stamp log_base log_file tmp

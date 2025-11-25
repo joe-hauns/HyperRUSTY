@@ -147,14 +147,27 @@ fn main() -> anyhow::Result<()> {
 
 fn write_smt_file<'c,'d>(stdout: &mut impl std::io::Write, ctx: &SmtTranslationContext<'c, 'd>, smt: z3::ast::Bool<'c>) -> anyhow::Result<()> {
 
-    writeln!(stdout, "(set-logic all)")?;
 
-    // let sorts = HashSet::new();
-    // for (_, decl) in ctx.prop_or_pred.borrow().iter() {
-    //     z3::FuncDecl
-    //     decl.
-    //     writeln!(stdout, "{decl}")?;
+    // let mut bit_vectors = false;
+    // for (_, e) in ctx.envs {
+    //     for (_,v) in &e.variables {
+    //         match v.sort {
+    //             VarType::Bool { .. } => (),
+    //             VarType::Int { .. } => (),
+    //             VarType::BVector { .. } => {
+    //                 bit_vectors = true;
+    //             }
+    //         }
+    //     }
     // }
+    //
+    // if bit_vectors {
+    //     writeln!(stdout, "(set-logic all)")?;
+    // } else {
+    //     writeln!(stdout, "(set-logic all)")?;
+    // }
+
+    writeln!(stdout, "(declare-sort {} 0)", ctx.trace_sort)?;
 
     for (_, decl) in ctx.prop_or_pred.borrow().iter() {
         writeln!(stdout, "{decl}")?;
@@ -174,7 +187,7 @@ fn write_smt_file<'c,'d>(stdout: &mut impl std::io::Write, ctx: &SmtTranslationC
 struct SmtTranslationContext<'c, 'd> {
     z3: &'c z3::Context,
     envs: &'d HashMap<TraceType, SMVEnv<'c>>,
-    path_sort: z3::Sort<'c>,
+    trace_sort: z3::Sort<'c>,
     prop_or_pred: RefCell<HashMap<&'d str, z3::FuncDecl<'c>>>,
     // propositions: RefCell<HashMap<&'d str, z3::FuncDecl<'c>>>,
     // predicates: RefCell<HashMap<&'d str, z3::FuncDecl<'c>>>,
@@ -185,13 +198,13 @@ impl<'c, 'd> SmtTranslationContext<'c, 'd> {
         Ok(Self {
             z3, 
             envs,
-            path_sort: z3::Sort::uninterpreted(z3, "Path".into()),
+            trace_sort: z3::Sort::uninterpreted(z3, "Trace".into()),
             prop_or_pred: RefCell::new(Default::default()),
         })
     }
 
     fn path_var(&self, var: &str) -> z3::ast::Dynamic<'c> {
-        z3::ast::Dynamic::new_const(self.z3, var, &self.path_sort)
+        z3::ast::Dynamic::new_const(self.z3, var, &self.trace_sort)
     }
 
     fn prop(&self, proposition: &'d str, trace_var: &z3::ast::Dynamic<'c>, z: &z3::ast::Int<'c>)  -> z3::ast::Dynamic<'c> {
@@ -214,10 +227,10 @@ impl<'c, 'd> SmtTranslationContext<'c, 'd> {
                     for v in vars {
                         assert_eq!(to_z3_sort(&v.sort), sort);
                     }
-                    z3::FuncDecl::new(self.z3, proposition, &[&self.path_sort, &z3::Sort::int(self.z3)], &sort)
+                    z3::FuncDecl::new(self.z3, proposition, &[&self.trace_sort, &z3::Sort::int(self.z3)], &sort)
                 } else {
                     let sort = z3::Sort::bool(self.z3);
-                    z3::FuncDecl::new(self.z3, proposition, &[&self.path_sort, &z3::Sort::int(self.z3)], &sort)
+                    z3::FuncDecl::new(self.z3, proposition, &[&self.trace_sort, &z3::Sort::int(self.z3)], &sort)
                 }
             });
 

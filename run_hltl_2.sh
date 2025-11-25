@@ -50,7 +50,7 @@ time_run() {
 
     if [[ "$EXPORT_SMT" = 1 ]] 
     then
-      ./export-smt2.sh run_hltl_2 $case_name $*
+      ./export-smt2.sh hltl_2 $case_name $*
       return
     fi
     local stamp log_base log_file tmp
