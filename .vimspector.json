@@ -1,0 +1,43 @@
+{
+  "adapters": {
+      "my-cpp": {
+        "_extends": "vscode-cpptools",
+        "extends": "CodeLLDB",
+        "stop_on_crash": true,
+        "env": {
+          "ASAN_OPTIONS": "detect_stack_use_after_return=1",
+          "_LLDB_LAUNCH_FLAG_LAUNCH_IN_TTY": "YES"
+        }
+      }
+    },
+  "configurations": {
+    "RunDbg": {
+      "default": true,
+      "adapter": "my-cpp",
+      "_adapter": "vscode-cpptools",
+      "_adapter": "CodeLLDB",
+      "variables": {
+        "LastBin": { "shell" : [ "cat", ".last_bin" ] },
+        "LastArgs": { "shell" : [ "cat", ".last_args" ] }
+      },
+      "configuration": {
+        "type" : "cppdbg",
+        "request": "launch",
+        "program": "${LastBin}",
+        "args":  [ "*${LastArgs}" ],
+        "_externalConsole": true,
+        "_MIMode": "lldb", "_osx": { "MIMode": "lldb" },
+        "stop_on_crash": true,
+        "stopOnError": true,
+        "exception": {
+          "caught": "",
+          "uncaught": "Y"
+        },
+        "stopAtEntry": "false",
+        "breakOnAllExceptions": false,
+        "breakOnUncaughtExceptions": true,
+        "cpp_throw": false
+      }
+    }
+  }
+}

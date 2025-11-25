@@ -2,6 +2,7 @@ use clap::{arg, value_parser, ArgGroup, Command, Subcommand};
 use clap::Parser;
 use anyhow::bail;
 use anyhow::Context;
+use regex::Regex;
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::path::{self, *};
@@ -35,19 +36,24 @@ struct Args {
     yosys_output: Option<PathBuf>,
 
     /// Top yosys module name
-    #[arg(short, long, default_value = "main")]
-    top: String,
+    #[arg(short, long)]
+    top: Option<String>,
 
     /// Hyperproperty formula file
     #[arg(short, long)]
     formula: String,
 
+    #[arg(long)]
+    output_file: Option<PathBuf>,
 }
 
 impl Args {
     fn validate(&self) -> anyhow::Result<()> {
         if self.verilog.len() != 0 && self.yosys_output.is_none() {
             bail!("if using yosys files (-v, --verilog) the yosys output model.smt2 must be added as option (-o, --yosys-output)");
+        }
+        if self.verilog.len() != 0 && self.top.is_none() {
+            bail!("if using yosys files (-v, --verilog) the yosys top module must be added as option (-t, --top)");
         }
         Ok(())
     }
@@ -58,15 +64,15 @@ fn main() -> anyhow::Result<()> {
     env_logger::init();
     let args = Args::parse();
     args.validate()?;
-    let Args { nusmv, verilog, trace_file, trace_name, yosys_output, top, formula } = args;
+    let Args { nusmv, verilog, trace_file, trace_name, yosys_output, top, formula, output_file } = args;
 
     let cfg = z3::Config::new();
-    let ctx = z3::Context::new(&cfg);
+    let z3 = z3::Context::new(&cfg);
 
     let parse_nusmv = |n: &str|-> anyhow::Result<_> {
                     info!("parsing {n}");
                     Ok(parser_nusmv::parse_smv(
-                        &ctx,
+                        &z3,
                         &n,
                         Some("output.txt".to_owned()),
                         // None, /* output path */
@@ -84,9 +90,9 @@ fn main() -> anyhow::Result<()> {
                     info!("parsing {}", v.display());
                     let r = hqb_verilog::build_smvenv_from_verilog(
                                     v,
-                                    &top, 
+                                    &top.as_ref().unwrap(), 
                                     yosys_output.as_ref().unwrap(),
-                                    &ctx);
+                                    &z3);
                     Ok(r?)
                                 
                 })
@@ -110,8 +116,56 @@ fn main() -> anyhow::Result<()> {
         .context("Failed parsing the formula")?;
 
 
-    to_smt(&ctx, &envs, formula)?;
+    // let smt = to_smt(&z3, &envs, formula)?;
+
+    let mut next_introduced_quantifier_type = 0;
+    let formula = map_quantifiers(formula, &mut next_introduced_quantifier_type);
+    if next_introduced_quantifier_type != envs.iter()
+        .map(|(ty, _)| match ty {
+            TraceType::IntroducedType(_) => 1,
+            _ => 0,
+       }).sum() {
+        bail!("quantifiers prefix of formula does not match the number of smv environments given")
+    }
+
+    let ctx = SmtTranslationContext::from(&z3, &envs)?;
+
+    let smt = formula_to_smt(&ctx, &formula, &z3::ast::Int::from_i64(ctx.z3, 0)).as_bool().expect("HyperLTL formula must be of type bool");
+
+    if let Some(file) = output_file {
+       let mut file = std::fs::File::create(file).context("failed to open output file")?;
+       write_smt_file(&mut file, &ctx, smt)?;
+
+    } else {
+       let stdout = std::io::stdout();
+       let mut stdout = stdout.lock();
+       write_smt_file(&mut stdout, &ctx, smt)?;
+    }
  
+    Ok(())
+}
+
+fn write_smt_file<'c,'d>(stdout: &mut impl std::io::Write, ctx: &SmtTranslationContext<'c, 'd>, smt: z3::ast::Bool<'c>) -> anyhow::Result<()> {
+
+    writeln!(stdout, "(set-logic all)")?;
+
+    // let sorts = HashSet::new();
+    // for (_, decl) in ctx.prop_or_pred.borrow().iter() {
+    //     z3::FuncDecl
+    //     decl.
+    //     writeln!(stdout, "{decl}")?;
+    // }
+
+    for (_, decl) in ctx.prop_or_pred.borrow().iter() {
+        writeln!(stdout, "{decl}")?;
+    }
+
+
+    writeln!(stdout, "
+(assert (not {smt}))
+
+(check-sat)
+    ")?;
     Ok(())
 }
 
@@ -121,8 +175,9 @@ struct SmtTranslationContext<'c, 'd> {
     z3: &'c z3::Context,
     envs: &'d HashMap<TraceType, SMVEnv<'c>>,
     path_sort: z3::Sort<'c>,
-    propositions: RefCell<HashMap<&'d str, z3::FuncDecl<'c>>>,
-    predicates: RefCell<HashMap<&'d str, z3::FuncDecl<'c>>>,
+    prop_or_pred: RefCell<HashMap<&'d str, z3::FuncDecl<'c>>>,
+    // propositions: RefCell<HashMap<&'d str, z3::FuncDecl<'c>>>,
+    // predicates: RefCell<HashMap<&'d str, z3::FuncDecl<'c>>>,
 }
 
 impl<'c, 'd> SmtTranslationContext<'c, 'd> {
@@ -131,8 +186,7 @@ impl<'c, 'd> SmtTranslationContext<'c, 'd> {
             z3, 
             envs,
             path_sort: z3::Sort::uninterpreted(z3, "Path".into()),
-            propositions: RefCell::new(Default::default()),
-            predicates: RefCell::new(Default::default()),
+            prop_or_pred: RefCell::new(Default::default()),
         })
     }
 
@@ -140,41 +194,34 @@ impl<'c, 'd> SmtTranslationContext<'c, 'd> {
         z3::ast::Dynamic::new_const(self.z3, var, &self.path_sort)
     }
 
-    fn proposition(&self, proposition: &'d str, trace_var: &z3::ast::Dynamic<'c>, z: &z3::ast::Int<'c>)  -> z3::ast::Dynamic<'c> {
-        let mut props = self.propositions.borrow_mut();
+    fn prop(&self, proposition: &'d str, trace_var: &z3::ast::Dynamic<'c>, z: &z3::ast::Int<'c>)  -> z3::ast::Dynamic<'c> {
+        let mut props = self.prop_or_pred.borrow_mut();
         let decl = props.entry(proposition)
             .or_insert_with(||{
                 let mut vars = self.envs.iter()
-                    .flat_map(|(_, e)| e.variables.get(proposition));
-                let var = vars.next().unwrap();
-                for v in vars {
-                    assert_eq!(v, var);
+                    .filter_map(|(_, e)| {
+                      e.variables.get(proposition)
+                    }
+                        );
+                if let Some(var) = vars.next() {
+
+                    let to_z3_sort = |sort: &VarType| match sort {
+                        VarType::Bool { init: _ } => z3::Sort::bool(self.z3),
+                        VarType::Int { init: _, lower: _, upper: _ } => z3::Sort::int(self.z3),
+                        VarType::BVector { width, lower: _, upper: _, init: _ } => z3::Sort::bitvector(self.z3, *width),
+                    };
+                    let sort = to_z3_sort(&var.sort);
+                    for v in vars {
+                        assert_eq!(to_z3_sort(&v.sort), sort);
+                    }
+                    z3::FuncDecl::new(self.z3, proposition, &[&self.path_sort, &z3::Sort::int(self.z3)], &sort)
+                } else {
+                    let sort = z3::Sort::bool(self.z3);
+                    z3::FuncDecl::new(self.z3, proposition, &[&self.path_sort, &z3::Sort::int(self.z3)], &sort)
                 }
-                // let var = &self.envs[&TraceType::UserType(path.to_string())].variables[proposition];
-                // for (en, e) in self.envs {
-                //     assert_eq!(&e.variables[proposition], var);
-                // }
-                let sort = match &var.sort {
-                    VarType::Bool { init: _ } => z3::Sort::bool(self.z3),
-                    VarType::Int { init: _, lower: _, upper: _ } => z3::Sort::int(self.z3),
-                    VarType::BVector { width, lower: _, upper: _, init: _ } => z3::Sort::bitvector(self.z3, *width),
-                };
-                z3::FuncDecl::new(self.z3, proposition, &[&self.path_sort, &z3::Sort::int(self.z3)], &sort)
             });
 
-        decl.apply(&[trace_var, z])
-    }
-
-
-    fn predicate(&self, p: &'d str, path: &z3::ast::Dynamic<'c>, z: &z3::ast::Int<'c>)  -> z3::ast::Dynamic<'c> {
-        let mut preds = self.predicates.borrow_mut();
-        let decl = preds.entry(p)
-            .or_insert_with(||{
-                let sort = z3::Sort::bool(self.z3);
-                z3::FuncDecl::new(self.z3, p, &[&self.path_sort, &z3::Sort::int(self.z3)], &sort)
-            });
-
-        decl.apply(&[path, z])
+        decl.apply(&[trace_var, &z3::ast::Dynamic::from(z)])
     }
 
     fn trace_definition(&self, trace_var: &z3::ast::Dynamic<'c>, trace_type: &'d TraceType) -> Option<z3::ast::Bool<'c>> {
@@ -188,11 +235,11 @@ impl<'c, 'd> SmtTranslationContext<'c, 'd> {
         let z0 = &z3::ast::Int::fresh_const(z3, "z");
         let z1 = &(z0 + z3::ast::Int::from_i64(z3, 1));
 
-
         use z3::ast::Ast;
 
         let smv_env_state = |z| smv_env.variables.iter()
-            .map(|(v, _)| (*v, self.proposition(*v, &trace_var, z)))
+            .map(|(v, _)| {
+                (*v, self.prop(*v, &trace_var, z))})
             .collect();
 
         let mut assertions = vec![];
@@ -221,15 +268,17 @@ impl<'c, 'd> SmtTranslationContext<'c, 'd> {
 
         use z3::ast::{Bool,Dynamic,Int,BV};
 
-
         let int = |i| Int::from_i64(z3, i);
         let bv = |i, sz| BV::from_i64(z3, i, sz);
         let bol = |i| Bool::from_bool(z3, i);
 
         for (var, Variable { sort }) in &smv_env.variables {
 
-            let initial_values = |values: Vec<Dynamic<'c>>| disj(values.into_iter().map(|x| self.proposition(var, &trace_var, &int(0))._eq(&x)).collect());
+            let initial_values = |values: Vec<Dynamic<'c>>| disj(values.into_iter().map(|x| {
+                self.prop(var, &trace_var, &int(0))._eq(&x)
+            }).collect());
 
+            let prop_z0 = self.prop(var, &trace_var, z0);
             match sort {
                 VarType::Bool { init } => {
                     if let Some(vals) = init {
@@ -238,10 +287,10 @@ impl<'c, 'd> SmtTranslationContext<'c, 'd> {
                 }
                 VarType::Int { init, lower, upper } => {
                     if let Some(lower) = lower {
-                        assertions.push(self.proposition(var, &trace_var, z0).as_int().unwrap().ge(&int(*lower)));
+                        assertions.push(prop_z0.as_int().unwrap().ge(&int(*lower)));
                     }
                     if let Some(upper) = upper {
-                        assertions.push(self.proposition(var, &trace_var, z0).as_int().unwrap().le(&int(*upper)));
+                        assertions.push(prop_z0.as_int().unwrap().le(&int(*upper)));
                     }
                     if let Some(vals) = init {
                       assertions.push(initial_values(vals.iter().map(|v| Dynamic::from(int(*v))).collect()));
@@ -249,10 +298,10 @@ impl<'c, 'd> SmtTranslationContext<'c, 'd> {
                 },
                 VarType::BVector { width, lower, upper, init } => {
                     if let Some(lower) = lower {
-                        assertions.push(self.proposition(var, &trace_var, z0).as_bv().unwrap().bvsge(&bv(*lower, *width)));
+                        assertions.push(prop_z0.as_bv().unwrap().bvuge(&bv(*lower, *width)));
                     }
                     if let Some(upper) = upper {
-                        assertions.push(self.proposition(var, &trace_var, z0).as_bv().unwrap().bvsle(&bv(*upper, *width)));
+                        assertions.push(prop_z0.as_bv().unwrap().bvule(&bv(*upper, *width)));
                     }
                     if let Some(vals) = init {
                       assertions.push(initial_values(vals.iter().map(|v| Dynamic::from(bv(*v, *width))).collect()));
@@ -263,7 +312,7 @@ impl<'c, 'd> SmtTranslationContext<'c, 'd> {
         }
 
         for (pred, def) in &smv_env.predicates {
-            assertions.push(self.predicate(pred, &trace_var, z0)._eq(&Dynamic::from(def(smv_env, z3, &env_state0))));
+            assertions.push(self.prop(pred, &trace_var, z0)._eq(&Dynamic::from(def(smv_env, z3, &env_state0))));
         }
 
         for (var, deltas) in &smv_env.transitions {
@@ -275,7 +324,8 @@ impl<'c, 'd> SmtTranslationContext<'c, 'd> {
                 let condition = disj(condition_options);
                 let value_options = to_smt_vec(transition(smv_env, z3, &env_state0));
                 let value_assignment = disj(value_options.into_iter()
-                    .map(|value| self.proposition(var, &trace_var, z1)._eq(&value))
+                    .map(|value| {
+                        self.prop(var, &trace_var, z1)._eq(&value) })
                     .collect::<Vec<_>>());
 
                 let mut full_condition = condition.clone();
@@ -318,6 +368,7 @@ fn formula_to_smt<'c, 'd>(ctx: &SmtTranslationContext<'c, 'd>, term: &'d AstNode
             (Quantifier::Exists, Some(def)) => z3::ast::exists_const(z3, &[&trace], &[], &(def & br(&form, z))),
         }
     };
+    let binary_regex = Regex::new("#b([01]+)").unwrap();
     match term {
         AstNode::HAQuantifier { identifier, form , trace_type} => make_quantifier(Quantifier::Forall, identifier, trace_type, &**form).into(), 
         AstNode::HEQuantifier { identifier, form , trace_type} => make_quantifier(Quantifier::Exists, identifier, trace_type, &**form).into(), 
@@ -355,9 +406,35 @@ fn formula_to_smt<'c, 'd>(ctx: &SmtTranslationContext<'c, 'd>, term: &'d AstNode
             }
             UnaryOperator::Next => { dr(phi, &(z + Int::from_i64(z3, 1))) },
         },
-        AstNode::HIndexedProp { proposition, path_identifier } => ctx.proposition(&proposition, &ctx.path_var(path_identifier), z),
+        AstNode::HIndexedProp { proposition, path_identifier } => {  
+            ctx.prop(&proposition, &ctx.path_var(path_identifier), z)
+            // ctx.proposition(&proposition, &ctx.path_var(path_identifier), z) 
+        },
         AstNode::AIndexedProp { proposition, path_identifier, traj_identifier } => todo!(),
-        AstNode::Constant { value } => Dynamic::from(Int::from_str(z3, value).expect(&format!("expected int value, got {value}"))),
+        AstNode::Constant { value } => if let Some(cap) =  binary_regex.captures(value) {
+
+            let mut res = None;
+            let s = cap.get(1).unwrap().as_str();
+            let mut proc = 0;
+            let base = Int::from_u64(z3, u64::MAX) + Int::from_u64(z3, 1);
+            while proc < s.len() {
+              let substr = 
+                  if s.len() > 64 {
+                      &s[s.len() - 64..s.len()]
+                  } else {
+                      &s
+                  };
+              proc += 64;
+              let num = Int::from_u64(z3, u64::from_str_radix(substr, 2).unwrap());
+              res = match res {
+                  None => Some(num),
+                  Some(prefix) => Some((prefix * &base) + num),
+              };
+            }
+            Dynamic::from(BV::from_int(&res.unwrap(), s.len() as u32))
+        } else {
+          Dynamic::from(Int::from_str(z3, value).expect(&format!("expected int value, got {value}")))
+        },
     }
 }
 
@@ -392,32 +469,8 @@ fn map_quantifiers(formula: parser::AstNode, next_introduced_quantifier_type: &m
     }
 }
 
-fn to_smt<'c, 'd>(z3: &'c z3::Context, envs: &'d HashMap<TraceType, SMVEnv<'c>>, formula: parser::AstNode) -> anyhow::Result<()> {
-
-    let mut next_introduced_quantifier_type = 0;
-    dbg!(next_introduced_quantifier_type);
-    let formula = map_quantifiers(formula, &mut next_introduced_quantifier_type);
-    if next_introduced_quantifier_type != envs.iter()
-        .map(|(ty, _)| match ty {
-            TraceType::IntroducedType(_) => 1,
-            _ => 0,
-       }).sum() {
-        bail!("quantifiers prefix of formula does not match the number of smv environments given")
-    }
-
-    let ctx = SmtTranslationContext::from(z3, envs)?;
-
-    let smt = formula_to_smt(&ctx, &formula, &z3::ast::Int::from_i64(ctx.z3, 0)).as_bool().expect("HyperLTL formula must be of type bool");
-
-    println!("
-(set-logic all)
-
-(assert (not {smt}))
-
-(check-sat)
-    ");
-
-    Ok(())
-
-}
+// fn to_smt<'c, 'd>(z3: &'c z3::Context, envs: &'d HashMap<TraceType, SMVEnv<'c>>, formula: parser::AstNode) -> anyhow::Result<z3::ast::Bool<'c>> {
+//     Ok(smt)
+//
+// }
 

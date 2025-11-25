@@ -12,6 +12,7 @@ CSV="${RESULTS_DIR}/table4(hltl_tacas21)_runtimes.csv"
 MD="${RESULTS_DIR}/table4(hltl_tacas21)_runtimes.md"
 
 
+EXPORT_SMT=${EXPORT_SMT:-0}
 CARGO_BIN=${CARGO_BIN:-target/release/HyperRUSTY}
 if [[ ! -x "$CARGO_BIN" ]]; then
   echo "Building HyperQB (release)…"
@@ -46,6 +47,11 @@ time_run() {
     local case_name="$1"; shift
     local variant="$1"; shift
 
+    if [[ "$EXPORT_SMT" = 1 ]] 
+    then
+      ./export-smt2.sh run_hltl_1 $case_name $*
+      return
+    fi
     local stamp log_base log_file tmp
     stamp="$(date -Iseconds)"
     log_base="${case_name// /_}_${variant// /_}"
@@ -117,6 +123,11 @@ time_run() {
 
 # ---- Pretty-print table (plain + markdown) ----
 render_tables() {
+  if [[ "$EXPORT_SMT" = 1 ]] 
+  then
+    return
+  fi
+ 
   echo
   echo "=== Table 4 runtimes (TACAS'21 cases) ==="
   column -s, -t < "$CSV" | sed '1s/^/**/;1s/$/**/' | column -t
