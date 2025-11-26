@@ -45,7 +45,7 @@ mkdir -p smt-benchmarks/$group_name
 out_file=smt-benchmarks/$group_name/$case_name.smt2
 echo ";- " $* > $out_file
 echo >> $out_file
-$TO_SMT $args >> $out_file
+$TO_SMT prefix-quantifiers $args >> $out_file
 
 # nusmv=$(echo $* | rg '.*-n((\s+\S+)+)\s+-f.*'  -r '$1')
 # form=$(echo $* | rg '.*-n((\s+\S+)+)\s+-f(\s+\S+).*'  -r '$3')

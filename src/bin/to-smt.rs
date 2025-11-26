@@ -11,9 +11,25 @@ use ir::*;
 use parser::*;
 use std::fs;
 
+#[derive(Subcommand, Debug)]
+enum Cmd {
+    PrefixQuantifiers(PrefixQuantifiers),
+    Hltl(Hltl),
+}
+
 #[derive(Parser, Debug)]
-#[command(version, about, long_about = None)]
-struct Args {
+struct Hltl {
+    /// Hyperproperty formula file
+    #[arg(short, long)]
+    from_file: bool,
+
+    /// Hyperproperty formula or file name
+    formula: String,
+}
+
+
+#[derive(Parser, Debug)]
+struct PrefixQuantifiers {
 
     /// positional NuSMV input file
     #[arg(short, long)]
@@ -45,9 +61,17 @@ struct Args {
 
     #[arg(long)]
     output_file: Option<PathBuf>,
+
 }
 
-impl Args {
+#[derive(Parser, Debug)]
+#[command(version, about, long_about = None)]
+struct Args {
+    #[command(subcommand)]
+    cmd: Cmd,
+}
+
+impl PrefixQuantifiers {
     fn validate(&self) -> anyhow::Result<()> {
         if self.verilog.len() != 0 && self.yosys_output.is_none() {
             bail!("if using yosys files (-v, --verilog) the yosys output model.smt2 must be added as option (-o, --yosys-output)");
@@ -57,92 +81,158 @@ impl Args {
         }
         Ok(())
     }
+
+    fn run(&self) -> anyhow::Result<()> {
+
+        let PrefixQuantifiers { nusmv, verilog, trace_file, trace_name, yosys_output, top, formula, output_file } = self;
+
+        let cfg = z3::Config::new();
+        let z3 = z3::Context::new(&cfg);
+
+        let parse_nusmv = |n: &str|-> anyhow::Result<_> {
+                        info!("parsing {n}");
+                        Ok(parser_nusmv::parse_smv(
+                            &z3,
+                            &n,
+                            Some("output.txt".to_owned()),
+                            // None, /* output path */
+                            /* bit_encode */ false,
+                            "model",
+                            "ir",
+                            ))
+        };
+        let mut envs = 
+            std::iter::chain(
+                nusmv.iter()
+                    .map(|n| parse_nusmv(n)),
+                verilog.iter()
+                    .map(|v| -> anyhow::Result<_>{
+                        info!("parsing {}", v.display());
+                        let r = hqb_verilog::build_smvenv_from_verilog(
+                                        v,
+                                        &top.as_ref().unwrap(), 
+                                        yosys_output.as_ref().unwrap(),
+                                        &z3);
+                        Ok(r?)
+                                    
+                    })
+                )
+                .enumerate()
+                .map(|(i,x)| Ok((TraceType::IntroducedType(i), x?)))
+                .collect::<anyhow::Result<HashMap<_,_>>>()?;
+
+        if trace_name.len() != trace_file.len() {
+            bail!("number of --trace-type must be equal to number of --trace-name arguments")
+        }
+
+        for (n, f) in trace_name.iter().zip(trace_file.iter()) {
+            envs.insert(TraceType::UserType(n.to_string()), parse_nusmv(f)?);
+        }
+
+        let formula = fs::read_to_string(&formula)
+            .context("Failed to read the formula")?;
+
+        let formula = parser::parse(&formula)
+            .context("Failed parsing the formula")?;
+
+
+        // let smt = to_smt(&z3, &envs, formula)?;
+
+        let mut next_introduced_quantifier_type = 0;
+        let formula = map_quantifiers(formula, &mut next_introduced_quantifier_type);
+        if next_introduced_quantifier_type != envs.iter()
+            .map(|(ty, _)| match ty {
+                TraceType::IntroducedType(_) => 1,
+                _ => 0,
+           }).sum() {
+            bail!("quantifiers prefix of formula does not match the number of smv environments given")
+        }
+
+        let ctx = SmtTranslationContext::from(&z3, &envs)?;
+
+        let smt = formula_to_smt(&ctx, &formula, &z3::ast::Int::from_i64(ctx.z3, 0)).as_bool().expect("HyperLTL formula must be of type bool");
+
+        if let Some(file) = output_file {
+           let mut file = std::fs::File::create(file).context("failed to open output file")?;
+           write_smt_file(&mut file, &ctx, smt)?;
+
+        } else {
+           let stdout = std::io::stdout();
+           let mut stdout = stdout.lock();
+           write_smt_file(&mut stdout, &ctx, smt)?;
+        }
+     
+        Ok(())
+
+    }
+}
+
+
+impl Args {
+    fn validate(&self) -> anyhow::Result<()> {
+        self.cmd.validate()
+    }
+}
+
+impl Hltl {
+    fn validate(&self) -> anyhow::Result<()> {
+        Ok(())
+    }
+
+    fn run(&self) -> anyhow::Result<()> {
+        let Hltl { formula, from_file } = self;
+
+
+        let cfg = z3::Config::new();
+        let z3 = z3::Context::new(&cfg);
+        let mut envs = Default::default();
+
+        let formula = 
+            if *from_file {
+                fs::read_to_string(&formula)
+                    .context("Failed to read the formula")?
+            } else {
+                formula.to_string()
+            };
+
+        let formula = parser::parse(&formula)
+            .context("Failed parsing the formula")?;
+
+        let ctx = SmtTranslationContext::from(&z3, &envs)?;
+
+        let smt = formula_to_smt(&ctx, &formula, &z3::ast::Int::from_i64(ctx.z3, 0)).as_bool().expect("HyperLTL formula must be of type bool");
+
+        let stdout = std::io::stdout();
+        let mut stdout = stdout.lock();
+        write_smt_file(&mut stdout, &ctx, smt)?;
+
+        Ok(())
+    }
+}
+
+
+impl Cmd {
+    fn validate(&self) -> anyhow::Result<()> {
+        match self {
+            Cmd::PrefixQuantifiers(prefix_quantifiers) => prefix_quantifiers.validate(),
+            Cmd::Hltl(hltl) => hltl.validate(),
+        }
+    }
+
+    fn run(&self) -> anyhow::Result<()> {
+        match self {
+            Cmd::PrefixQuantifiers(prefix_quantifiers) => prefix_quantifiers.run(),
+            Cmd::Hltl(hltl) => hltl.run(),
+        }
+    }
 }
 
 fn main() -> anyhow::Result<()> {
-
     env_logger::init();
     let args = Args::parse();
     args.validate()?;
-    let Args { nusmv, verilog, trace_file, trace_name, yosys_output, top, formula, output_file } = args;
-
-    let cfg = z3::Config::new();
-    let z3 = z3::Context::new(&cfg);
-
-    let parse_nusmv = |n: &str|-> anyhow::Result<_> {
-                    info!("parsing {n}");
-                    Ok(parser_nusmv::parse_smv(
-                        &z3,
-                        &n,
-                        Some("output.txt".to_owned()),
-                        // None, /* output path */
-                        /* bit_encode */ false,
-                        "model",
-                        "ir",
-                        ))
-    };
-    let mut envs = 
-        std::iter::chain(
-            nusmv.iter()
-                .map(|n| parse_nusmv(n)),
-            verilog.iter()
-                .map(|v| -> anyhow::Result<_>{
-                    info!("parsing {}", v.display());
-                    let r = hqb_verilog::build_smvenv_from_verilog(
-                                    v,
-                                    &top.as_ref().unwrap(), 
-                                    yosys_output.as_ref().unwrap(),
-                                    &z3);
-                    Ok(r?)
-                                
-                })
-            )
-            .enumerate()
-            .map(|(i,x)| Ok((TraceType::IntroducedType(i), x?)))
-            .collect::<anyhow::Result<HashMap<_,_>>>()?;
-
-    if trace_name.len() != trace_file.len() {
-        bail!("number of --trace-type must be equal to number of --trace-name arguments")
-    }
-
-    for (n, f) in trace_name.iter().zip(trace_file.iter()) {
-        envs.insert(TraceType::UserType(n.to_string()), parse_nusmv(f)?);
-    }
-
-    let formula = fs::read_to_string(&formula)
-        .context("Failed to read the formula")?;
-
-    let formula = parser::parse(&formula)
-        .context("Failed parsing the formula")?;
-
-
-    // let smt = to_smt(&z3, &envs, formula)?;
-
-    let mut next_introduced_quantifier_type = 0;
-    let formula = map_quantifiers(formula, &mut next_introduced_quantifier_type);
-    if next_introduced_quantifier_type != envs.iter()
-        .map(|(ty, _)| match ty {
-            TraceType::IntroducedType(_) => 1,
-            _ => 0,
-       }).sum() {
-        bail!("quantifiers prefix of formula does not match the number of smv environments given")
-    }
-
-    let ctx = SmtTranslationContext::from(&z3, &envs)?;
-
-    let smt = formula_to_smt(&ctx, &formula, &z3::ast::Int::from_i64(ctx.z3, 0)).as_bool().expect("HyperLTL formula must be of type bool");
-
-    if let Some(file) = output_file {
-       let mut file = std::fs::File::create(file).context("failed to open output file")?;
-       write_smt_file(&mut file, &ctx, smt)?;
-
-    } else {
-       let stdout = std::io::stdout();
-       let mut stdout = stdout.lock();
-       write_smt_file(&mut stdout, &ctx, smt)?;
-    }
- 
-    Ok(())
+    let Args {cmd} = args;
+    cmd.run()
 }
 
 fn write_smt_file<'c,'d>(stdout: &mut impl std::io::Write, ctx: &SmtTranslationContext<'c, 'd>, smt: z3::ast::Bool<'c>) -> anyhow::Result<()> {
@@ -161,11 +251,7 @@ fn write_smt_file<'c,'d>(stdout: &mut impl std::io::Write, ctx: &SmtTranslationC
         }
     }
 
-    if bit_vectors {
-        writeln!(stdout, "(set-logic UFBVLIA)")?;
-    } else {
-        writeln!(stdout, "(set-logic UFLIA)")?;
-    }
+    writeln!(stdout, "(set-logic UF{}LIA)", if bit_vectors { "BV" } else { "" })?;
 
     writeln!(stdout, "(declare-sort {} 0)", ctx.trace_sort)?;
 

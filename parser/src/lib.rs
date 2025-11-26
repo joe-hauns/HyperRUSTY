@@ -81,7 +81,16 @@ pub fn parse(source: &str) -> Result<AstNode, Error<Rule>> {
         .next().unwrap();
     
     // Parse the formula
-    Ok(build_ast_from_path(pair))
+    Ok(build_ast_from_form_rec(pair.into_inner().next().unwrap()))
+}
+
+fn build_ast_from_form_rec(body_pair: pest::iterators::Pair<Rule>) -> AstNode {
+    match body_pair.as_rule() {
+        Rule::path_formula => build_ast_from_path(body_pair),
+        Rule::traj_formula => build_ast_from_traj(body_pair),
+        Rule::inner_hltl => build_ast_from_inner_ltl(body_pair.into_inner().next().unwrap()),
+        _ => unreachable!(),
+    }
 }
 
 fn build_ast_from_path(pair: pest::iterators::Pair<Rule>) -> AstNode {
@@ -98,13 +107,7 @@ fn build_ast_from_path(pair: pest::iterators::Pair<Rule>) -> AstNode {
     };
     
     // What type of formula is the body? Get its corresponding AST
-    let body_pair = body.into_inner().next().unwrap();
-    let body_ast = match body_pair.as_rule() {
-        Rule::path_formula => build_ast_from_path(body_pair),
-        Rule::traj_formula => build_ast_from_traj(body_pair),
-        Rule::inner_hltl => build_ast_from_inner_ltl(body_pair.into_inner().next().unwrap()),
-        _ => unreachable!(),
-    };
+    let body_ast = build_ast_from_form_rec(body.into_inner().next().unwrap());
     
     // Identify Quantifier type and build final AST
     match &pair.as_str()[..1] {
@@ -295,6 +298,7 @@ fn build_ast_from_factor(pair: pest::iterators::Pair<Rule>) -> AstNode {
             // It's either a parenthesized expression or an atom
             let inner_item = pairs.next().unwrap();
             match inner_item.as_rule() {
+                Rule::form_rec  => build_ast_from_form_rec(inner_item.into_inner().next().unwrap()),
                 Rule::inner_hltl | Rule::inner_altl => build_ast_from_inner_ltl(inner_item.into_inner().next().unwrap()),
                 Rule::hltl_atom => build_ast_from_hprop(inner_item),
                 Rule::altl_atom => build_ast_from_aprop(inner_item),
@@ -340,7 +344,7 @@ fn build_ast_from_hprop(pair: pest::iterators::Pair<Rule>) -> AstNode {
             AstNode::HIndexedProp {
                 proposition: String::from(inner.as_str()),
                 path_identifier: String::from(path.as_str()),
-            }
+}
         }
         _ => unreachable!(),
     }
@@ -368,4 +372,36 @@ fn build_ast_from_aprop(pair: pest::iterators::Pair<Rule>) -> AstNode {
         }
         _ => unreachable!(),
     }
+}
+
+
+#[test]
+fn test_parsing() {
+    let implies = |l,r|  AstNode::BinOp { operator: BinOperator::Implication, lhs: Box::new(l), rhs: Box::new(r), };
+    let eq = |l,r|  AstNode::BinOp { operator: BinOperator::Equality, lhs: Box::new(l), rhs: Box::new(r), };
+    let and = |l,r|  AstNode::BinOp { operator: BinOperator::Conjunction, lhs: Box::new(l), rhs: Box::new(r), };
+    let not = |f|  AstNode::UnOp { operator: UnaryOperator::Negation, operand: Box::new(f), };
+    #[allow(non_snake_case)]
+    let G = |f|  AstNode::UnOp { operator: UnaryOperator::Globally, operand: Box::new(f), };
+    let forall = |x: &str,f|  AstNode::HAQuantifier { identifier: x.to_string(), trace_type: TraceType::Arbitrary, form: Box::new(f) };
+    let exists = |x: &str,f|  AstNode::HEQuantifier { identifier: x.to_string(), trace_type: TraceType::Arbitrary, form: Box::new(f) };
+    let p = |x: &str| AstNode::HIndexedProp { proposition: "p".to_string(), path_identifier: x.to_string() };
+    let q = |x: &str| AstNode::HIndexedProp { proposition: "q".to_string(), path_identifier: x.to_string() };
+
+    assert_eq!(Ok(implies(
+                forall("x", p("x")) ,
+                exists("x", p("x")) ,
+        )),
+        parse("(Forall x . p[x]) -> (Exists x . p[x])"));
+
+    assert_eq!(Ok(and(not(p("x")), p("y"))),
+        parse("~p[x] & p[y]"));
+
+
+    assert_eq!(Ok(forall("x", not(and(eq(p("x"), p("y")), not(eq(q("x"), q("y"))))))),
+        parse("Forall x . ~((p[x] = p[y]) & ~(q[x] = q[y]))"));
+
+    assert_eq!(Ok(and(G(p("x")), G(p("z")))),
+        parse("G p[x] &  G p[z]"));
+
 }

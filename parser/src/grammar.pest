@@ -14,7 +14,7 @@ hdisj = { hconj ~ ("|" ~ hdisj)? }
 hconj = { huntl ~ ("&" ~ hconj)? }
 huntl = { hrels ~ ("U" ~ huntl)? }
 hrels = { hfactor ~ ("R" ~ hrels)? }
-hfactor = { unop ~ hfactor | "(" ~ inner_hltl ~ ")" | hltl_atom }
+hfactor = { unop ~ hfactor | "(" ~ form_rec ~ ")" | hltl_atom }
 hltl_atom = { ident ~ "[" ~ ident ~ "]" | constant | number }
 
 
@@ -34,4 +34,4 @@ constant = {"TRUE" | "FALSE"}
 number = @{ ASCII_DIGIT+ | "#b" ~ ("0" | "1")+ }
 
 // Entry point for the parser
-formula = _{ SOI ~ path_formula ~ EOI }
+formula = _{ SOI ~ form_rec ~ EOI }
