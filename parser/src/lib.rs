@@ -198,8 +198,32 @@ fn build_ast_from_impl(pair: pest::iterators::Pair<Rule>) -> AstNode {
     }
 }
 
+fn build_ast_from_binary(pair: pest::iterators::Pair<Rule>, self_rule: Rule) -> AstNode {
+    // We always reach here with an 'hdisj/adisj' node in the parser. Skip it.
+    let mut pairs = pair.into_inner();
+
+    // Check the length of the iterator
+    match pairs.len() {
+        1 => build_ast_from_conj(pairs.next().unwrap()),
+        2 => {
+            let lhs = pairs.next().unwrap(); // This is conj
+            let lhs_ast = build_ast_from_conj(lhs);
+            let rhs = pairs.next().unwrap(); // This is disj
+            let rhs_ast = build_ast_from_disj(rhs);
+            AstNode::BinOp {
+                operator: BinOperator::Disjunction,
+                lhs: Box::new(lhs_ast),
+                rhs: Box::new(rhs_ast),
+            }
+        },
+        _ => unreachable!(),
+    }
+}
+
+
 fn build_ast_from_disj(pair: pest::iterators::Pair<Rule>) -> AstNode {
     // We always reach here with an 'hdisj/adisj' node in the parser. Skip it.
+    assert!(pair.as_rule() == Rule::adisj || pair.as_rule() == Rule::hdisj);
     let mut pairs = pair.into_inner();
 
     // Check the length of the iterator
@@ -222,6 +246,29 @@ fn build_ast_from_disj(pair: pest::iterators::Pair<Rule>) -> AstNode {
 
 fn build_ast_from_conj(pair: pest::iterators::Pair<Rule>) -> AstNode {
     // We always reach here with an 'hconj/aconj' node in the parser. Skip it.
+    assert!(pair.as_rule() == Rule::aconj || pair.as_rule() == Rule::hconj);
+    let mut pairs = pair.into_inner();
+
+    // Check the length of the iterator
+    match pairs.len() {
+        1 => build_ast_from_weak(pairs.next().unwrap()),
+        2 => {
+            let lhs = pairs.next().unwrap(); // This is factor
+            let lhs_ast = build_ast_from_weak(lhs);
+            let rhs = pairs.next().unwrap(); // This is conj
+            let rhs_ast = build_ast_from_conj(rhs);
+            AstNode::BinOp {
+                operator: BinOperator::Conjunction,
+                lhs: Box::new(lhs_ast),
+                rhs: Box::new(rhs_ast),
+            }
+        },
+        _ => unreachable!(),
+    }
+}
+
+fn build_ast_from_weak(pair: pest::iterators::Pair<Rule>) -> AstNode {
+    // We always reach here with an 'hweak/aweak' node in the parser. Skip it.
     let mut pairs = pair.into_inner();
 
     // Check the length of the iterator
@@ -231,11 +278,18 @@ fn build_ast_from_conj(pair: pest::iterators::Pair<Rule>) -> AstNode {
             let lhs = pairs.next().unwrap(); // This is factor
             let lhs_ast = build_ast_from_until(lhs);
             let rhs = pairs.next().unwrap(); // This is conj
-            let rhs_ast = build_ast_from_conj(rhs);
+            let rhs_ast = build_ast_from_weak(rhs);
             AstNode::BinOp {
-                operator: BinOperator::Conjunction,
-                lhs: Box::new(lhs_ast),
-                rhs: Box::new(rhs_ast),
+                operator: BinOperator::Disjunction,
+                lhs: Box::new(AstNode::BinOp {
+                    operator: BinOperator::Until,
+                    lhs: Box::new(lhs_ast.clone()),
+                    rhs: Box::new(rhs_ast),
+                }),
+                rhs: Box::new(AstNode::UnOp { 
+                    operator: UnaryOperator::Globally,
+                    operand: Box::new(lhs_ast.clone()),
+                })
             }
         },
         _ => unreachable!(),
@@ -302,7 +356,7 @@ fn build_ast_from_factor(pair: pest::iterators::Pair<Rule>) -> AstNode {
                 Rule::inner_hltl | Rule::inner_altl => build_ast_from_inner_ltl(inner_item.into_inner().next().unwrap()),
                 Rule::hltl_atom => build_ast_from_hprop(inner_item),
                 Rule::altl_atom => build_ast_from_aprop(inner_item),
-                _ => unreachable!()
+                r => unreachable!("{r:?}")
             }
         },
         2 => {
@@ -378,11 +432,16 @@ fn build_ast_from_aprop(pair: pest::iterators::Pair<Rule>) -> AstNode {
 #[test]
 fn test_parsing() {
     let implies = |l,r|  AstNode::BinOp { operator: BinOperator::Implication, lhs: Box::new(l), rhs: Box::new(r), };
+    #[allow(non_snake_case)]
+    let U = |l,r|  AstNode::BinOp { operator: BinOperator::Until, lhs: Box::new(l), rhs: Box::new(r), };
     let eq = |l,r|  AstNode::BinOp { operator: BinOperator::Equality, lhs: Box::new(l), rhs: Box::new(r), };
     let and = |l,r|  AstNode::BinOp { operator: BinOperator::Conjunction, lhs: Box::new(l), rhs: Box::new(r), };
+    let or = |l,r|  AstNode::BinOp { operator: BinOperator::Disjunction, lhs: Box::new(l), rhs: Box::new(r), };
     let not = |f|  AstNode::UnOp { operator: UnaryOperator::Negation, operand: Box::new(f), };
     #[allow(non_snake_case)]
     let G = |f|  AstNode::UnOp { operator: UnaryOperator::Globally, operand: Box::new(f), };
+    #[allow(non_snake_case)]
+    let W = |l: AstNode,r| or(U(l.clone(), r), G(l));
     let forall = |x: &str,f|  AstNode::HAQuantifier { identifier: x.to_string(), trace_type: TraceType::Arbitrary, form: Box::new(f) };
     let exists = |x: &str,f|  AstNode::HEQuantifier { identifier: x.to_string(), trace_type: TraceType::Arbitrary, form: Box::new(f) };
     let p = |x: &str| AstNode::HIndexedProp { proposition: "p".to_string(), path_identifier: x.to_string() };
@@ -403,5 +462,11 @@ fn test_parsing() {
 
     assert_eq!(Ok(and(G(p("x")), G(p("z")))),
         parse("G p[x] &  G p[z]"));
+
+    assert_eq!(Ok(U(not(p("x")), q("x"))),
+        parse("~p[x] U q[x]"));
+
+    assert_eq!(Ok(W(not(p("x")), q("x"))),
+        parse("~p[x] W q[x]"));
 
 }

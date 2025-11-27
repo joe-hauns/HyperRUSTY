@@ -11,7 +11,8 @@ inner_altl = { aequal }
 hequal = { himpl ~ ("=" ~ hequal)? }
 himpl = { hdisj ~ ("->" ~ himpl)? }
 hdisj = { hconj ~ ("|" ~ hdisj)? }
-hconj = { huntl ~ ("&" ~ hconj)? }
+hconj = { hweak ~ ("&" ~ hconj)? }
+hweak = { huntl ~ ("W" ~ hweak)? }
 huntl = { hrels ~ ("U" ~ huntl)? }
 hrels = { hfactor ~ ("R" ~ hrels)? }
 hfactor = { unop ~ hfactor | "(" ~ form_rec ~ ")" | hltl_atom }
@@ -21,7 +22,8 @@ hltl_atom = { ident ~ "[" ~ ident ~ "]" | constant | number }
 aequal = { aimpl ~ ("=" ~ aequal)? }
 aimpl = { adisj ~ ("->" ~ aimpl)? }
 adisj = { aconj ~ ("|" ~ adisj)? }
-aconj = { auntl ~ ("&" ~ aconj)? }
+aconj = { aweak ~ ("&" ~ aconj)? }
+aweak = { auntl ~ ("W" ~ aweak)? }
 auntl = { arels ~ ("U" ~ auntl)? }
 arels = { afactor ~ ("R" ~ arels)? }
 afactor = { aunop ~ afactor | "(" ~ inner_altl ~ ")" | altl_atom }
