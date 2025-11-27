@@ -438,7 +438,7 @@ impl<'c, 'd> SmtTranslationContext<'c, 'd> {
             }
         }
 
-        Some(z3::ast::forall_const(z3, &[z0], &[], &z3::ast::Bool::and(z3, &assertions)))
+        Some(z3::ast::forall_const(z3, &[z0], &[], &(z0.ge(&z3::ast::Int::from_u64(z3, 0))).implies(&z3::ast::Bool::and(z3, &assertions))))
     }
 
 }
